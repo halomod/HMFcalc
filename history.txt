@@ -1,0 +1,55 @@
+HISTORY OF THE SITE AS A WHOLE
+0.9.94- 2 April 2013
+		Fixed a bug on merging unique cosmologies/labels
+		
+0.9.92- 27 March 2013
+		Fixed bug on addition of extra plots (infinite loop)
+		Added 'analytical' app to track usage (via clicky for now).
+		
+		
+0.9.9 - 26 March 2013
+		Made FloatListField form class (based on CharField)
+		Made overdensity and k_bounds accept multiple input
+		Cleaned up labels (only shows if more than one of a variable)
+		Modified k,R cross-check rule to (0.1,3) from (0.01,10)
+		Added WMAP9 and PLANCK default transfer functions
+		
+0.9.85- 20 March 2013
+		Fixed bug in cumulative functions with NaN's.
+		Made javascript served by google CDN
+		
+0.9.8 - 19 March 2013
+		Fixed pandas merging for k_data
+		Added "Box Size for One Halo" Function/Plot
+		Added support for linear/log yscale option in plots view.
+		Fixed javascript for extrapolate field
+		Changed formview to always point to hmfform.html - dynamic form takes care of mass fields
+		
+0.9.75- 18 March 2013
+		Urgent bugfix
+		dlnsdlnM called too early.
+		CAMB-made transfer function file deleted too early.
+		
+0.9.7 - 18 March 2013
+		Modified set_z() so it only does calculations necessary when z changes
+        Made calculation of dlnsdlnM in init since it is same for all z
+        Removed mean density redshift dependence
+        Put version number on page headers
+        Output version number in ascii files
+        
+0.9.6 - 12 March 2013
+		Updated ngtm/Mgtm to be their own methods
+		Added nltm/Mltm to Perturbations()
+		Added these as options to the form.py
+		Now makes use of pandas instead of those accursed numpy recarrays
+		This makes adding new methods and functions extremely simple.
+		Added version number to base template and settings.py
+		Added a "start again" link to plots page
+		Made the extra plots (N>M etc) have their own form section.
+		Updated PlotChoices() in forms.py so all extra plots can be viewed when appropriate
+		
+0.9.5 - 11 March 2013
+        First version number. 
+		The site works, and has had a bit of work up to this point.
+		HMF is calculated correctly.
+		Also other functions akin to the HMF.

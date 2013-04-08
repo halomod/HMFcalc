@@ -1,0 +1,10 @@
+hmf_finder/hmf_calc/camb
+sync*
+log*
+HMF/settings*
+.*
+*~
+exclude.txt
+static/
+restart.sh
+hmfstatic/
