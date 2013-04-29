@@ -83,14 +83,14 @@ class HMFInput(FormView):
         # FORM DATA MANIPULATION
         ###############################################################
         #===================== First we save the uploaded file to the server (if there is one) ===============================
-        if form.cleaned_data["transfer_file_upload"] != None:
+        if form.cleaned_data["co_transfer_file_upload"] != None:
 
             #Add the time to the front of the filename so it doesn't conflict with other uploads
             localtime = time.asctime( time.localtime(time.time())).replace(" ","").replace(":","")
-            thefile = self.request.FILES["transfer_file_upload"]
+            thefile = self.request.FILES["co_transfer_file_upload"]
             default_storage.save(settings.ROOT_DIR+'/public/media/transfer_functions/'+localtime+'_custom_transfer.dat',ContentFile(thefile.read()))
             #Change the name of the file in the form data for later access.
-            form.cleaned_data['transfer_file_upload'] = settings.ROOT_DIR+'/public/media/transfer_functions/'+localtime+'_custom_transfer.dat'
+            form.cleaned_data['co_transfer_file_upload'] = settings.ROOT_DIR+'/public/media/transfer_functions/'+localtime+'_custom_transfer.dat'
 
         #==================== Now save and merge the cosmology ===============================================================
         cosmo_quantities = [key for key in form.cleaned_data.keys() if key.startswith('cp_')]
@@ -103,9 +103,6 @@ class HMFInput(FormView):
                 index = min(len(form.cleaned_data[quantity])-1,i)
                 cosmology_list[i][quantity[3:]] = form.cleaned_data[quantity][index] 
                     
-        #Mean density has extra processing
-        cosmology_list[i]['mean_dens'] = form.cleaned_data['cp_mean_dens'][index]*(cosmology_list[i]['omega_baryon']+cosmology_list[i]['omega_cdm'])*10**11
-    
         #==================== We make sure the cosmologies are all unique (across adds) =================================
         if self.kwargs['add'] == 'create':
             #If we are creating for the first time, just save the labels to the session
@@ -155,13 +152,59 @@ class HMFInput(FormView):
             form.cleaned_data['max_M'] = self.request.session['max_M']
             form.cleaned_data['M_step'] = self.request.session['M_step']
 
+        #=========== Set the Transfer Function File correctly ===== #
+        transfer_file = form.cleaned_data["co_transfer_file"]
+        if transfer_file == 'custom':
+            if form.cleaned_data["co_transfer_file_upload"] == None:
+                transfer_file = None
+            else:
+                transfer_file = form.cleaned_data['co_transfer_file_upload']
+     
+        #=========== Set k-bounds as a list of tuples ==============================#
+        min_k = form.cleaned_data['k_begins_at']
+        max_k = form.cleaned_data['k_ends_at']
+        num_k_bounds = max(len(min_k),len(max_k))
+        k_bounds = []
+        for i in range(num_k_bounds):
+            mink = min_k[min(len(min_k)-1,i)]
+            maxk = max_k[min(len(max_k)-1,i)] 
+            k_bounds.append((mink,maxk))
+               
+        #============ Set other simpla data ========================================#
+        approach = []
+        if form.cleaned_data['approach']:
+            for i in form.cleaned_data["approach"]:
+                approach = approach+[str(i)]
+           
+        if form.cleaned_data["alternate_model"]:
+            approach = approach + ['user_model']
+        
+        #Function Evaluation Options
+        extra_plots = {}
+        for key,val in form.cleaned_data.iteritems():
+            if key.startswith('get_'):
+                extra_plots[key] = val
+                
         #DO THE CALCULATIONS
-        mass_data,k_data,distances = utils.hmf_output(form.cleaned_data)
+        mass_data,k_data,warnings = utils.hmf_driver(transfer_file = transfer_file, 
+                                            extrapolate = form.cleaned_data['extrapolate'],
+                                            k_bounds = k_bounds,
+                                            z_list = form.cleaned_data['z'],  
+                                            WDM_list = form.cleaned_data['WDM'],    
+                                            approaches = approach,     
+                                            overdensities = form.cleaned_data['overdensity'], 
+                                            cosmology_list = cosmology_list,
+                                            min_M=form.cleaned_data['min_M'], max_M=form.cleaned_data['max_M'],  
+                                            M_step=form.cleaned_data['M_step'],
+                                            user_model=form.cleaned_data['alternate_model'],
+                                            cosmo_labels=form.cleaned_data['cp_label'],  
+                                            extra_plots=extra_plots)
 
+        distances = utils.cosmography(cosmology_list,form.cleaned_data['cp_label'],form.cleaned_data['z'])
         
         #Delete the uploaded file. Not needed anymore. Maybe should leave it here for adds.
-        if form.cleaned_data["transfer_file_upload"] != None:
-            os.system("rm "+form.cleaned_data["transfer_file_upload"])
+        if form.cleaned_data["co_transfer_file_upload"] != None:
+            os.system("rm "+form.cleaned_data["co_transfer_file_upload"])
             
         if self.kwargs['add'] == 'add':
             #self.request.session['data_counter'] = self.request.session['data_counter'] + 1
@@ -169,6 +212,7 @@ class HMFInput(FormView):
             self.request.session["k_data"] = pandas.concat([self.request.session["k_data"],k_data],join='inner',axis=1)
             self.request.session['distances'] =self.request.session['distances'] +[distances]
             self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
+            self.request.session['warnings'].update(warnings)
             #Extra plots redefined here
             self.request.session['get_ngtm'] = form.cleaned_data['get_ngtm'] or self.request.session['get_ngtm']
             self.request.session['get_nltm'] = form.cleaned_data['get_nltm'] or self.request.session['get_nltm']
@@ -184,6 +228,7 @@ class HMFInput(FormView):
             self.request.session['min_M'] = form.cleaned_data['min_M']
             self.request.session['max_M'] = form.cleaned_data['max_M']
             self.request.session['M_step'] = form.cleaned_data['M_step']
+            self.request.session['warnings'] = warnings
             #Extra plots must be added here
             self.request.session['get_ngtm'] = form.cleaned_data['get_ngtm']
             self.request.session['get_nltm'] = form.cleaned_data['get_nltm']
@@ -192,13 +237,7 @@ class HMFInput(FormView):
             self.request.session['get_L'] = form.cleaned_data['get_L']
         
         return super(HMFInput,self).form_valid(form)
-    
-     
-#    def get_template_names(self):
-#        if self.kwargs['add'] == 'add':
-#            return 'addmore.html'
-#        elif self.kwargs['add'] == 'create':
-#            return 'hmfform.html'
+
         
     
 def hmf_image_page(request):
@@ -221,7 +260,9 @@ def hmf_image_page(request):
             collected_cosmos = collected_cosmos + [d[0]]
             collected_z = collected_z + [d[1]]
             final_d = final_d + [d]
-    return render(request,'hmf_image_page.html',{'form':form,'distances':final_d,'download_form':download_form})
+    warnings = request.session['warnings']
+    print warnings
+    return render(request,'hmf_image_page.html',{'form':form,'distances':final_d,'download_form':download_form,'warnings':warnings})
 
 def plots(request,filetype,plottype):
     """
@@ -260,7 +301,7 @@ def plots(request,filetype,plottype):
     if plottype in mass_plots:
         if plottype == 'hmf':
             keep = [string for string in mass_data.columns if string.startswith("hmf_")]
-            mass_data = 10**mass_data[keep]    
+            mass_data = mass_data[keep]    
             title = 'Mass Function'
             ylab = r'Logarithmic Mass Function $\log_{10} \left( \frac{dn}{d \ln M} \right) h^3 Mpc^{-3}$'
             yscale = 'log'
@@ -277,7 +318,6 @@ def plots(request,filetype,plottype):
             keep = [string for string in mass_data.columns if string.startswith("NgtM_")]
             #mass_data.keep_columns(keep)
             mass_data = mass_data[keep]
-            print mass_data
             title = 'n(>M)'
             ylab = r'$\log_{10}(n(>M)) h^3 Mpc^{-3}$'
             yscale = 'linear'
@@ -309,7 +349,7 @@ def plots(request,filetype,plottype):
         elif plottype == 'mhmf':
             keep = [string for string in mass_data.columns if string.startswith("M*hmf_")]
             #mass_data.keep_columns(keep)
-            mass_data = 10**mass_data[keep]
+            mass_data = mass_data[keep]
             title = 'Mass by Mass Function'
             ylab = r'Mass by Mass Function $\left( M\frac{dn}{d \ln M} \right) M_{sun} h^3 Mpc^{-3}$'
             yscale = 'linear'
@@ -318,7 +358,7 @@ def plots(request,filetype,plottype):
             keep = [string for string in mass_data.columns if string.startswith("hmf_")]
             #mass_data.keep_columns(keep)
             mass_data = mass_data[keep]
-            mass_data = 10**mass_data
+            mass_data = mass_data
             first_column = mass_data.columns[0]
             mass_data = mass_data.div(mass_data[first_column],axis=0)
             yscale = 'linear'
@@ -367,7 +407,7 @@ def plots(request,filetype,plottype):
             #mass_data.keep_columns(keep)
             mass_data = mass_data[keep]
             title="Effective Spectral Index"
-            ylab=r'Effective Spectral Index, $n_s$'
+            ylab=r'Effective Spectral Index, $n_{eff}$'
             yscale = 'linear'
             
         canvas = utils.create_canvas(masses, mass_data,title,xlab,ylab,yscale)

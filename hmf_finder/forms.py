@@ -102,7 +102,7 @@ class HMFInput(forms.Form):
                         ("Crocce","Crocce (2010)"),
                         ("Courtin","Courtin (2010)"),
                         ("Angulo","Angulo (2012)"),
-                        ("Angulo_Bound","Angulo (Self-Bound) (2012)"),
+                        ("Angulo_Bound","Angulo (Subhaloes) (2012)"),
                         ("Watson_FoF","Watson (FoF Universal) (2012)"),
                         ("Watson","Watson (Redshift Dependent) (2012)"),
                         ]
@@ -127,19 +127,20 @@ class HMFInput(forms.Form):
                         ("transfers/GiggleZ_transfer.dat","GiggleZ"),
                         ("custom","Custom")]
 
-    transfer_file = forms.ChoiceField(label="Transfer Function",
+    co_transfer_file = forms.ChoiceField(label="Transfer Function",
                                 choices = transfer_choices,
                                 initial="transfers/WMAP7_transfer.dat")
     
-    transfer_file_upload = forms.FileField(required=False,
-                                           help_text="Custom file only used if Transfer Functions is 'Custom'")
+    co_transfer_file_upload = forms.FileField(label="Upload Transfer Function",
+                                              required=False,
+                                              help_text="Custom file only used if Transfer Functions is 'Custom'")
     
        
 #===================================================================
 #    RUN PARAMETERS
 #===================================================================     
     # Extrapolation parameters.
-    extrapolate = forms.BooleanField(label = 'Extrapolate?',initial=True,required=False,help_text="Note: extrapolation is temperamental. Check output power spectra.")
+    extrapolate = forms.BooleanField(label = 'Extrapolate?',initial=True,required=False,help_text="Extrapolate bounds of k?")
     k_ends_at = FloatListField(label="Maximum k",
                                initial=2000.0,
                                help_text="Highest Wavenumber Used, Comma-Separated Decimals",
@@ -150,7 +151,7 @@ class HMFInput(forms.Form):
                                  help_text= "Lowest Wavenumber Used",
                                  max_val=10)
       
-    kr_warn = forms.BooleanField(label="Ensure Accuracy?", initial=True,required=False)
+   # kr_warn = forms.BooleanField(label="Ensure Accuracy?", initial=True,required=False)
 #===================================================================
 #    OPTIONAL PLOTS
 #=================================================================== 
@@ -189,51 +190,49 @@ class HMFInput(forms.Form):
             lab = lab.replace(" ","_")
             labels[i] = lab
         return labels
-    
-    # Mean Density of the Universe (by Omega*h^2*M_sun/Mpc^3)
-    cp_mean_dens = FloatListField(label=mark_safe("Critical Density (10^11 h<sup>2</sup>M<sub>&#9737</sub>Mpc<sup>-3</sup>)"),
-                                  initial='2.7755',
-                                  min_val=0)
-    
 
     # Critical Overdensity corresponding to spherical collapse
-    cp_crit_dens = FloatListField(label="Critical Overdensity",
+    cp_delta_c = FloatListField(label=mark_safe("&#948<sub>c</sub>"),
                                   initial='1.686',
                                   min_val=1)
     # Power spectral index
-    cp_n = FloatListField(label="Power Spectral Index",
+    cp_n = FloatListField(label=mark_safe("n<sub>s</sub> "),
                           initial='0.967',
                           min_val = -4,
                           max_val = 3)
+                          
     # Mass variance on a scale of 8Mpc
-    cp_sigma_8 = FloatListField(label = "Sigma 8",
+    cp_sigma_8 = FloatListField(label = mark_safe("&#963<sub>8</sub>"),
                                 initial='0.81',
                                 min_val=0)
     
     #Hubble Constant    
-    cp_hubble = FloatListField(label="Hubble Parameter",
-                               initial='0.704',
-                               min_val=0)
+    cp_H0 = FloatListField(label=mark_safe("H<sub>0</sub>"),
+                               initial='70.4',
+                               min_val=1)
     
-    cp_omega_baryon   = FloatListField(label="Omega_b",
+    cp_omegab   = FloatListField(label=mark_safe("&#937<sub>b</sub>"),
                                        initial = '0.0455',
                                        min_val = 0)
     
-    cp_omega_cdm      = FloatListField(label="Omega_CDM",
+    cp_omegac      = FloatListField(label=mark_safe("&#937<sub>c</sub>"),
                                        initial = '0.226',
                                        min_val=0)
         
-    cp_omega_lambda   = FloatListField(label="Omega_L",
+    cp_omegav   = FloatListField(label=mark_safe("&#937<sub>&#923</sub>"),
                                        initial='0.728',
                                        min_val=0)
     
-    cp_w              = FloatListField(label="Equation of State",
+    cp_w_lam              = FloatListField(label="w",
                                        initial = '-1.0')
     
-    cp_omega_neutrino = FloatListField(label="Omega_nu",
+    cp_omegan = FloatListField(label=mark_safe("&#937<sub>v</sub>"),
                                        initial = '0.0',
                                        min_val=0)
 
+    cp_reion__optical_depth = FloatListField(label=mark_safe("&#964"),
+                                             initial = '0.085',
+                                             min_val=0)
     
     def clean(self):
         cleaned_data = super(HMFInput,self).clean()
@@ -277,75 +276,7 @@ class HMFInput(forms.Form):
             maxm = cleaned_data.get("max_M")
             if maxm < minm:
                 raise forms.ValidationError("min(M) must be less than max(M)")
-        
-        #============ Cross-check k and M limits ===============#
-        #We need to make sure that the minimum mass scale with the maximum k scale is large enough to include
-        #the window function drop-off, which happens before kR=100
-        kr_warn = cleaned_data.get('kr_warn')
-        if kr_warn:
-            #Get M limits
-            if not self.minm:
-                min_m = cleaned_data.get("min_M")
-                max_m = cleaned_data.get("max_M")
-            else:
-                min_m = self.minm
-                max_m = self.maxm
-            
-            #Read mean_density parameters     
-            mean_dens_l = cleaned_data.get("cp_mean_dens")
-            omega_b_l = cleaned_data.get("cp_omega_baryon")
-            omega_cdm_l = cleaned_data.get("cp_omega_cdm")
-            
-            #Define mass from radius function
-            def M(r,mean_dens):
-                return 4*np.pi*r**3 * mean_dens/3
-            
-            for i in range(len(labels)-1):
-                #get the combinations of cosmo parameters
-                mean_dens = mean_dens_l[min(i,len(mean_dens_l)-1)]
-                omega_b = omega_b_l[min(i,len(omega_b_l)-1)]
-                omega_cdm = omega_cdm_l[min(i,len(omega_cdm_l)-1)]
-                #Define Mean Density
-                mean_dens = mean_dens*(omega_b+omega_cdm)*10**11
-                
-                #Define min and max radius
-                min_r= (3*10**min_m/(4*np.pi*mean_dens))**(1./3.)
-                max_r = (3*10**max_m/(4*np.pi*mean_dens))**(1./3.)
-                errmsg1 = """
-                        Please make sure the product of minimum radius and maximum k is > 3.
-                        If it is not, then the mass variance could be extremely inaccurate.
-                                
-                        """
-                        
-                errmsg2 = """
-                        Please make sure the product of maximum radius and minimum k is < 0.1
-                        If it is not, then the mass variance could be inaccurate.
-                                
-                        """
-                if extrapolate:
-                    maxk = np.max(max_k)
-                    mink = np.min(min_k)
-                else:
-                    transfer = cleaned_data.get("transfer_file")
-                    transfer_upload = cleaned_data.get("transfer_file_upload")
-                    if transfer_upload is not None:
-                        file_array = np.loadtxt(transfer_upload)
-                        maxk = np.max(file_array[:,0])
-                        mink = np.min(file_array[:,0]) 
-                    elif transfer == 'custom':
-                        maxk = 20
-                        mink = 0.00001       
-                    else:
-                        maxk = 2000
-                        mink = 0.00001
-                
-                if maxk*min_r < 3:
-                    error= errmsg1+"This means extrapolating k to "+str(10/min_r)+" or using min_M > "+str(np.log10(M(10.0/maxk,mean_dens)))
-                    raise forms.ValidationError(error)
-                if mink*max_r > 0.1:
-                    error = errmsg2+"This means extrapolating k to "+str(0.01/max_r)+" or using max_M < "+str(np.log10(M(0.01/mink,mean_dens)))
-                    raise forms.ValidationError(error)
-        
+      
         return cleaned_data
     
     def __unicode__(self):

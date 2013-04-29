@@ -3,7 +3,7 @@ Created on Jun 15, 2012
 
 @author: Steven
 '''
-from hmf_calc.FindMF import mf
+from hmf.Perturbations import Perturbations
 #import string
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -11,99 +11,123 @@ import numpy as np
 #from django.conf import settings
 import logging
 import cosmolopy.distance as cd
-#import atpy
 import pandas
-from matplotlib.lines import Line2D
+import os
 
-def hmf_output(data):
-    """
-    Uses find_mf to drive the calculations
-    """
-    log = logging.getLogger(__name__)
+def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer function.
+               extrapolate,    #Bool - whether to extrapolate power spectrum
+               k_bounds,       #Bounds to extrpolate powe spec to.
+               z_list,         #Redshifts
+               WDM_list,       #WDM masses
+               approaches,     #Fitting Functions
+               overdensities,  #Virial overdensity parameters
+               cosmology_list, #List of cosmology dictionaries
+               min_M, max_M,   #Minimum and Maximum mass to calculate for
+               M_step,         #Step size in log10(M_sun)
+               user_model,     #An optional mass function model from the user
+               cosmo_labels,   #Labels for each of the cosmologies
+               extra_plots):   #A dictionary of bools for optional extra plots.
     
-    ##########################################################
-    # DATA MANIPULATION
-    #########################################################
+    # Change directory to this file (for picking up transfer files if pre-made)
+    os.chdir(os.path.dirname(__file__))
     
-    #============= Break the cosmological quantities into separate elements =====#
-    cosmo_quantities = [key for key,val in data.iteritems() if key.startswith('cp_')]
-    #cosmo_quantities = ['sigma_8','n','crit_dens','hubble','omega_lambda','omega_baryon','omega_cdm','mean_dens','w','omega_neutrino']
-    cosmo_labels = data['cp_label']
-    n_cosmologies = len(cosmo_labels)
-    
-    cosmology_list = []
-    for i in range(n_cosmologies):
-        cosmology_list = cosmology_list + [{}]
-        for quantity in cosmo_quantities:
-            index = min(len(data[quantity])-1,i)
-            cosmology_list[i][quantity[3:]] = data[quantity][index] 
+    #Set-up array of masses    
+    masses = np.arange(min_M,max_M,M_step)
             
+    #Create a dataframe to hold the mass-based data
+    mass_data = pandas.DataFrame({"M":10**masses})
+    
+    #Create a table to hold the k-based data
+    k_data = pandas.DataFrame(index=range(4097))
+    
+    labels = {}
+    warnings = {}
+    
+    pert = Perturbations(M = masses,
+                         transfer_file = transfer_file,
+                         z = z_list[0],
+                         WDM = None,
+                         k_bounds = k_bounds[0],
+                         extrapolate = extrapolate,
+                         reion__use_optical_depth = True,
+                         **cosmology_list[0])
+     
+    #Loop through all the different cosmologies
+    for cosmo_i,cosmo_dict in enumerate(cosmology_list):
+        #Save the cosmo_label to the column label
+        labels['cosmo'] = cosmo_labels[cosmo_i]
+        #Loop through all WDM models (CDM first)
+        for k_bound in k_bounds:
+            #Save the k_bounds to the label
+            if len(k_bounds)>1:
+                labels['k'] = 'k{'+str(k_bound[0])+','+str(k_bound[1])+'}'
+            for wdm in [None]+WDM_list:
+                #Add WDM label
+                if len(WDM_list)>0:
+                    if wdm is None:
+                        labels['wdm'] = 'CDM'
+                    else:
+                        labels['wdm'] = 'WDM='+str(wdm)
+                #Loop over all redshifts
+                for z in z_list:
+                    #Define a column-name extension for the table
+                    if len(z_list)>1:
+                        labels['z'] = 'z='+str(z)
+                    
+                    print cosmo_dict
+                    #Update pert object optimally with new variables    
+                    pert.update(k_bounds = k_bound,WDM=wdm,z=z,**cosmo_dict)
+                        
+                    
+                    #Save k-based data
+                    k_data["k_"+getname(labels,excl=['deltavir','fsig'])]= pert.k
+                    k_data["P(k)_"+getname(labels,excl=['deltavir','fsig'])]= pert.power_spectrum
+                    
+                    #Save Mass-Based data
+                    mass_data["sigma_"+getname(labels,excl=['deltavir','fsig'])] = pert.sigma  
+                    mass_data["lnsigma_"+getname(labels,excl=['deltavir','fsig'])] = pert.lnsigma
+                    mass_data["neff_"+getname(labels,excl=['deltavir','fsig'])] = pert.n_eff 
+                    
+                    #Loop over fitting functions
+                    for approach in approaches:
+                        labels['fsig'] = approach
+                        for overdensity in overdensities:
+                            if len(overdensities)>1:
+                                labels['deltavir'] = 'Dvir='+str(overdensity)
+                             
+                            #Save the data
+                            mass_func = pert.MassFunction(fsigma=approach,overdensity=overdensity,delta_c=cosmo_dict['delta_c'])
+                            
+                            mass_data["hmf_"+getname(labels)] = mass_func
+                            mass_data["f(sig)_"+getname(labels)] = pert.vfv
+                            mass_data["M*hmf_"+getname(labels)] = mass_func*pert.M
+                            
+                            #Easily add more when you need to 
+                            if extra_plots['get_ngtm']:
+                                #mass_data.add_column("NgtM_"+name_ext, pert.NgtM(mass_func),unit="h^3/Mpc^3")
+                                mass_data["NgtM_"+getname(labels)] = pert.NgtM(mass_func)
+                            if extra_plots['get_mgtm']:
+                                #mass_data.add_column("MgtM_"+name_ext, pert.MgtM(mass_func),unit="log10(M_sun) h^2/Mpc^3")
+                                mass_data["MgtM_"+getname(labels)] = pert.MgtM(mass_func)
+                            if extra_plots['get_nltm']:
+                                #mass_data.add_column("NltM_"+name_ext, pert.NltM(mass_func),unit="h^3/Mpc^3")
+                                mass_data["NltM_"+getname(labels)] = pert.NltM(mass_func)
+                            if extra_plots['get_mltm']:
+                                #mass_data.add_column("MltM_"+name_ext, pert.MltM(mass_func),unit="log10(M_sun) h^3/Mpc^3")
+                                mass_data["MltM_"+getname(labels)] = pert.MltM(mass_func)
+                            if extra_plots['get_L']:
+                                mass_data["L(N=1)_"+getname(labels)] = pert.how_big(mass_func)
             
-        #Mean density has extra processing
-        cosmology_list[i]['mean_dens'] = data['cp_mean_dens'][index]*(cosmology_list[i]['omega_baryon']+cosmology_list[i]['omega_cdm'])*10**11
-    
-    #=========== Set the Transfer Function File correctly ===== #
-    transfer_file = data["transfer_file"]
-    if transfer_file == 'custom':
-        if data["transfer_file_upload"] == None:
-            transfer_file = None
-        else:
-            transfer_file = data['transfer_file_upload']
-            log.info("Uploaded transfer file at: "+transfer_file)
-        
-    #=========== Set a cosmological dictionary specifically for CAMB ===========#
-    camb_dict = []   
-    for i in range(n_cosmologies):
-        camb_dict = camb_dict + [{"w"              : cosmology_list[i]["w"],
-                                 "omega_baryon"   : cosmology_list[i]["omega_baryon"],
-                                 "omega_cdm"      : cosmology_list[i]["omega_cdm"],
-                                 "omega_lambda"   : cosmology_list[i]["omega_lambda"],
-                                 "omega_neutrino" : cosmology_list[i]["omega_neutrino"],
-                                 "hubble"         : 100.0*cosmology_list[i]["hubble"]} ]
-    #=========== Set k-bounds as a list of tuples ==============================#
-    min_k = data['k_begins_at']
-    max_k = data['k_ends_at']
-    num_k_bounds = max(len(min_k),len(max_k))
-    k_bounds = []
-    for i in range(num_k_bounds):
-        mink = min_k[min(len(min_k)-1,i)]
-        maxk = max_k[min(len(max_k)-1,i)] 
-        k_bounds.append((mink,maxk))
-           
-    #============ Set other simpla data ========================================#
-    z = data["z"]
-    wdm = data["WDM"]
-    approach = []
-    overdensity = data['overdensity']
-    
-    if data['approach']:
-        for i in data["approach"]:
-            approach = approach+[str(i)]
-       
-    if data["alternate_model"]:
-        approach = approach + ['user_model']
-    
-    
-    #Function Evaluation Options
-    extra_plots = {}
-    for key,val in data.iteritems():
-        if key.startswith('get_'):
-            extra_plots[key] = val
-    #get_ngtm = data["get_ngtm"]
-    #get_mgtm = data["get_mgtm"]
-    #get_nltm = data["get_nltm"]
-    #get_mltm = data["get_mltm"]
-    #get_L = data['get_L']
-    
-    ######################################################
-    # THE CALCULATION
-    ######################################################
-    mass_data, k_data = mf(transfer_file,data["extrapolate"],k_bounds,z,wdm,approach,
-                           overdensity,cosmology_list,
-                           data["min_M"],data["max_M"],
-                           data["M_step"],str(data["alternate_model"]),
-                           camb_dict, cosmo_labels,extra_plots)
-    
+            if pert.max_error:
+                warnings[getname(labels,excl=['deltavir','fsig','z','wdm'])] = [pert.max_error]
+            if pert.min_error:    
+                warnings[getname(labels,excl=['deltavir','fsig','z','wdm'])].append(pert.min_error)
+            
+          
+    return mass_data, k_data,warnings
+
+ 
+def cosmography(cosmology_list,cosmo_labels,redshifts):   
             
     ######################################################
     # COSMOGRAPHY
@@ -111,11 +135,11 @@ def hmf_output(data):
     distances = []
     for i,cosmology in enumerate(cosmology_list):
         #Set a cosmology for cosmolopy
-        cosmo = {'omega_M_0':cosmology['omega_baryon']+cosmology['omega_cdm'],
-                 'omega_lambda_0':cosmology['omega_lambda'],
-                 'h':cosmology['hubble'],
-                 'omega_b_0':cosmology['omega_baryon'],
-                 'omega_n_0':cosmology['omega_neutrino'],
+        cosmo = {'omega_M_0':cosmology['omegab']+cosmology['omegac'],
+                 'omega_lambda_0':cosmology['omegav'],
+                 'h':cosmology['H0']/100.0,
+                 'omega_b_0':cosmology['omegab'],
+                 'omega_n_0':cosmology['omegan'],
                  'N_nu':0,
                  'n':cosmology['n'],
                  'sigma_8':cosmology['sigma_8']}
@@ -123,18 +147,18 @@ def hmf_output(data):
         cd.set_omega_k_0(cosmo)
         
         #Age of the Universe
-        for z_a in z:
+        for z in redshifts:
             distances = distances + [[cosmo_labels[i],
-                                      z_a,
-                                      cd.age(z_a, use_flat=False,**cosmo)/(3600*24*365.25*10**9),
-                                      cd.comoving_distance(z_a,**cosmo)/1000,
-                                      cd.comoving_volume(z_a,**cosmo)/10**9,
-                                      cd.angular_diameter_distance(z_a,**cosmo)/1000,
-                                      cd.luminosity_distance(z_a,**cosmo)/1000]]
+                                      z,
+                                      cd.age(z, use_flat=False,**cosmo)/(3600*24*365.25*10**9),
+                                      cd.comoving_distance(z,**cosmo)/1000,
+                                      cd.comoving_volume(z,**cosmo)/10**9,
+                                      cd.angular_diameter_distance(z,**cosmo)/1000,
+                                      cd.luminosity_distance(z,**cosmo)/1000]]
         
 
            
-    return mass_data,k_data,distances
+    return distances
 
 def create_canvas(masses,mass_data,title,xlab,ylab,yscale):
     ######################################################
@@ -236,3 +260,16 @@ def create_k_canvas(k_data,k_keys,p_keys,title,xlab,ylab):
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     canvas = FigureCanvas(fig)
     return canvas
+
+def getname(names,excl=[]):
+    """
+    Compiles the individual labels from a dictionary to a string label
+    """
+    label = ''
+    for key,val in names.iteritems():
+        if key not in excl:
+            label = label+val+'_'
+        
+    label = label[:-1]
+    
+    return label

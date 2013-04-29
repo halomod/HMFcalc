@@ -1,1 +1,1 @@
-rsync -avz --delete --stats --progress --exclude-from exclude.txt /Users/Steven/Documents/PhD/HMF/ smurray@dirp01.icrar.org:HMF
+rsync -avz --delete --stats --progress --exclude-from exclude.txt /Users/Steven/Documents/PhD/humf/ smurray@dirp01.icrar.org:HMF
