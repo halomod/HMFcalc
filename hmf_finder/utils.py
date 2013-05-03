@@ -103,19 +103,19 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                             mass_data["M*hmf_"+getname(labels)] = mass_func*pert.M
                             
                             #Easily add more when you need to 
-                            if extra_plots['get_ngtm']:
+                            if 'get_ngtm' in extra_plots:
                                 #mass_data.add_column("NgtM_"+name_ext, pert.NgtM(mass_func),unit="h^3/Mpc^3")
                                 mass_data["NgtM_"+getname(labels)] = pert.NgtM(mass_func)
-                            if extra_plots['get_mgtm']:
+                            if 'get_mgtm' in extra_plots:
                                 #mass_data.add_column("MgtM_"+name_ext, pert.MgtM(mass_func),unit="log10(M_sun) h^2/Mpc^3")
                                 mass_data["MgtM_"+getname(labels)] = pert.MgtM(mass_func)
-                            if extra_plots['get_nltm']:
+                            if 'get_nltm' in extra_plots:
                                 #mass_data.add_column("NltM_"+name_ext, pert.NltM(mass_func),unit="h^3/Mpc^3")
                                 mass_data["NltM_"+getname(labels)] = pert.NltM(mass_func)
-                            if extra_plots['get_mltm']:
+                            if 'get_mltm' in extra_plots:
                                 #mass_data.add_column("MltM_"+name_ext, pert.MltM(mass_func),unit="log10(M_sun) h^3/Mpc^3")
                                 mass_data["MltM_"+getname(labels)] = pert.MltM(mass_func)
-                            if extra_plots['get_L']:
+                            if 'get_L' in extra_plots:
                                 mass_data["L(N=1)_"+getname(labels)] = pert.how_big(mass_func)
             
             if pert.max_error:
