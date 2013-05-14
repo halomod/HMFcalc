@@ -6,6 +6,7 @@ from django.shortcuts import render  # ,get_object_or_404, render_to_response, r
 import utils
 import forms
 from django.views.generic.edit import FormView
+from django.views.generic.base import TemplateView
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 import numpy as np
@@ -19,68 +20,87 @@ import os
 # import atpy
 import pandas
 from tabination.views import TabView
+from hmf.Perturbations import version
 
 # def index(request):
- #   return HttpResponseRedirect('/admin/')
+#   return HttpResponseRedirect('/admin/')
 
 class BaseTab(TabView):
     """Base class for all main navigation tabs."""
     tab_group = 'main'
+    top = True
 
-def home(request):
+class home(BaseTab):
     """
     The home-page. Should just be simple html with links to what to do.
     """
-    return_page = 'home.html'
 
-    # If the site is down for maintenance, use the following
-    # return_page = 'downforwork.html'
+    _is_tab = True
+    tab_id = '/'
+    tab_label = 'Home'
+    template_name = 'home.html'
 
-    return render(request, return_page)
 
+class InfoParent(BaseTab):
+    _is_tab = True
+    tab_id = 'info'
+    tab_label = 'Info'
+    template_name = 'doesnt_exist.html'
+    my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/', '/hmf_parameter_discussion/']
 
-def parameters(request):
+class InfoChild(BaseTab):
+    """Base class for all child navigation tabs."""
+    tab_parent = InfoParent
+
+class parameters(InfoChild):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-    return render(request, 'parameters.html')
+    _is_tab = True
+    tab_id = '/hmf_parameters/'
+    tab_label = 'Parameter Defaults'
+    template_name = 'parameters.html'
+    top = False
 
-def resources(request):
+class resources(InfoChild):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-    return render(request, 'resources.html')
+    _is_tab = True
+    tab_id = '/hmf_resources/'
+    tab_label = 'Extra Resources'
+    template_name = 'resources.html'
+    top = False
 
-def acknowledgments(request):
+class acknowledgments(InfoChild):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-    return render(request, 'acknowledgments.html')
+    _is_tab = True
+    tab_id = '/hmf_acknowledgments/'
+    tab_label = 'Acknowledgments'
+    template_name = 'acknowledgments.html'
+    top = False
 
-def param_discuss(request):
-    return render(request, 'parameter_discuss.html')
+class param_discuss(InfoChild):
+    _is_tab = True
+    tab_id = '/hmf_parameter_discussion/'
+    tab_label = 'Parameter Info'
+    template_name = 'parameter_discuss.html'
+    top = False
 
-class HMFInput(FormView):
+
+class HMFInputBase(FormView):
     """
     The form for input. 
     """
 
-    def get_form_kwargs(self):
-        kwargs = super(HMFInput, self).get_form_kwargs()
-        kwargs.update({
-             'add' : self.kwargs['add']
-        })
-        if self.kwargs['add'] == 'add':
-            kwargs.update({
-             'minm' : self.request.session['min_M'],
-             'maxm' : self.request.session['max_M']
-            })
-        return kwargs
-
+    #Define the needed variables for FormView class
     form_class = forms.HMFInput
     success_url = '../../hmf_image_page/'
     template_name = 'hmfform.html'
 
+    #Define what to do if the form is valid.
     def form_valid(self, form):
         # log = logging.getLogger(__name__)
 
@@ -101,6 +121,7 @@ class HMFInput(FormView):
         cosmo_quantities = [key for key in form.cleaned_data.keys() if key.startswith('cp_')]
         n_cosmologies = len(form.cleaned_data['cp_label'])
 
+
         cosmology_list = []
         for i in range(n_cosmologies):
             cosmology_list = cosmology_list + [{}]
@@ -109,12 +130,12 @@ class HMFInput(FormView):
                 cosmology_list[i][quantity[3:]] = form.cleaned_data[quantity][index]
 
         #==================== We make sure the cosmologies are all unique (across adds) =================================
-        if self.kwargs['add'] == 'create':
+        if self.request.path.endswith('create/'):
             # If we are creating for the first time, just save the labels to the session
             self.request.session["cosmo_labels"] = form.cleaned_data["cp_label"]  # A compressed list of all unique labels
             self.request.session["cosmologies"] = cosmology_list  # A compressed list of dicts of unique parameters.
 
-        elif self.kwargs['add'] == 'add':
+        elif self.request.path.endswith('add/'):
             # Go through each new label/cosmology added to check uniqueness
             for i, label in enumerate(form.cleaned_data["cp_label"]):
                 counter = 0
@@ -175,7 +196,7 @@ class HMFInput(FormView):
             maxk = max_k[min(len(max_k) - 1, i)]
             k_bounds.append((mink, maxk))
 
-        #============ Set other simpla data ========================================#
+        #============ Set other simple data ========================================#
         approach = []
         if form.cleaned_data['approach']:
             for i in form.cleaned_data["approach"]:
@@ -201,25 +222,19 @@ class HMFInput(FormView):
 
         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'])
 
-        # Delete the uploaded file. Not needed anymore. Maybe should leave it here for adds.
+        # Delete the uploaded file. Not needed anymore. Maybe should leave it here for adds??.
         if form.cleaned_data["co_transfer_file_upload"] != None:
             os.system("rm " + form.cleaned_data["co_transfer_file_upload"])
 
-        if self.kwargs['add'] == 'add':
-            # self.request.session['data_counter'] = self.request.session['data_counter'] + 1
-            self.request.session["mass_data"] = pandas.merge(self.request.session["mass_data"], mass_data)
+        if self.request.path.endswith('add/'):
+            self.request.session["mass_data"] = pandas.concat([self.request.session["mass_data"], mass_data], join='inner', axis=1)
             self.request.session["k_data"] = pandas.concat([self.request.session["k_data"], k_data], join='inner', axis=1)
             self.request.session['distances'] = self.request.session['distances'] + [distances]
             self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
             self.request.session['warnings'].update(warnings)
-            # Extra plots redefined here
             self.request.session['extra_plots'] = list(set(form.cleaned_data['extra_plots'] + self.request.session['extra_plots']))
-            # self.request.session['get_nltm'] = form.cleaned_data['get_nltm'] or self.request.session['get_nltm']
-            # self.request.session['get_mgtm'] = form.cleaned_data['get_mgtm'] or self.request.session['get_mgtm']
-            # self.request.session['get_mltm'] = form.cleaned_data['get_mltm'] or self.request.session['get_mltm']
-            # self.request.session['get_L'] = form.cleaned_data['get_L'] or self.request.session['get_L']
-        elif self.kwargs['add'] == 'create':
-            # self.request.session['data_counter'] = 0
+
+        elif self.request.path.endswith('create/'):
             self.request.session["mass_data"] = mass_data
             self.request.session["k_data"] = k_data
             self.request.session['distances'] = [distances]
@@ -228,41 +243,114 @@ class HMFInput(FormView):
             self.request.session['max_M'] = form.cleaned_data['max_M']
             self.request.session['M_step'] = form.cleaned_data['M_step']
             self.request.session['warnings'] = warnings
-            # Extra plots must be added here
             self.request.session['extra_plots'] = form.cleaned_data['extra_plots']
-#            self.request.session['get_ngtm'] = form.cleaned_data['get_ngtm']
-#            self.request.session['get_nltm'] = form.cleaned_data['get_nltm']
-#            self.request.session['get_mgtm'] = form.cleaned_data['get_mgtm']
-#            self.request.session['get_mltm'] = form.cleaned_data['get_mltm']
-#            self.request.session['get_L'] = form.cleaned_data['get_L']
-
-        return super(HMFInput, self).form_valid(form)
 
 
+        return super(HMFInputBase, self).form_valid(form)
 
-def hmf_image_page(request):
-    # The view of the png image with a couple of links to download files.
-    form = forms.PlotChoice(request)
-    download_form = forms.DownloadChoice()
-    distances = request.session['distances']
-    final_d = []
-    collected_cosmos = []
-    collected_z = []
-    for dist in distances:  # dist is one matrix of distances
-        for d in dist:  # d is one vector (different calculations - a row of final table)
-            if d[0] in collected_cosmos and d[1] in collected_z:
-                b = [item for item in range(len(collected_cosmos)) if collected_cosmos[item] == d[0]]
-                if d[1] in b:
-                    break
-                else:
-                    collected_cosmos = collected_cosmos + [d[0]]
-                    collected_z = collected_z + [d[1]]
-            collected_cosmos = collected_cosmos + [d[0]]
-            collected_z = collected_z + [d[1]]
-            final_d = final_d + [d]
-    warnings = request.session['warnings']
-    print warnings
-    return render(request, 'hmf_image_page.html', {'form':form, 'distances':final_d, 'download_form':download_form, 'warnings':warnings})
+
+class HMFInputParent(BaseTab):
+    _is_tab = True
+    tab_id = 'form-parent'
+    tab_label = 'Calculate'
+    template_name = 'also_doesnt_exist.html'
+    my_children = ['/hmf_finder/form/create/', '/hmf_finder/form/add/']
+
+
+class HMFInputChild(BaseTab):
+    """Base class for all child navigation tabs."""
+    tab_parent = HMFInputParent
+
+
+class HMFInputCreate(HMFInputBase, HMFInputChild):
+
+    #This defines whether to add the M-bounds fields to the form (here we do)
+    def get_form_kwargs(self):
+        kwargs = super(HMFInputBase, self).get_form_kwargs()
+        kwargs.update({
+            'add' : 'create'
+        })
+        return kwargs
+
+    #We must define 'get' as TabView is based on TemplateView which has a different form for get (form variable lost).
+    def get(self, request, *args, **kwargs):
+        """
+        Handles GET requests and instantiates a blank version of the form.
+        """
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        return self.render_to_response(self.get_context_data(form=form))
+
+    #TabView-specific things
+    _is_tab = True
+    tab_id = '/hmf_finder/form/create/'
+    tab_label = 'Begin New'
+    top = False
+
+
+
+class HMFInputAdd(HMFInputBase, HMFInputChild):
+
+    def get_form_kwargs(self):
+        kwargs = super(HMFInputBase, self).get_form_kwargs()
+        kwargs.update({
+             'add' : 'add',
+             'minm' : self.request.session['min_M'],
+             'maxm' : self.request.session['max_M']
+        })
+        return kwargs
+
+    def get(self, request, *args, **kwargs):
+        """
+        Handles GET requests and instantiates a blank version of the form.
+        """
+        form_class = self.get_form_class()
+        form = self.get_form(form_class)
+        return self.render_to_response(self.get_context_data(form=form))
+
+    _is_tab = True
+    tab_id = '/hmf_finder/form/add/'
+    top = False
+    tab_label = "Add Plots"
+    def tab_visible(self):
+        return "extrapolate" in self.request.session
+
+
+class ViewPlots(BaseTab):
+
+    def collect_dist(self, distances):
+        final_d = []
+        collected_cosmos = []
+        collected_z = []
+        for dist in distances:  # dist is one matrix of distances
+            for d in dist:  # d is one vector (different calculations - a row of final table)
+                if d[0] in collected_cosmos and d[1] in collected_z:
+                    b = [item for item in range(len(collected_cosmos)) if collected_cosmos[item] == d[0]]
+                    if d[1] in b:
+                        break
+                    else:
+                        collected_cosmos = collected_cosmos + [d[0]]
+                        collected_z = collected_z + [d[1]]
+                collected_cosmos = collected_cosmos + [d[0]]
+                collected_z = collected_z + [d[1]]
+                final_d = final_d + [d]
+        return final_d
+
+    def get(self, request, *args, **kwargs):
+        self.form = forms.PlotChoice(request)
+        distances = request.session['distances']
+        self.warnings = request.session['warnings']
+        self.final_dist = self.collect_dist(distances)
+        return self.render_to_response(self.get_context_data(form=self.form, distances=self.final_dist, warnings=self.warnings))
+
+    template_name = 'hmf_image_page.html'
+    _is_tab = True
+    tab_id = '/hmf_finder/hmf_image_page/'
+    tab_label = 'View Plots'
+    top = True
+
+    def tab_visible(self):
+        return "extrapolate" in self.request.session
 
 def plots(request, filetype, plottype):
     """
@@ -284,18 +372,6 @@ def plots(request, filetype, plottype):
         xlab = r'Mass $(M_{sun}h^{-1})$'
     elif plottype in k_plots:
         k_data = request.session["k_data"]
-
-
-    # cosmo_labels = request.session['cosmo_labels']
-    # z = []
-    # approach = []
-    # wdm = []
-    # remember cosmo_labels is a list of lists
-    # for i in range(n_data_adds):
-    #    approach = approach + [request.session['input_data'][i]["approach"]]
-    #    wdm = wdm + [request.session['input_data'][i]["WDM"]]
-    #    z = z + [request.session['input_data'][i]["z"]]
-
 
     # DEFINE THE FUNCTION TO BE PLOTTED
     if plottype in mass_plots:
@@ -439,35 +515,28 @@ def plots(request, filetype, plottype):
 
     return response
 
-def hmf_txt(request):
-    # Import all the data we need
-    mass_data = request.session["mass_data"]
-
-    # Set up the response object as a zip file
+def header_txt(request):
+    # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=mass_functions.dat'
+    response['Content-Disposition'] = 'attachment; filename=parameters.dat'
 
-    # buff = StringIO.StringIO()
-    # archive = zipfile.ZipFile(buff,'w',zipfile.ZIP_DEFLATED)
-
-    # tset = atpy.TableSet()
     # Import all the input form data so it can be written to file
     formdata = request.session['input_data']
 
-    response.write('# MASS FUNCTION DATA \n')
-    response.write('# \n')
+    # Write the parameter info
     response.write('# File Created On: ' + str(datetime.datetime.now()) + '\n')
-    response.write('# With version ' + settings.version + ' of hmf_finder')
+    response.write('# With version ' + settings.version + ' of HMFcalc \n')
+    response.write('# And version ' + version + ' of hmf (backend) \n')
     response.write('# \n')
     response.write('# SETS OF PARAMETERS USED \n')
     response.write('# The following blocks indicate sets of parameters that were used in all combinations' + '\n')
     for data in formdata:
-        response.write('# ======================================\n')
+        response.write('# =====================================================\n')
         response.write('# Redshifts: ' + str(data['z']) + '\n')
         response.write('# WDM Masses: ' + str(data['WDM']) + '\n')
         response.write('# Fitting functions: ' + str(data['approach']) + '\n')
         response.write('# Virial Overdensity: ' + str(data['overdensity']) + '\n')
-        response.write('# Transfer Function: ' + str(data['transfer_file']) + '\n')
+        response.write('# Transfer Function: ' + str(data['co_transfer_file']) + '\n')
         if data['extrapolate']:
             response.write('# Minimum k: ' + str(data['k_begins_at']) + '\n')
             response.write('# Maximum k: ' + str(data['k_ends_at']) + '\n')
@@ -476,53 +545,32 @@ def hmf_txt(request):
         response.write('# \n')
         for j, cosmo in enumerate(data['cp_label']):
             response.write('# ' + cosmo + ': \n')
-            response.write('# --------------------------------------\n')
-            response.write('# Mean Density of Universe: ' + str(data['cp_mean_dens'][np.min(j, len(data['cp_mean_dens']) - 1)]) + '\n')
-            response.write('# Critical Overdensity: ' + str(data['cp_crit_dens'][np.min(j, len(data['cp_crit_dens']) - 1)]) + '\n')
-            response.write('# Power Spectral Index: ' + str(data['cp_n'][np.min(j, len(data['cp_n']) - 1)]) + '\n')
-            response.write('# Sigma_8: ' + str(data['cp_sigma_8'][np.min(j, len(data['cp_sigma_8']) - 1)]) + '\n')
-            response.write('# Hubble Parameter: ' + str(data['cp_hubble'][np.min(j, len(data['cp_hubble']) - 1)]) + '\n')
-            response.write('# Omega_b: ' + str(data['cp_omega_baryon'][np.min(j, len(data['cp_omega_baryon']) - 1)]) + '\n')
-            response.write('# Omega_CDM: ' + str(data['cp_omega_cdm'][np.min(j, len(data['cp_omega_cdm']) - 1)]) + '\n')
-            response.write('# Omega_Lambda: ' + str(data['cp_omega_lambda'][np.min(j, len(data['cp_omega_lambda']) - 1)]) + '\n')
-            response.write('# w: ' + str(data['cp_w'][np.min(j, len(data['cp_w']) - 1)]) + '\n')
-            response.write('# Omega_nu: ' + str(data['cp_omega_neutrino'][np.min(j, len(data['cp_omega_neutrino']) - 1)]) + '\n')
-            response.write('# --------------------------------------\n')
-        response.write('# ======================================\n')
+            response.write('# -----------------------------------------------------\n')
+            response.write('# Critical Overdensity: ' + str(data['cp_delta_c'][min(j, len(data['cp_delta_c']) - 1)]) + '\n')
+            response.write('# Power Spectral Index: ' + str(data['cp_n'][min(j, len(data['cp_n']) - 1)]) + '\n')
+            response.write('# Sigma_8: ' + str(data['cp_sigma_8'][min(j, len(data['cp_sigma_8']) - 1)]) + '\n')
+            response.write('# Hubble Parameter: ' + str(data['cp_H0'][min(j, len(data['cp_H0']) - 1)]) + '\n')
+            response.write('# Omega_b: ' + str(data['cp_omegab'][min(j, len(data['cp_omegab']) - 1)]) + '\n')
+            response.write('# Omega_CDM: ' + str(data['cp_omegac'][min(j, len(data['cp_omegac']) - 1)]) + '\n')
+            response.write('# Omega_Lambda: ' + str(data['cp_omegav'][min(j, len(data['cp_omegav']) - 1)]) + '\n')
+            response.write('# w: ' + str(data['cp_w_lam'][min(j, len(data['cp_w_lam']) - 1)]) + '\n')
+            response.write('# Omega_nu: ' + str(data['cp_omegan'][min(j, len(data['cp_omegan']) - 1)]) + '\n')
+            response.write('# -----------------------------------------------------\n')
+        response.write('# =====================================================\n')
         response.write('# \n')
-        # response.write('#')
 
-#        out.add_comment('Cosmologies: '+str(request.session['cosmo_labels'][i]))
-#        out.add_comment('Transfer Function: '+str(request.session['input_data'][i]['transfer_file']))
-#        out.add_comment('Minimum k: '+str(request.session['input_data'][i]['k_begins_at']))
-#        out.add_comment('Maximum k: '+str(request.session['input_data'][i]['k_ends_at']))
-#        out.add_comment('Virial Overdensity: '+str(request.session['input_data'][i]['overdensity']))
-#        out.add_comment('Mean Density of Universe: '+str(request.session['input_data'][i]['cp_mean_dens']))
-#        out.add_comment('Critical Overdensity: '+str(request.session['input_data'][i]['cp_crit_dens']))
-#        out.add_comment('Power Spectral Index: '+str(request.session['input_data'][i]['cp_n']))
-#        out.add_comment('Sigma_8: '+str(request.session['input_data'][i]['cp_sigma_8']))
-#        out.add_comment('Hubble Parameter: '+str(request.session['input_data'][i]['cp_hubble']))
-#        out.add_comment('Omega_b: '+str(request.session['input_data'][i]['cp_omega_baryon']))
-#        out.add_comment('Omega_CDM: '+str(request.session['input_data'][i]['cp_omega_cdm']))
-#        out.add_comment('Omega_Lambda: '+str(request.session['input_data'][i]['cp_omega_lambda']))
-#        out.add_comment('w: '+str(request.session['input_data'][i]['cp_w']))
-#        out.add_comment('Omega_nu: '+str(request.session['input_data'][i]['cp_omega_neutrino']))
-#        tset.append(out)
+        return response
 
-    # tset.add_comment("File Created On: "+ str(datetime.datetime.now()))
+def hmf_txt(request):
+    # Import all the data we need
+    mass_data = request.session["mass_data"]
 
-    # tset.write(response,type="ipac")
+    # Set up the response object as a text file
+    response = HttpResponse(mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=mass_functions.dat'
+
     table = mass_data.to_string(index_names=False, index=False)
     response.write(table)
-    # atab.write(out,response,Writer=atab.FixedWidth,delimiter=None)
-
-    #    archive.writestr('mass_functions_'+str(i)+'.dat',response.getvalue())
-
-    # archive.close()
-    # buff.flush()
-    # ret_zip = buff.getvalue()
-    # buff.close()
-    # zip_response.write(ret_zip)
 
     return response
 
@@ -530,82 +578,12 @@ def power_txt(request):
     # Import all the data we need
     k_data = request.session["k_data"]
 
-    # Set up the response object as a zip file
+    # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
     response['Content-Disposition'] = 'attachment; filename=power_spectra.dat'
 
-    # buff = StringIO.StringIO()
-    # archive = zipfile.ZipFile(buff,'w',zipfile.ZIP_DEFLATED)
-
-    # tset = atpy.TableSet()
-    # Import all the input form data so it can be written to file
-    formdata = request.session['input_data']
-
-    response.write('# POWER SPECTRUM DATA \n')
-    response.write('# \n')
-    response.write('# File Created On: ' + str(datetime.datetime.now()) + '\n')
-    response.write('# With version ' + settings.version + ' of hmf_finder')
-    response.write('# \n')
-    response.write('# SETS OF PARAMETERS USED \n')
-    response.write('# The following blocks indicate sets of parameters that were used in all combinations +\n')
-    for i, data in enumerate(formdata):
-        response.write('# ======================================\n')
-        response.write('# Redshifts: ' + str(data['z']) + '\n')
-        response.write('# WDM Masses: ' + str(data['WDM']) + '\n')
-        response.write('# Transfer Function: ' + str(data['transfer_file']) + '\n')
-        if data['extrapolate']:
-            response.write('# Minimum k: ' + str(data['k_begins_at']) + '\n')
-            response.write('# Maximum k: ' + str(data['k_ends_at']) + '\n')
-
-        response.write('# Cosmologies: \n')
-        response.write('# \n')
-        for j, cosmo in enumerate(data['cp_label']):
-            response.write('# ' + cosmo + ': \n')
-            response.write('# --------------------------------------\n')
-            response.write('# Power Spectral Index: ' + str(data['cp_n'][np.min(j, len(data['cp_n']) - 1)]) + '\n')
-            response.write('# Sigma_8: ' + str(data['cp_sigma_8'][np.min(j, len(data['cp_sigma_8']) - 1)]) + '\n')
-            response.write('# Hubble Parameter: ' + str(data['cp_hubble'][np.min(j, len(data['cp_hubble']) - 1)]) + '\n')
-            response.write('# Omega_b: ' + str(data['cp_omega_baryon'][np.min(j, len(data['cp_omega_baryon']) - 1)]) + '\n')
-            response.write('# Omega_CDM: ' + str(data['cp_omega_cdm'][np.min(j, len(data['cp_omega_cdm']) - 1)]) + '\n')
-            response.write('# Omega_Lambda: ' + str(data['cp_omega_lambda'][np.min(j, len(data['cp_omega_lambda']) - 1)]) + '\n')
-            response.write('# w: ' + str(data['cp_w'][np.min(j, len(data['cp_w']) - 1)]) + '\n')
-            response.write('# Omega_nu: ' + str(data['cp_omega_neutrino'][np.min(j, len(data['cp_omega_neutrino']) - 1)]) + '\n')
-            response.write('# --------------------------------------\n')
-        response.write('# ======================================\n')
-        response.write('# \n')
-        # response.write('#')
-
-#        out.add_comment('Cosmologies: '+str(request.session['cosmo_labels'][i]))
-#        out.add_comment('Transfer Function: '+str(request.session['input_data'][i]['transfer_file']))
-#        out.add_comment('Minimum k: '+str(request.session['input_data'][i]['k_begins_at']))
-#        out.add_comment('Maximum k: '+str(request.session['input_data'][i]['k_ends_at']))
-#        out.add_comment('Virial Overdensity: '+str(request.session['input_data'][i]['overdensity']))
-#        out.add_comment('Mean Density of Universe: '+str(request.session['input_data'][i]['cp_mean_dens']))
-#        out.add_comment('Critical Overdensity: '+str(request.session['input_data'][i]['cp_crit_dens']))
-#        out.add_comment('Power Spectral Index: '+str(request.session['input_data'][i]['cp_n']))
-#        out.add_comment('Sigma_8: '+str(request.session['input_data'][i]['cp_sigma_8']))
-#        out.add_comment('Hubble Parameter: '+str(request.session['input_data'][i]['cp_hubble']))
-#        out.add_comment('Omega_b: '+str(request.session['input_data'][i]['cp_omega_baryon']))
-#        out.add_comment('Omega_CDM: '+str(request.session['input_data'][i]['cp_omega_cdm']))
-#        out.add_comment('Omega_Lambda: '+str(request.session['input_data'][i]['cp_omega_lambda']))
-#        out.add_comment('w: '+str(request.session['input_data'][i]['cp_w']))
-#        out.add_comment('Omega_nu: '+str(request.session['input_data'][i]['cp_omega_neutrino']))
-#        tset.append(out)
-
-    # tset.add_comment("File Created On: "+ str(datetime.datetime.now()))
-
-    # tset.write(response,type="ipac")
     table = k_data.to_string(index_names=False, index=False)
     response.write(table)
-    # atab.write(out,response,Writer=atab.FixedWidth,delimiter=None)
-
-    #    archive.writestr('mass_functions_'+str(i)+'.dat',response.getvalue())
-
-    # archive.close()
-    # buff.flush()
-    # ret_zip = buff.getvalue()
-    # buff.close()
-    # zip_response.write(ret_zip)
 
     return response
 

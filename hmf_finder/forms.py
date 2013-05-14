@@ -69,12 +69,14 @@ class HMFInput(forms.Form):
                                                      initial=0.05,
                                                      help_text="Logarithmic Bins")
 
-            self.helper = FormHelper()
-            self.helper.form_id = 'input_form'
-            self.helper.form_class = 'form-horizontal'
-            self.helper.form_method = 'post'
-            self.helper.form_action = ''
-            self.helper.help_text_inline = True
+        self.helper = FormHelper()
+        self.helper.form_id = 'input_form'
+        self.helper.form_class = 'form-horizontal'
+        self.helper.form_method = 'post'
+        self.helper.form_action = ''
+        self.helper.help_text_inline = True
+
+        if add == 'create':
             # self.helper.add_input(Submit('submit', 'Calculate!'))
             self.helper.layout = Layout(
                                         TabHolder(
@@ -87,15 +89,64 @@ class HMFInput(forms.Form):
                                                               'alternate_model',
                                                               css_class='span4'
                                                               ),
+                                                           Div('extrapolate',
+                                                               'k_begins_at',
+                                                               'k_ends_at',
+                                                               'min_M',
+                                                               'max_M',
+                                                               'M_step',
+                                                               css_class='span4'
+                                                               )),
+                                                      Div(
+                                                          Fieldset('Optional Extra Plots',
+                                                                   InlineCheckboxes('extra_plots'),
+                                                                   ),
+                                                          css_class='span12'
+
+                                                          )
+                                                      ),
+                                                  Tab('Cosmological Parameters',
+                                                      Div(
+                                                          Div('co_transfer_file',
+                                                              'co_transfer_file_upload',
+                                                              'cp_label',
+                                                              'cp_delta_c',
+                                                              'cp_n',
+                                                              'cp_sigma_8',
+                                                              css_class='span4'
+                                                              ),
+                                                          Div('cp_H0',
+                                                              'cp_omegab',
+                                                              'cp_omegac',
+                                                              'cp_omegav',
+                                                              'cp_w_lam',
+                                                              'cp_omegan',
+                                                              'cp_reion__optical_depth',
+
+                                                              css_class='span4'
+                                                              )
+                                                          )
+                                                      )
+                                                  ),
+                                        FormActions(Submit('submit', 'Calculate!', css_class='btn btn-primary btn-large'))
+                                        )
+        else:
+            self.helper.layout = Layout(
+                                        TabHolder(
+                                                  Tab('Run Parameters',
+                                                      Div(
+                                                          Div('z',
+                                                              'overdensity',
+                                                              'WDM',
+                                                              'approach',
+                                                              css_class='span4'
+                                                              ),
                                                           Div('extrapolate',
                                                               'k_begins_at',
                                                               'k_ends_at',
-                                                              'min_M',
-                                                              'max_M',
-                                                              'M_step',
+                                                              'alternate_model',
                                                               css_class='span4'
-                                                              )
-                                                          ),
+                                                              )),
                                                       Div(
                                                           Fieldset('Optional Extra Plots',
                                                                    InlineCheckboxes('extra_plots'),
@@ -177,7 +228,7 @@ class HMFInput(forms.Form):
                                          initial=['ST'],
                                          required=False)
 
-    alternate_model = forms.CharField(label='Custom Fitting Function',
+    alternate_model = forms.CharField(label=mark_safe('Custom Fitting Function'),
                                        help_text=mark_safe('Type a fitting function form (<a href="http://docs.scipy.org/doc/numpy/reference/routines.math.html">Python syntax</a>) in terms of mass variance (denoted by x). Eg. for Jenkins: 0.315*exp(-abs(log(1.0/x)+0.61)**3.8)'),
                                        required=False,
                                        widget=forms.Textarea(attrs={'cols':'40', 'rows':'3'}))
@@ -231,26 +282,6 @@ class HMFInput(forms.Form):
                                             choices=optional_plots,
                                             initial=['get_ngtm'],
                                             required=False)
-
-#    get_ngtm = forms.BooleanField(label="N(>M)",
-#                                  initial=True,
-#                                  required=False)
-#
-#    get_mgtm = forms.BooleanField(label="M(>M)",
-#                                  initial=False,
-#                                  required=False)
-#
-#    get_nltm = forms.BooleanField(label="N(<M)",
-#                                  initial=False,
-#                                  required=False)
-#
-#    get_mltm = forms.BooleanField(label="M(<M)",
-#                                  initial=False,
-#                                  required=False)
-#
-#    get_L = forms.BooleanField(label='Box Size for One Halo',
-#                               initial = True,
-#                               required=False)
 
 #===================================================================
 #   COSMOLOGICAL PARAMETERS
@@ -356,8 +387,6 @@ class HMFInput(forms.Form):
 
         return cleaned_data
 
-    def __unicode__(self):
-        return u'%s' % self.name
 
 
 class PlotChoice(forms.Form):
@@ -365,18 +394,19 @@ class PlotChoice(forms.Form):
     def __init__(self, request, *args, **kwargs):
         super (PlotChoice, self).__init__(*args, **kwargs)
         # Add in extra plot choices if they are required by the form in the session.
+        session_plots = request.session['extra_plots']
         extra_plots = []
-        if request.session["get_ngtm"]:
+        if 'get_ngtm' in session_plots:
             extra_plots.append(("ngtm", "N(>M)"))
-        if request.session["get_nltm"]:
+        if 'get_nltm' in session_plots:
             extra_plots.append(("nltm", "N(<M)"))
-        if request.session["get_mgtm"]:
+        if "get_mgtm" in session_plots:
             extra_plots.append(("Mgtm", "Mass(>M)"))
-        if request.session["get_mltm"]:
+        if "get_mltm" in session_plots:
             extra_plots.append(("Mltm", "Mass(<M)"))
-        if request.session["get_L"]:
+        if "get_L" in session_plots:
             extra_plots.append(("L", "Box Size for One Halo"))
-            print "appended L"
+
         plot_choices = [("hmf", "Mass Function"),
                         ("f", "f(sigma)"),
                         ("sigma", "Mass Variance"),
@@ -391,12 +421,22 @@ class PlotChoice(forms.Form):
                                         choices=plot_choices,
                                         initial='hmf')
 
-class DownloadChoice(forms.Form):
+        self.helper = FormHelper()
+        self.helper.form_id = 'plotchoiceform'
+        self.helper.form_class = 'form-horizontal'
+        self.helper.form_method = 'post'
+        self.helper.form_action = ''
+        self.helper.help_text_inline = True
+
+        self.helper.layout = Layout(Div('plot_choice', 'download_choice', css_class="span3"))
+
     download_choices = [("pdf-current", "PDF of Current Plot"),
                     ("pdf-all", "PDF's of All Plots"),
                     ("ASCII-mass", "ASCII table of all functions of mass"),
-                    ("ASCII-k", "ASCII table of all functions of wavenumber")]
+                    ("ASCII-k", "ASCII table of all functions of wavenumber"),
+                    ("parameters", "List of parameter values")]
 
-    download_choice = forms.ChoiceField(label="",
+    download_choice = forms.ChoiceField(label=mark_safe('<a href="../hmf.pdf" id="plot_download">Download </a>'),
                                 choices=download_choices,
                                 initial='pdf-current')
+
