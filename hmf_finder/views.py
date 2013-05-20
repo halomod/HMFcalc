@@ -46,7 +46,7 @@ class InfoParent(BaseTab):
     tab_id = 'info'
     tab_label = 'Info'
     template_name = 'doesnt_exist.html'
-    my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/', '/hmf_parameter_discussion/']
+    my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/', '/hmf_parameter_discussion/', '/contact_info/']
 
 class InfoChild(BaseTab):
     """Base class for all child navigation tabs."""
@@ -60,6 +60,16 @@ class parameters(InfoChild):
     tab_id = '/hmf_parameters/'
     tab_label = 'Parameter Defaults'
     template_name = 'parameters.html'
+    top = False
+
+class contact(InfoChild):
+    """
+    A simple html 'end-page' which shows information about parameters used.
+    """
+    _is_tab = True
+    tab_id = '/contact_info/'
+    tab_label = 'Contact Info'
+    template_name = 'contact_info.html'
     top = False
 
 class resources(InfoChild):
@@ -357,11 +367,9 @@ def plots(request, filetype, plottype):
     Chooses the type of plot needed and the filetype (pdf or png) and outputs it
     """
     # Definitions of plot-types
-    mass_plots_with_approach = ['hmf', 'f', 'ngtm', 'mhmf', 'comparison_hmf',
-                                'comparison_f', 'Mgtm', 'nltm', 'Mltm', 'L']
-    mass_plots_no_approach = ['sigma', 'lnsigma', 'n_eff']
-
-    mass_plots = mass_plots_with_approach + mass_plots_no_approach
+    mass_plots = ['hmf', 'f', 'ngtm', 'mhmf', 'comparison_hmf',
+                  'comparison_f', 'Mgtm', 'nltm', 'Mltm', 'L',
+                  'sigma', 'lnsigma', 'n_eff']
 
     k_plots = ['power_spec']
     print plottype
@@ -369,7 +377,7 @@ def plots(request, filetype, plottype):
     if plottype in mass_plots:
         mass_data = request.session["mass_data"]
         masses = mass_data["M"]
-        xlab = r'Mass $(M_{sun}h^{-1})$'
+        xlab = r'Mass $(M_{\odot}h^{-1})$'
     elif plottype in k_plots:
         k_data = request.session["k_data"]
 

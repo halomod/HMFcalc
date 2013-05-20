@@ -1,4 +1,10 @@
-HISTORY OF THE SITE AS A WHOLE
+HISTORY OF HMFcalc
+1.0.0 - 20 May 2013
+		Many little bugfixes
+		Overhaul of css framework
+		Added nav tabs
+		Removed logos and added acknowledgments
+		
 0.9.94- 2 April 2013
 		Fixed a bug on merging unique cosmologies/labels
 		
