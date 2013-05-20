@@ -1,2 +1,0 @@
-Either use formsets for multiple cosmologies, or js to append them (uglier but maybe easier?)
-Use camb and hmf_calc as separate packages rather than intrinsic.
