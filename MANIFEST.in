@@ -1,0 +1,2 @@
+recursive-include HMFcalc/templates *
+recursive-include HMFcalc/transfers *

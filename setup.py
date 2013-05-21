@@ -10,6 +10,7 @@ setup(
     name="HMFcalc",
     version=version,
     packages=find_packages(),
+    include_package_data=True,
     install_requires=[],
     requires=['numpy', 'pandas'],
     author="Steven Murray",

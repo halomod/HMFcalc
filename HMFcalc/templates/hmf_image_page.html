@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% block title %}Mass Function Calculator | Plots {% endblock %}
+
+{% block script %} 
+	<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js' type='text/javascript'></script>
+    <script src='http://hmfstatic.appspot.com/js/HideShowRules.js' type='text/javascript'></script>
+{% endblock %}
+
+{% block style %}
+
+
+
+{% endblock %}
+
+{% block subheading %}{% endblock %}
+{% block content %}
+
+	<div class="span5">
+	<form class='form-horizontal'>
+		<div class="control-group">
+			<label class="control-label" for="inputEmail">{{ form.plot_choice.label_tag }}</label>
+			<div class="controls">
+				{{ form.plot_choice }}
+			</div>
+		</div>
+	</form>
+	</div>
+	<div class="span5">
+	<form class='form-horizontal'>
+		<div class="control-group">
+			<label class="control-label" for="inputEmail">{{ form.download_choice.label_tag }}</label>
+			<div class="controls">
+				{{ form.download_choice }}
+			</div>
+		</div>
+	</form>
+	</div>
+
+	<div class='span10'>
+		{% if warnings %}
+		<div id='warnings' class='row-fluid'>
+			<div class='span12'>
+				
+				<ul>
+				{% for label,list in warnings.items %}
+				{% for warning in list %}
+					<li> {{ warning }} </li>
+				{% endfor %}
+				{% endfor %}
+				</ul>
+				
+			</div>
+		</div>
+		{% endif %}
+		
+		<div class = 'row-fluid' style="align:centre;">
+			<div class='span12' align='centre;'>
+				<img src="../hmf.png" id='the_image' align="middle">	
+			</div>
+			<br><br>
+		</div>
+		<br><br>
+	</div>
+	
+	
+	
+	<div id = 'table' class='row-fluid' style="align:centre;">
+		<div class='span10'>
+			<table id='cosmo_quantities' class='table table-bordered table-condensed table-hover table-striped' summary="Summary of distances and ages for specified cosmology and redshift">
+			<thead>
+				<th scope='col'> Cosmology </th>
+				<th scope='col'> Redshift </th>
+				<th scope='col'> Age (Gyr) </th>
+				<th scope='col'> Com. Dist. (Gpc/h) </th>
+				<th scope='col'> Com. Vol.  (Gpc<sup>3</sup>/h<sup>3</sup>) </th>
+				<th scope='col'> Ang. Size Dist. (Gpc/h) </th>
+				<th scope='col'> Lum. Dist. (Gpc/h) </th>
+			</thead>
+			<tbody>
+				{% for row in distances %}
+					<tr>
+						<td> {{ row.0 }} </td>
+						<td> {{ row.1|floatformat:"-2" }} </td>
+						<td> {{ row.2|floatformat:"-2"}} </td>
+						<td> {{ row.3|floatformat:"-2" }} </td>
+						<td> {{ row.4|floatformat:"-2" }} </td>
+						<td> {{ row.5|floatformat:"-2" }} </td>
+						<td> {{ row.6|floatformat:"-2" }} </td>
+					</tr>
+				{% endfor %}
+			</tbody>
+			</table>
+		</div>
+	</div>
+
+
+
+{% endblock %}
