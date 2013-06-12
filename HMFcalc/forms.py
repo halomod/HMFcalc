@@ -61,13 +61,19 @@ class HMFInput(forms.Form):
                 # Which values of the radius to use?
             self.fields['min_M'] = forms.FloatField(label="Minimum Mass",
                                                     initial=8.0,
-                                                    help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"))
+                                                    help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"),
+                                                    min_value=3.0,
+                                                    max_value=18.0)
             self.fields['max_M'] = forms.FloatField(label="Maximum Mass",
                                                     initial=15.0,
-                                                    help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"))
+                                                    help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"),
+                                                    min_value=3.0,
+                                                    max_value=18.0)
             self.fields['M_step'] = forms.FloatField(label="Mass Bin Width",
                                                      initial=0.05,
-                                                     help_text="Logarithmic Bins")
+                                                     help_text="Logarithmic Bins",
+                                                     min_value=0.00001,
+                                                     max_value=15.0)
 
         self.helper = FormHelper()
         self.helper.form_id = 'input_form'
@@ -112,16 +118,16 @@ class HMFInput(forms.Form):
                                                               'cp_label',
                                                               'cp_delta_c',
                                                               'cp_n',
-                                                              'cp_sigma_8',
+
                                                               css_class='span4'
                                                               ),
-                                                          Div('cp_H0',
+                                                          Div('cp_sigma_8',
+                                                              'cp_H0',
                                                               'cp_omegab',
                                                               'cp_omegac',
                                                               'cp_omegav',
-                                                              'cp_w_lam',
+#                                                              'cp_w_lam',
                                                               'cp_omegan',
-                                                              'cp_reion__optical_depth',
 
                                                               css_class='span4'
                                                               )
@@ -162,16 +168,16 @@ class HMFInput(forms.Form):
                                                               'cp_label',
                                                               'cp_delta_c',
                                                               'cp_n',
-                                                              'cp_sigma_8',
+
                                                               css_class='span4'
                                                               ),
-                                                          Div('cp_H0',
+                                                          Div('cp_sigma_8',
+                                                              'cp_H0',
                                                               'cp_omegab',
                                                               'cp_omegac',
                                                               'cp_omegav',
-                                                              'cp_w_lam',
+#                                                              'cp_w_lam',
                                                               'cp_omegan',
-                                                              'cp_reion__optical_depth',
 
                                                               css_class='span4'
                                                               )
@@ -190,7 +196,7 @@ class HMFInput(forms.Form):
                        help_text="Comma-separated list",
                        max_length=50,
                        min_val=0,
-                       max_val=40)
+                       max_val=1100)
 
 
     overdensity = FloatListField(label="Virial Overdensity",
@@ -251,7 +257,13 @@ class HMFInput(forms.Form):
                                               required=False,
                                               help_text="Custom file only used if Transfer Functions is 'Custom'")
 
-
+    def clean_co_transfer_file_upload(self):
+        thefile = self.cleaned_data['co_transfer_file_upload']
+        if thefile is not None:
+            try:
+                np.genfromtxt(thefile)
+            except:
+                raise forms.ValidationError("Uploaded transfer file is of the wrong format")
 #===================================================================
 #    RUN PARAMETERS
 #===================================================================
@@ -265,9 +277,9 @@ class HMFInput(forms.Form):
     k_begins_at = FloatListField(label="Minimum k",
                                  initial=0.00000001,
                                  help_text="Lowest Wavenumber Used",
-                                 max_val=10)
+                                 max_val=10,
+                                 min_val=0.0)
 
-   # kr_warn = forms.BooleanField(label="Ensure Accuracy?", initial=True,required=False)
 #===================================================================
 #    OPTIONAL PLOTS
 #===================================================================
@@ -302,7 +314,8 @@ class HMFInput(forms.Form):
     # Critical Overdensity corresponding to spherical collapse
     cp_delta_c = FloatListField(label=mark_safe("&#948<sub>c</sub>"),
                                   initial='1.686',
-                                  min_val=1)
+                                  min_val=1,
+                                  max_val=3)
     # Power spectral index
     cp_n = FloatListField(label=mark_safe("n<sub>s</sub> "),
                           initial='0.967',
@@ -312,35 +325,36 @@ class HMFInput(forms.Form):
     # Mass variance on a scale of 8Mpc
     cp_sigma_8 = FloatListField(label=mark_safe("&#963<sub>8</sub>"),
                                 initial='0.81',
-                                min_val=0)
+                                min_val=0.1)
 
     # Hubble Constant
     cp_H0 = FloatListField(label=mark_safe("H<sub>0</sub>"),
                                initial='70.4',
-                               min_val=1)
+                               min_val=10,
+                               max_val=500.0)
 
     cp_omegab = FloatListField(label=mark_safe("&#937<sub>b</sub>"),
                                        initial='0.0455',
-                                       min_val=0)
+                                       min_val=0.005,
+                                       max_val=0.65)
 
     cp_omegac = FloatListField(label=mark_safe("&#937<sub>c</sub>"),
                                        initial='0.226',
-                                       min_val=0)
+                                       min_val=0.02,
+                                       max_val=2.0)
 
     cp_omegav = FloatListField(label=mark_safe("&#937<sub>&#923</sub>"),
                                        initial='0.728',
-                                       min_val=0)
+                                       min_val=0,
+                                       max_val=1.6)
 
-    cp_w_lam = FloatListField(label="w",
-                                       initial='-1.0')
+#    cp_w_lam = FloatListField(label="w",
+#                                       initial='-1.0')
 
     cp_omegan = FloatListField(label=mark_safe("&#937<sub>v</sub>"),
                                        initial='0.0',
-                                       min_val=0)
-
-    cp_reion__optical_depth = FloatListField(label=mark_safe("&#964"),
-                                             initial='0.085',
-                                             min_val=0)
+                                       min_val=0,
+                                       max_val=0.7)
 
     def clean(self):
         cleaned_data = super(HMFInput, self).clean()
@@ -382,9 +396,39 @@ class HMFInput(forms.Form):
         if not self.minm:
             minm = cleaned_data.get("min_M")
             maxm = cleaned_data.get("max_M")
+            mstep = cleaned_data.get("M_step")
             if maxm < minm:
                 raise forms.ValidationError("min(M) must be less than max(M)")
+            if mstep > maxm - minm:
+                raise forms.ValidationError("Mass bin width must be less than the range of Mass")
 
+        #=========== Here we check roughly how long we expect calculations to take and make the user adjust if too long
+        #        For 50 M's:
+        #----------------------------------------------------
+        #setup             :  0.903198504448
+        #set_transfer_cosmo:  1.05522716045
+        #set_kbounds       :  0.0717063983281
+        #set_WDM           :  0.071452331543
+        #set_z             :  0.00227285861969
+        #Get MF            :  6.63149356842e-05
+        #----------------------------------------------------
+        initial_setup_time = 0.9
+        set_transfer_time = max((len(cleaned_data.get("cp_H0")) , len(cleaned_data.get("cp_omegab")), len(cleaned_data.get("cp_omegac")),
+                                 len(cleaned_data.get("cp_omegav")), len(cleaned_data.get("cp_omegan")))) * 1.055
+
+        set_kbounds_time = max((len(cleaned_data.get("k_ends_at")), len(cleaned_data.get("k_begins_at")))) * len(cleaned_data.get("cp_n")) * \
+                            len(cleaned_data.get("cp_sigma_8")) * 0.072
+
+        set_WDM_time = len(cleaned_data.get("WDM")) * 0.072
+
+        set_z_time = len(cleaned_data.get("z")) * 0.003
+
+        get_mf_time = len(cleaned_data.get("approach")) * len(cleaned_data.get("overdensity")) * len(cleaned_data.get("cp_delta_c")) * 6.64 * 10 ** -5
+
+        total_time = initial_setup_time + set_transfer_time + set_kbounds_time + set_WDM_time + set_z_time + get_mf_time
+
+        if total_time > 10.0:
+            raise forms.ValidationError("Your choice of data will take too long to calculate, please reduce the amounts of combinations")
         return cleaned_data
 
 

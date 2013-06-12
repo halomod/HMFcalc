@@ -1,26 +1,26 @@
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render  # ,get_object_or_404, render_to_response, redirect
+from django.http import HttpResponse  #, HttpResponseRedirect
+#from django.shortcuts import render  # ,get_object_or_404, render_to_response, redirect
 # from django.utils.encoding import iri_to_uri
 # from django.core.context_processors import csrf
 # from django.template import RequestContext
 import utils
 import forms
 from django.views.generic.edit import FormView
-from django.views.generic.base import TemplateView
-from django.core.files.base import ContentFile
-from django.core.files.storage import default_storage
-import numpy as np
+#from django.views.generic.base import TemplateView
+#from django.core.files.base import ContentFile
+#from django.core.files.storage import default_storage
+#import numpy as np
 import datetime
 # import logging
 import StringIO
-import HMF.settings as settings
 import zipfile
-import time
+#import time
 import os
 # import atpy
 import pandas
 from tabination.views import TabView
 from hmf.Perturbations import version
+from django.conf import settings
 
 # def index(request):
 #   return HttpResponseRedirect('/admin/')
@@ -110,6 +110,12 @@ class HMFInputBase(FormView):
     success_url = '../../hmf_image_page/'
     template_name = 'hmfform.html'
 
+    def get_success_url(self):
+        if not self.mf_error and not self.dist_error and not self.merge_error:
+            return '../../hmf_image_page/'
+        else:
+            return '../../error_page/'
+
     #Define what to do if the form is valid.
     def form_valid(self, form):
         # log = logging.getLogger(__name__)
@@ -117,16 +123,6 @@ class HMFInputBase(FormView):
         ###############################################################
         # FORM DATA MANIPULATION
         ###############################################################
-        #===================== First we save the uploaded file to the server (if there is one) ===============================
-        if form.cleaned_data["co_transfer_file_upload"] != None:
-
-            # Add the time to the front of the filename so it doesn't conflict with other uploads
-            localtime = time.asctime(time.localtime(time.time())).replace(" ", "").replace(":", "")
-            thefile = self.request.FILES["co_transfer_file_upload"]
-            default_storage.save(settings.ROOT_DIR + '/public/media/transfer_functions/' + localtime + '_custom_transfer.dat', ContentFile(thefile.read()))
-            # Change the name of the file in the form data for later access.
-            form.cleaned_data['co_transfer_file_upload'] = settings.ROOT_DIR + '/public/media/transfer_functions/' + localtime + '_custom_transfer.dat'
-
         #==================== Now save and merge the cosmology ===============================================================
         cosmo_quantities = [key for key in form.cleaned_data.keys() if key.startswith('cp_')]
         n_cosmologies = len(form.cleaned_data['cp_label'])
@@ -217,24 +213,25 @@ class HMFInputBase(FormView):
 
         # DO THE CALCULATIONS
         mass_data, k_data, warnings = utils.hmf_driver(transfer_file=transfer_file,
-                                            extrapolate=form.cleaned_data['extrapolate'],
-                                            k_bounds=k_bounds,
-                                            z_list=form.cleaned_data['z'],
-                                            WDM_list=form.cleaned_data['WDM'],
-                                            approaches=approach,
-                                            overdensities=form.cleaned_data['overdensity'],
-                                            cosmology_list=cosmology_list,
-                                            min_M=form.cleaned_data['min_M'], max_M=form.cleaned_data['max_M'],
-                                            M_step=form.cleaned_data['M_step'],
-                                            user_model=form.cleaned_data['alternate_model'],
-                                            cosmo_labels=form.cleaned_data['cp_label'],
-                                            extra_plots=form.cleaned_data['extra_plots'])
+                                                       extrapolate=form.cleaned_data['extrapolate'],
+                                                       k_bounds=k_bounds,
+                                                       z_list=form.cleaned_data['z'],
+                                                       WDM_list=form.cleaned_data['WDM'],
+                                                       approaches=approach,
+                                                       overdensities=form.cleaned_data['overdensity'],
+                                                       cosmology_list=cosmology_list,
+                                                       min_M=form.cleaned_data['min_M'], max_M=form.cleaned_data['max_M'],
+                                                       M_step=form.cleaned_data['M_step'],
+                                                       user_model=form.cleaned_data['alternate_model'],
+                                                       cosmo_labels=form.cleaned_data['cp_label'],
+                                                       extra_plots=form.cleaned_data['extra_plots'])
 
         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'])
 
         # Delete the uploaded file. Not needed anymore. Maybe should leave it here for adds??.
         if form.cleaned_data["co_transfer_file_upload"] != None:
             os.system("rm " + form.cleaned_data["co_transfer_file_upload"])
+
 
         if self.request.path.endswith('add/'):
             self.request.session["mass_data"] = pandas.concat([self.request.session["mass_data"], mass_data], join='inner', axis=1)
@@ -243,6 +240,7 @@ class HMFInputBase(FormView):
             self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
             self.request.session['warnings'].update(warnings)
             self.request.session['extra_plots'] = list(set(form.cleaned_data['extra_plots'] + self.request.session['extra_plots']))
+            self.merge_error = False
 
         elif self.request.path.endswith('create/'):
             self.request.session["mass_data"] = mass_data
@@ -366,6 +364,7 @@ def plots(request, filetype, plottype):
     """
     Chooses the type of plot needed and the filetype (pdf or png) and outputs it
     """
+    #TODO: give user an option for ylim dynamically?
     # Definitions of plot-types
     mass_plots = ['hmf', 'f', 'ngtm', 'mhmf', 'comparison_hmf',
                   'comparison_f', 'Mgtm', 'nltm', 'Mltm', 'L',
