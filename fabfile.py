@@ -25,7 +25,7 @@ def push():
     local("git push")
 
 def prepare_deploy():
-#    test()
+    test()
     commit()
     push()
 
@@ -41,6 +41,7 @@ def deploy():
 
 
 def yum_installs():
+    run("yum install git")
     run("yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel")
     run("yum install blas.x86_64")
     run("yum install blas-devel.x86_64")
@@ -141,9 +142,16 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
         f.write(config_file)
 
     #Now need to add "LoadModule wsgi_module modules/mod_wsgi.so" to httpd.conf
+    with open("/etc/httpd/conf.d/wsgi.conf") as f:
+        f.write("LoadModule wsgi_module modules/mod_wsgi.so")
 
     #Then restart the server
     run("service httpd restart")
+
+def configure_mpl():
+    run("echo 'ps.useafm : True'>>$HOME/.matplotlib/matplotlibrc")
+    run('echo "pdf.use14corefonts : True" >> $HOME/.matplotlib/matplotlibrc')
+    run('echo "text.usetex: True" >> $HOME/.matplotlib/matplotlibrc')
 
 def setup_server():
     # First do all the yum installs
@@ -163,6 +171,13 @@ def setup_server():
 
     #Configure apache
     configure_apache()
+
+    #Configure matplotlib
+    configure_mpl()
+
+    #Configure the environment as a production env
+    run('"export MY_DJANGO_ENV=production">>$HOME/.bashrc')
+    run("source ~/.bashrc")
 
     #Run the deploy
     deploy()

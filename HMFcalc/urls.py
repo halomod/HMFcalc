@@ -1,9 +1,8 @@
 from django.conf.urls import patterns, include, url
-from HMFcalc import views
+from hmf_finder import views
 from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic.base import RedirectView
-from envelope.views import ContactView
 
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
