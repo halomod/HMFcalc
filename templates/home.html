@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block subheading %}
+<div class="page-header">
+<h2>HMF<i>calc</i>: An online Halo Mass Function calculator</h2>
+</div>
+{% endblock %}
+        
+
+{% block content %}
+	
+	<p> This is a web-application for calculating the Halo Mass Function. It is written by Steven Murray <a href="hmf_acknowledgments/">with others</a> at the 
+	International Centre for Radio Astronomy Research (ICRAR). </p>
+	 
+	<p>If you would like to acknowledge use of this application, there is a forthcoming paper to cite. However, for now, please let just <a href='/contact_info'>let me know</a> what you're using it for!
+	
+	<p>Please check out other information about the mass function and this calculator by following the links at the top of this page. </p>
+	
+	<p>Note that this calculator is a work in progress. We are confident it does what it advertises well and robustly, but there is 
+	always room for improvement. Please <a href='/contact_info'>contact us</a> if you find any bugs, have ideas for new features, or notice any design flaws!
+	If you notice something after producing a plot, don't hesitate to click the "Contact Us!" link at the top of the page -- your data will be persistent!</p>
+
+	<p>Finally, the calculation backend for this web-app is written in Python and is made open-source via <a href="www.github.com/steven-murray/hmf">github</a>.
+	If you have a working python installation you can install it simply with "pip install hmf".</p>
+    <div id='submitcontainer' class='form-actions' style='align:centre;'>
+    	<a href='hmf_finder/form/create/' class='btn btn-primary btn-large'>Begin!</a>
+    </div>
+{% endblock %}

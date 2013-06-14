@@ -6,7 +6,8 @@ Created on May 20, 2013
 from setuptools import setup, find_packages
 import os
 
-version = '1.0.2'
+from HMFcalc import version
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 

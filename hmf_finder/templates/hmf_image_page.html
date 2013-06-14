@@ -76,6 +76,7 @@
 				<th scope='col'> Com. Vol.  (Gpc<sup>3</sup>/h<sup>3</sup>) </th>
 				<th scope='col'> Ang. Size Dist. (Gpc/h) </th>
 				<th scope='col'> Lum. Dist. (Gpc/h) </th>
+				<th scope='col'> Growth Factor </th>
 			</thead>
 			<tbody>
 				{% for row in distances %}
@@ -87,6 +88,7 @@
 						<td> {{ row.4|floatformat:"-2" }} </td>
 						<td> {{ row.5|floatformat:"-2" }} </td>
 						<td> {{ row.6|floatformat:"-2" }} </td>
+						<td> {{ row.7|floatformat:"-2" }} </td>
 					</tr>
 				{% endfor %}
 			</tbody>

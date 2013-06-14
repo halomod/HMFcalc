@@ -40,7 +40,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
 
     labels = {}
     warnings = {}
-
+    growths = []
     pert = Perturbations(M=masses,
                          transfer_file=transfer_file,
                          z=z_list[0],
@@ -52,6 +52,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
 
     #Loop through all the different cosmologies
     for cosmo_i, cosmo_dict in enumerate(cosmology_list):
+        growths.append([])
         #Save the cosmo_label to the column label
         labels['cosmo'] = cosmo_labels[cosmo_i]
         #Loop through all WDM models (CDM first)
@@ -76,7 +77,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                     #Update pert object optimally with new variables
                     pert.update(k_bounds=k_bound, WDM=wdm, z=z, **cosmo_dict)
 
-
+                    growths[cosmo_i].append(pert.growth)
                     #Save k-based data
                     k_data["k_" + getname(labels, excl=['deltavir', 'fsig'])] = pert.k
                     k_data["P(k)_" + getname(labels, excl=['deltavir', 'fsig'])] = pert.power_spectrum
@@ -122,10 +123,10 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.min_error)
 
 
-    return mass_data, k_data, warnings
+    return mass_data, k_data, growths, warnings
 
 
-def cosmography(cosmology_list, cosmo_labels, redshifts):
+def cosmography(cosmology_list, cosmo_labels, redshifts, growth):
 
     ######################################################
     # COSMOGRAPHY
@@ -137,7 +138,7 @@ def cosmography(cosmology_list, cosmo_labels, redshifts):
                  'omega_lambda_0':cosmology['omegav'],
                  'h':cosmology['H0'] / 100.0,
                  'omega_b_0':cosmology['omegab'],
-                 'omega_n_0':cosmology['omegan'],
+                 'omega_n_0':0,  #cosmology['omegan'],
                  'N_nu':0,
                  'n':cosmology['n'],
                  'sigma_8':cosmology['sigma_8']}
@@ -145,14 +146,16 @@ def cosmography(cosmology_list, cosmo_labels, redshifts):
         cd.set_omega_k_0(cosmo)
 
         #Age of the Universe
-        for z in redshifts:
+        for j, z in enumerate(redshifts):
             distances = distances + [[cosmo_labels[i],
                                       z,
                                       cd.age(z, use_flat=False, **cosmo) / (3600 * 24 * 365.25 * 10 ** 9),
                                       cd.comoving_distance(z, **cosmo) / 1000,
                                       cd.comoving_volume(z, **cosmo) / 10 ** 9,
                                       cd.angular_diameter_distance(z, **cosmo) / 1000,
-                                      cd.luminosity_distance(z, **cosmo) / 1000]]
+                                      cd.luminosity_distance(z, **cosmo) / 1000,
+                                      growth[i][j]],
+                                     ]
 
 
 

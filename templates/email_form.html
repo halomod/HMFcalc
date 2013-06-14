@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Mass Function Calculator | Send Email{% endblock %}
+{% block script %} 
+<script type="text/javascript">
+$(function() {
+    $('#id_name').focus()
+});
+</script>
+{% endblock %}
+{% block subheading %} <div class="page-header"><h2>Send me an email! </h2></div>{% endblock %}
+{% block content %}
+    <div class="row">
+        <div class="span6">
+            {% crispy form form.helper %}
+        </div>
+    </div>
+{% endblock %}

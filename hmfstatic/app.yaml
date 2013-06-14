@@ -1,0 +1,14 @@
+application: hmfstatic
+version: 3-5
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+
+handlers:
+#- url: /favicon\.ico
+#  static_files: favicon.ico
+#  upload: favicon\.ico
+
+- url: /
+  static_dir: assets

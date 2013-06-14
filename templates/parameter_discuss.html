@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}HMFcalc | Discussion of Parameters {% endblock %}
+
+{% block subheading %}
+<div class='page-header'>
+<h2>Discussion of parameters</h2>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<p> This page outlines and discusses each of the parameters that are modifiable in the calculations of the Halo Mass Function with this calculator. 
+Note that there are other parameters which may affect the transfer function (from which the Mass Function is calculated), 
+but these were deemed not important enough to include in this calculator for practical purposes.</p>
+
+<h5>Redshifts</h5>
+The redshift defines how far back into the Universe (in time) the calculations are performed. We expect that over time, 
+the mass function evolves so that more large-mass groups are present at later times. In this calculator, one may choose an arbitrary 
+number of redshifts at which to calculate the mass function, separated by commas. Each of these will be plotted against each other for comparison. 
+Redshifts must be positive and less than 1100.
+
+Redshifts affect the calculations through the growth factor, although some fitting functions provide extra dependency on the redshift as well.
+
+<h5>Virial Overdensity</h5>
+The virial overdensity is the the mean overdensity with respect to the background density within which a halo is virialized. 
+That is, it is the ratio of the density inside a sphere to the background at which that sphere is dynamically stable. 
+Common values used are 178, 180 and 200. This is not strictly a cosmological parameter, rather it is a parameter of convenience used by simulators 
+to define the extents of haloes. Being so, the properties of the mass function are modified by the value. Some more recent fitting functions thus
+ incorporate this as an explicit parameter. Other than in these functions (explicitly Watson), this parameter will have absolutely no effect.
+
+<h5>WDM Particle Mass</h5>
+The Warm Dark Matter particle mass affects the mass of hypothetical dark matter particles. 
+The prevailing CDM paradigm can be thought of as requiring very massive particles, whereas WDM has particles of a lesser mass 
+(which move more quickly). In detail, the faster WDM particles smooth out the initial primordial spectrum at small scales, 
+which mathematically entails a graceful truncation of the power spectrum at high k via the equations set forth in Bode et. al. (2001). 
+
+This calculator allows an arbitrary number of WDM masses which can be viewed for comparison.
+
+<h5>Fitting Function</h5>
+The form of the mass function can be split into two primary multiplicative parts. The first part is dependant only on cosmology, 
+while the second is a function of the mass variance. This second part has been parametrised several times, usually empirically 
+(except for Press-Schechter and Sheth-Tormen) based on ever-improving simulations. This calculator allows one to choose as many of 
+these fitting functions as needed in order to compare them. 
+
+Note that some fitting functions are defined only within a certain mass range. This calculator will automatically set values outside
+ this range to NaN.
+
+<h5>User-Defined Fitting Function</h5>
+It is envisaged that some may wish to use a slightly altered version of a standard fitting function, or perhaps one would like to test
+ a completely new idea. This is made possible in this calculator, provided one knows standard python mathematical 
+ <a href="http://docs.scipy.org/doc/numpy/reference/routines.math.html">syntax</a>. The syntax is outlined in the Numpy documentation.
+
+<h5>Transfer Function</h5>
+Almost all of the cosmological information present in the mass function is supplied through the transfer function. The transfer 
+function is closely related to the Power Spectrum. The transfer function, along with the power spectral index, encodes all of the 
+clustering information concerning mass in the Universe. The transfer functions used in these calculations are produced by the excellent 
+<a href='camb.info'>CAMB software</a>. There are three options here. Firstly, there are several predefined transfer functions based on popular
+ cosmologies. These have been precalculated using CAMB and have quite high resolution in k-space. Secondly, 
+ one can upload their own transfer function file produced by CAMB. This gives complete flexibility over the cosmology and resolution 
+ of the transfer function. However, one must be careful to modify the cosmological parameters in this calculator appropriately, or the 
+ cosmologies will not match up. Thirdly, if a custom transfer function is selected, but no file is uploaded, CAMB is used on-the-fly to 
+ produce a transfer function consistent with the cosmological parameters in the form. However, this function is at a set resolution, which is
+  quite a bit lower than the pre-calculated ones.
+
+<h5>Extrapolate</h5>
+The transfer function produced by CAMB has limits in k-space. The mass variance, which is a heavily used quantity 
+in Mass Function calculations, involves the integral of the power spectrum over the infinite range of k. 
+Thus, using the original limits on k as produced by CAMB does truncate this integral. Of course, the integral must be truncated at some point, 
+being numerical integration. In general, the power spectrum is quite smooth and linear (in log space) towards both ends, and 
+therefore is quite simple to extrapolate beyond the calculated limits. This improves the quality of the final integration. 
+
+This option should only be left unchecked if for a specific reason the exact k-bounds of an input transfer function are desired.
+
+<h5>Maximum k</h5>
+The maximum k value (which can only be set if one wishes to extrapolate) affects the artificial truncation of small-scale perturbations. 
+Setting this to a lower value imitates the effect of a WDM particle (though using this setting will affect the CDM calculation as well).
+
+<h5>Minimum k</h5>
+Setting the minimum k to a higher value simulates box-size effects of simulations.
+
+<h5>Minimum and Maximum Mass Scale, and Mass Bin Width</h5>
+These settings will affect the range for which the Mass Function is calculated, and the resolution of the final plots. 
+They are in units of logarithmic solar mass, so typical ranges will be 10-17 and about 0.01.
+
+<h5>Critical Overdensity for Collapse, &#948<sub>c</sub></h5>
+This parameter defines how overdense a spherical region must be with respect to the background for it to collapse and form a halo. 
+In an Einstein-De Sitter Universe, the value is 1.686, however this value is modifiable in these calculations. 
+It does not enter into the transfer function calculations.
+
+<h5>Power Spectral Index, n<sub>s</sub></h5>
+By definition, the power spectrum is thought to be a power law modified by the transfer function. 
+The power law is completely defined by the power spectral index. 
+This parameter does not enter into the transfer function calculations.
+
+<h5>&#963<sub>8</sub></h5>
+&#963<sub>8</sub> is the variance in mass of spheres with a radius of 8Mpc placed at every point in the Universe. 
+It is one of the most varying parameters over the course of the WMAP releases. It does not enter into the transfer function calculations, 
+but has the main role in setting the amplitude of the power spectrum.
+
+<h5>H<sub>0</sub></h5>
+This is Hubble's Constant. It expresses the relationship between distance to an extragalactic body and its velocity.
+ It is a uniquely fundamental parameter, especially with regard to the size and age of the Universe. Its effect is solely through the 
+ transfer function.
+
+<h5>&#937<sub>b</sub></h5>
+This is the fractional density of baryonic matter with respect to the density of the Universe. It has effect in the transfer function, 
+and also directly within mass function calculations.
+
+<h5>&#937<sub>c</sub></h5>
+This is the fractional density of dark matter with respect to the density of the Universe. It has effect in the transfer function, 
+and also directly within mass function calculations.
+
+<h5>&#937<sub>&#923</sub></h5>
+This is the fractional density of dark energy with respect to the density of the Universe. It has effect in the transfer function, 
+and also directly within mass function calculations.
+
+
+<h5>&#937<sub>v</sub></h5>
+This is the fractional density of neutrinos with respect to the density of the Universe. It is by default 0.0 in all cosmologies.
+It has effect in the transfer function, and also directly within mass function calculations.
+
+{% endblock %}

@@ -4,9 +4,10 @@ Created on May 3, 2012
 @author: smurray
 '''
 
-from django import forms
+#from django import forms
 from django.utils.safestring import mark_safe
 import numpy as np
+import floppyforms as forms
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Div
@@ -127,7 +128,7 @@ class HMFInput(forms.Form):
                                                               'cp_omegac',
                                                               'cp_omegav',
 #                                                              'cp_w_lam',
-                                                              'cp_omegan',
+#                                                              'cp_omegan',
 
                                                               css_class='span4'
                                                               )
@@ -177,7 +178,7 @@ class HMFInput(forms.Form):
                                                               'cp_omegac',
                                                               'cp_omegav',
 #                                                              'cp_w_lam',
-                                                              'cp_omegan',
+#                                                              'cp_omegan',
 
                                                               css_class='span4'
                                                               )
@@ -223,6 +224,7 @@ class HMFInput(forms.Form):
                         ("Tinker", "Tinker (2008)"),
                         ("Crocce", "Crocce (2010)"),
                         ("Courtin", "Courtin (2010)"),
+                        ("Bhattacharya", "Bhattacharya (2011)"),
                         ("Angulo", "Angulo (2012)"),
                         ("Angulo_Bound", "Angulo (Subhaloes) (2012)"),
                         ("Watson_FoF", "Watson (FoF Universal) (2012)"),
@@ -351,10 +353,10 @@ class HMFInput(forms.Form):
 #    cp_w_lam = FloatListField(label="w",
 #                                       initial='-1.0')
 
-    cp_omegan = FloatListField(label=mark_safe("&#937<sub>v</sub>"),
-                                       initial='0.0',
-                                       min_val=0,
-                                       max_val=0.7)
+#    cp_omegan = FloatListField(label=mark_safe("&#937<sub>v</sub>"),
+#                                       initial='0.0',
+#                                       min_val=0,
+#                                       max_val=0.7)
 
     def clean(self):
         cleaned_data = super(HMFInput, self).clean()
@@ -414,7 +416,7 @@ class HMFInput(forms.Form):
         #----------------------------------------------------
         initial_setup_time = 0.9
         set_transfer_time = max((len(cleaned_data.get("cp_H0")) , len(cleaned_data.get("cp_omegab")), len(cleaned_data.get("cp_omegac")),
-                                 len(cleaned_data.get("cp_omegav")), len(cleaned_data.get("cp_omegan")))) * 1.055
+                                 len(cleaned_data.get("cp_omegav")))) * 1.055
 
         set_kbounds_time = max((len(cleaned_data.get("k_ends_at")), len(cleaned_data.get("k_begins_at")))) * len(cleaned_data.get("cp_n")) * \
                             len(cleaned_data.get("cp_sigma_8")) * 0.072
@@ -484,3 +486,17 @@ class PlotChoice(forms.Form):
                                 choices=download_choices,
                                 initial='pdf-current')
 
+
+
+
+class ContactForm(forms.Form):
+
+    name = forms.CharField(required=True)
+    email = forms.EmailField(required=True)
+    subject = forms.CharField(required=True)
+    message = forms.CharField(widget=forms.Textarea)
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.add_input(Submit('submit', 'Submit'))
+        super(ContactForm, self).__init__(*args, **kwargs)

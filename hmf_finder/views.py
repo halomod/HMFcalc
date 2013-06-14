@@ -6,7 +6,7 @@ from django.http import HttpResponse  #, HttpResponseRedirect
 import utils
 import forms
 from django.views.generic.edit import FormView
-#from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView
 #from django.core.files.base import ContentFile
 #from django.core.files.storage import default_storage
 #import numpy as np
@@ -21,6 +21,7 @@ import pandas
 from tabination.views import TabView
 from hmf.Perturbations import version
 from django.conf import settings
+from . import version as calc_version
 
 # def index(request):
 #   return HttpResponseRedirect('/admin/')
@@ -68,9 +69,9 @@ class contact(InfoChild):
     """
     _is_tab = True
     tab_id = '/contact_info/'
-    tab_label = 'Contact Info'
+    tab_label = 'Contact Us!'
     template_name = 'contact_info.html'
-    top = False
+    top = True
 
 class resources(InfoChild):
     """
@@ -109,12 +110,6 @@ class HMFInputBase(FormView):
     form_class = forms.HMFInput
     success_url = '../../hmf_image_page/'
     template_name = 'hmfform.html'
-
-    def get_success_url(self):
-        if not self.mf_error and not self.dist_error and not self.merge_error:
-            return '../../hmf_image_page/'
-        else:
-            return '../../error_page/'
 
     #Define what to do if the form is valid.
     def form_valid(self, form):
@@ -212,7 +207,7 @@ class HMFInputBase(FormView):
             approach = approach + ['user_model']
 
         # DO THE CALCULATIONS
-        mass_data, k_data, warnings = utils.hmf_driver(transfer_file=transfer_file,
+        mass_data, k_data, growth, warnings = utils.hmf_driver(transfer_file=transfer_file,
                                                        extrapolate=form.cleaned_data['extrapolate'],
                                                        k_bounds=k_bounds,
                                                        z_list=form.cleaned_data['z'],
@@ -226,7 +221,7 @@ class HMFInputBase(FormView):
                                                        cosmo_labels=form.cleaned_data['cp_label'],
                                                        extra_plots=form.cleaned_data['extra_plots'])
 
-        distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'])
+        distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
         # Delete the uploaded file. Not needed anymore. Maybe should leave it here for adds??.
         if form.cleaned_data["co_transfer_file_upload"] != None:
@@ -240,8 +235,6 @@ class HMFInputBase(FormView):
             self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
             self.request.session['warnings'].update(warnings)
             self.request.session['extra_plots'] = list(set(form.cleaned_data['extra_plots'] + self.request.session['extra_plots']))
-            self.merge_error = False
-
         elif self.request.path.endswith('create/'):
             self.request.session["mass_data"] = mass_data
             self.request.session["k_data"] = k_data
@@ -532,7 +525,7 @@ def header_txt(request):
 
     # Write the parameter info
     response.write('# File Created On: ' + str(datetime.datetime.now()) + '\n')
-    response.write('# With version ' + settings.version + ' of HMFcalc \n')
+    response.write('# With version ' + calc_version + ' of HMFcalc \n')
     response.write('# And version ' + version + ' of hmf (backend) \n')
     response.write('# \n')
     response.write('# SETS OF PARAMETERS USED \n')
@@ -560,8 +553,8 @@ def header_txt(request):
             response.write('# Omega_b: ' + str(data['cp_omegab'][min(j, len(data['cp_omegab']) - 1)]) + '\n')
             response.write('# Omega_CDM: ' + str(data['cp_omegac'][min(j, len(data['cp_omegac']) - 1)]) + '\n')
             response.write('# Omega_Lambda: ' + str(data['cp_omegav'][min(j, len(data['cp_omegav']) - 1)]) + '\n')
-            response.write('# w: ' + str(data['cp_w_lam'][min(j, len(data['cp_w_lam']) - 1)]) + '\n')
-            response.write('# Omega_nu: ' + str(data['cp_omegan'][min(j, len(data['cp_omegan']) - 1)]) + '\n')
+#            response.write('# w: ' + str(data['cp_w_lam'][min(j, len(data['cp_w_lam']) - 1)]) + '\n')
+#            response.write('# Omega_nu: ' + str(data['cp_omegan'][min(j, len(data['cp_omegan']) - 1)]) + '\n')
             response.write('# -----------------------------------------------------\n')
         response.write('# =====================================================\n')
         response.write('# \n')
@@ -633,3 +626,28 @@ def hmf_all_plots(request):
     buff.close()
     response.write(ret_zip)
     return response
+
+from django.core.mail import send_mail
+
+class ContactFormView(FormView):
+
+    form_class = forms.ContactForm
+    template_name = "email_form.html"
+    success_url = '/email-sent/'
+
+    def form_valid(self, form):
+        message = "{name} / {email} said: ".format(
+            name=form.cleaned_data.get('name'),
+            email=form.cleaned_data.get('email'))
+        message += "\n\n{0}".format(form.cleaned_data.get('message'))
+        send_mail(
+            subject=form.cleaned_data.get('subject').strip(),
+            message=message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.CONTACT_RECIPIENTS],
+        )
+        return super(ContactFormView, self).form_valid(form)
+
+
+class EmailSuccess(TemplateView):
+    template_name = "email_sent.html"

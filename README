@@ -9,5 +9,8 @@ This app is not provided as a re-usable app, but rather as an insight into the w
 at hmf.icrar.org. Feel free to modify it and let me know any bugs.\
 
 HISTORY
-
+1.0.5 - added growth factor to cosmographic table
+		added Bhattacharya function 
+		added email contact form
+		
 1.0.2 - added better validation for many inputs to cause it not to crash

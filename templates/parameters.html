@@ -1,0 +1,299 @@
+{% extends "base.html" %}
+
+{% block title %}HMFcalc | Parameters {% endblock %}
+{% block subheading %} 
+<div clas="page-header">
+<h2>Notes on the Parameters used in Calculation</h2>
+</div>
+{% endblock %}
+
+{% block content %}
+<p>The parameters used to calculate the halo mass
+function with this application can be split into
+three parts:
+<ol>
+ <li>Parameters only involved with the production of the transfer function, from which the
+mass function is derived. </li>
+ <li>Parameters that are involved only with the calculation of the mass function from the
+transfer function. </li>
+<li> Parameters which affect both of the above explicitly. </li>
+</ol>
+The following table summarises the parameters with respect to this categorization.
+<div class='row'>
+<div class='span7'>
+<table id="params_cat" class='table table-bordered table-condensed table-hover table-striped' summary="Categorized Parameters">
+    <thead>
+    	<tr>
+        	<th scope="col">Transfer Function Only</th>
+            <th scope="col">Mass Function Only</th>
+            <th scope="col">Both</th>
+        </tr>
+    </thead>
+    <tbody>
+    	<tr>
+    		<td>k-bounds</td>
+            <td>Redshift</td>
+            <td>&#937<sub>b</sub></td>
+        </tr>
+        <tr>
+        	<td>H<sub>0</sub></td>
+            <td>Virial Overdensity, &#916<sub>vir</sub></td>
+            <td>&#937<sub>c</sub></td>
+        </tr>
+        <tr>
+        	<td></td>
+            <td>WDM Mass</td>
+            <td>&#937<sub>&#923</sub></td>
+        </tr>
+        <tr>
+        	<td></td>
+            <td>Fitting Function</td>
+            <td>&#937<sub>v</sub></td>
+        </tr>
+        <tr>
+        	<td></td>
+            <td>Mass Limits</td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td></td>
+            <td>Critical Overdensity for Collapse, &#948<sub>c</sub></td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td></td>
+            <td>Spectral Index, n<sub>s</sub></td>
+            <td></td>
+        </tr>
+        <tr>
+        	<td></td>
+            <td>&#963<sub>8</sub></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+</div>
+</div>
+The transfer function is 
+produced with <a href="camb.info">CAMB</a>. This is done either previously
+and included by default in this application, 
+uploaded by the user themself, or calculated on
+the fly. If the user uploads their own transfer function,
+produced by CAMB either on the web-interface or
+with the downloadable program, they will have set
+their own parameters explicitly. <span class='bold'>In this case, it
+is important that the cosmological parameters
+provided explicitly in the HMF application are 
+set to the same values as used for the transfer
+function.</span> This is the sole responsibility of the
+user. Note that only parameters in the 'Both' column are necessary
+to specify accurately in this case, however all parameters are written
+to ascii files and this may confuse the user at a later date if not specified correctly.</p> 
+
+<p>If a default pre-calculated transfer function is 
+used, parameters of that cosmology (specified in the relevant paper) that affect that transfer function in any way
+are internally set and made non-modifiable so that no confusion arises. Parameters that are relevant to the cosmology and prescribed in
+the relevant paper, but which do not affect the transfer function, are set to their proper values but are still modifiable.</p>
+
+The difference between the several default  transfer functions included in the app lies in the choice of a few 
+cosmological parameters. Otherwise, all other CAMB parameters are equivalent.
+Each of the sets of parameters are taken from a corresponding paper, linked from the heading.
+<div class='row'>
+<div class='span7'>
+<table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
+	<thead>
+	<th scope='col'> Parameter </th>
+	<th scope='col'><a href='http://arxiv.org/abs/1303.5076'>Planck</a></th>
+	<th scope='col'><a href='http://arxiv.org/abs/1212.5226'>WMAP9</a></th>
+	<th scope='col'><a href='http://adsabs.harvard.edu/abs/2011ApJS..192...18K'>WMAP7</a></th>
+	<th scope='col'><a href='http://stacks.iop.org/0067-0049/180/i=2/a=330?key=crossref.355ec98555761e3f8a6a38d88962d16f'>WMAP5</a></th>
+	<th scope='col'><a href="http://stacks.iop.org/0067-0049/180/i=2/a=330?key=crossref.355ec98555761e3f8a6a38d88962d16f">GiggleZ</a></th>
+	<th scope='col'><a href="http://adsabs.harvard.edu/abs/2007ApJS..170..377S">WMAP3</a></th>
+	<th scope='col'><a href="http://adsabs.harvard.edu/abs/2003ApJS..148..175S">WMAP1</a></th>
+	<th scope='col'><a href="http://tao.it.swin.edu.au/partner-resources/simulations/millennium/">Millennium</a></th>
+	</thead>
+	
+	<tbody>
+	<tr>
+	<td> &#937<sub>&#923</sub> </td>
+	<td> 0.6817</td>
+	<td> 0.7181</td>
+	<td> 0.728 </td>
+	<td> 0.723 </td>
+	<td> 0.726 </td>
+	<td> 0.732 </td>
+	<td> 0.710 </td>
+	<td> 0.750 </td>
+	</tr>
+	
+	<tr>
+	<td> &#937<sub>c</sub> </td>
+	<td> 0.2678</td>
+	<td> 0.236</td>
+	<td> 0.226 </td>
+	<td> 0.231 </td>
+	<td> 0.228 </td>
+	<td> 0.224 </td>
+	<td> 0.243 </td>
+	<td> 0.205 </td>
+	</tr>
+	
+	<tr>
+	<td> &#937<sub>b</sub> </td>
+	<td> 0.049 </td>
+	<td> 0.0461 </td>
+	<td> 0.0455 </td>
+	<td> 0.0459 </td>
+	<td> 0.0456 </td>
+	<td> 0.044 </td>
+	<td> 0.047 </td>
+	<td> 0.045 </td>
+	</tr>
+	
+	<tr>
+	<td> n<sub>s</sub> </td>
+	<td> 0.9619 </td>
+	<td> 0.9646 </td>
+	<td> 0.967 </td>
+	<td> 0.962 </td>
+	<td> 0.960 </td>
+	<td> 0.99 </td>
+	<td> 0.947 </td>
+	<td> 1 </td>
+	</tr>
+	
+	<tr>
+	<td> &#964 </td>
+	<td> 0.0925 </td>
+	<td> 0.08 </td>
+	<td> 0.085 </td>
+	<td> 0.088 </td>
+	<td> 0.088 </td>
+	<td> 0.0867 </td>
+	<td> 0.10 </td>
+	<td> 0.10 </td>
+	</tr>
+	
+	<tr>
+	<td> H<sub>0</sub> </td>
+	<td> 67.04 </td>
+	<td> 69.7 </td>
+	<td> 0.704 </td>
+	<td> 0.702 </td>
+	<td> 0.705 </td>
+	<td> 0.704 </td>
+	<td> 0.72 </td>
+	<td> 0.73 </td>
+	</tr>
+	
+	<tr>
+	<td> &#963<sub>8</sub> </td>
+	<td> 0.8347 </td>
+	<td> 0.817 </td>
+	<td> 0.81 </td>
+	<td> 0.817 </td>
+	<td> 0.812 </td>
+	<td> 0.776 </td>
+	<td> 0.9 </td>
+	<td> 0.9 </td>
+	</tr>
+	
+	</tbody>
+	
+	
+ </table>
+</div>
+</div>
+
+Some may wish to know the various other parameters used in CAMB to produce the transfer function (of which there are many). 
+Across all default transfer functions, these are the same, taking the following values (CAMB version Oct2012 is used) (parameters
+found in the params.ini file but not listed here are not used at all):
+<div class='row'>
+<div class='span5'>
+
+<table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
+<thead>
+	<th scope='col'> Parameter </th>
+	<th scope='col'> Value </th>
+</thead>
+<tbody>
+<tr><td> Cl's </td><td>Scalar</td></tr>
+ <tr><td> get_transfer</td><td> TRUE</td></tr>
+ <tr><td> Do lensing</td><td> FALSE</td></tr>
+ <tr><td> do_nonlinear</td><td>Linear</td></tr>
+ <tr><td> Scalar l_max </td><td> 2000</td></tr>
+ <tr><td> Scalar k*eta_max </td><td> 4000</td></tr>
+ <tr><td> Use Physical Parameters</td><td> FALSE</td></tr>
+ <tr><td> cs2_lam </td><td> 0</td>
+ <tr><td> temp_cmb</td><td>2.725</td>
+ <tr><td> helium_fraction</td><td>0.24</td>
+ <tr><td> massless_neutrinos</td><td>3.04</td>
+ <tr><td> massive_neutrinos</td><td>0</td>
+ <tr><td> nu_mass_eigenstates</td><td>1</td>
+ <tr><td> nu_mass_degeneracies</td><td>0</td>
+ <tr><td> nu_mass_fractions</td><td>1</td>
+ <tr><td> initial_power_num</td><td>1</td>
+ <tr><td> pivot_scalar</td><td>0.05</td>
+ <tr><td> pivot_tensor</td><td>0.05</td>
+ <tr><td> scalar_amp</td><td>1</td>
+ <tr><td> scalar_spectral_index</td><td>1.0</td>
+ <tr><td> scalar_nrun</td><td>0</td>
+ <tr><td> tensor_spectral_index</td><td>0</td>
+ <tr><td> initial_ratio</td><td>1</td>
+ <tr><td> reionization</td><td>True</td>
+ <tr><td> Use Optical Depth</td><td>True</td>
+ <tr><td> Optical Depth</td><td>0.09</td>
+ <tr><td> re_delta_redshift</td><td>1.5</td>
+ <tr><td> re_ionization_frac</td><td>-1</td>
+ <tr><td> RECFAST_fudge</td><td>1.14</td>
+ <tr><td> RECFAST_fudge_He</td><td>0.86</td>
+ <tr><td> RECFAST_Heswitch</td><td>6</td>
+ <tr><td> RECFAST_Hswitch</td><td>TRUE</td>
+ <tr><td> Initial scalar Perturbation Mode</td><td>Adiabatic</td>
+ <tr><td> vector_mode</td><td>0</td>
+ <tr><td> COBE_normalize</td><td>FALSE</td>
+ <tr><td> CMB_outputscale</td><td>1</td>
+ <tr><td> transfer_high_precision</td><td>TRUE</td>
+ <tr><td> Transfer_kmax</td><td>2000</td>
+ <tr><td> transfer_k_per_logint</td><td>100</td>
+ <tr><td> num_redsifts</td><td>1</td>
+ <tr><td> transfer_interp_matterpower</td><td>TRUE</td>
+ <tr><td> Lensing Method</td><td>Curved Correlation Funtion</td>
+ <tr><td> accurate_BB</td><td>FALSE</td>
+ <tr><td> massive_nu_approx</td><td>1</td>
+ <tr><td> accurate_polarization</td><td>TRUE</td>
+ <tr><td> accurate_reionization</td><td>TRUE</td>
+ <tr><td> do_tensor_neutrinos</td><td>TRUE</td>
+ <tr><td> D-late_rad_truncation</td><td>TRUE</td>
+ <tr><td> high_accuracy_default</td><td>1</td>
+ <tr><td> accuracy_boost</td><td>1</td>
+ <tr><td> l_accuracy_boost</td><td>1</td>
+ <tr><td> l_sample_boost</td><td>2.725</td>
+ </tbody>
+ 
+ </table>
+ 
+</div>
+
+</div>
+
+
+<p>If a custom transfer function is chosen, but
+no file is uploaded, then a CAMB run is performed
+on the fly. This CAMB run is limited in its
+choice of parameters. Only cosmological parameters
+may be changed. Otherwise, the CAMB parameters take
+the same values as outlined above, with the exception
+of kmax and k-per-log-int which both take the value
+of 20 for the on-the-fly run. This is to save time.</p>
+
+<p>In summary, the most flexible (but generally inconvenient)
+way of using this application is to provide your own transfer
+function produced by CAMB. If so, make sure the cosmological
+parameters in the form match those used by CAMB. The fastest
+method is to use a pre-defined transfer function, and these are also
+quite accurate. However, this is fairly inflexible. A happy medium
+is to run an on-the-fly transfer function which has 'good enough'
+accuracy and is very convenient.</p>
+
+{% endblock %}
