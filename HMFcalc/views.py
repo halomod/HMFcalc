@@ -578,7 +578,7 @@ def header_txt(request):
 
 def hmf_txt(request):
     # Import all the data we need
-    mass_data = request.session["mass_data"]
+    mass_data = pandas.DataFrame(request.session["mass_data"])
 
     # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
@@ -591,7 +591,7 @@ def hmf_txt(request):
 
 def power_txt(request):
     # Import all the data we need
-    k_data = request.session["k_data"]
+    k_data = pandas.DataFrame(request.session["k_data"])
 
     # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
