@@ -34,13 +34,15 @@ def deploy():
     with settings(warn_only=True):
         if run("test -d %s" % code_dir).failed:
             run("git clone https://github.com/steven-murray/HMFcalc.git %s" % code_dir)
-    run("chmod 777 %s" % (code_dir))
+
     put("HMF/secret_settings.py", code_dir + "HMF/")
     with cd(code_dir):
-        run("git pull")
+        run("git fetch --all")
+        run("git reset --hard origin/master")
         run("pip install hmf --upgrade")
         run("touch HMF/wsgi.py")
 
+    sudo("chmod 777 %s -R" % (home_dir))
 
 def yum_installs():
     sudo("yum install --assumeyes git")
