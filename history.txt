@@ -1,4 +1,8 @@
 HISTORY OF HMFcalc
+1.0.5 - 17 June 2013
+		Many bugfixes
+		Added automatic deploy with fabric
+		
 1.0.0 - 20 May 2013
 		Many little bugfixes
 		Overhaul of css framework
