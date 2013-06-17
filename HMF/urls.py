@@ -1,5 +1,5 @@
 from django.conf.urls import patterns, include, url
-from hmf_finder import views
+from HMFcalc import views
 from django.conf import settings
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.views.generic.base import RedirectView
