@@ -20,7 +20,7 @@ def test():
         abort("Aborting at user request.")
 
 def commit():
-    local("git add -p && git commit")
+    local("git add -A && git commit")
 
 def push():
     local("git push")
@@ -35,7 +35,7 @@ def deploy():
         if run("test -d %s" % code_dir).failed:
             run("git clone https://github.com/steven-murray/HMFcalc.git %s" % code_dir)
     run("chmod 777 %s" % (code_dir))
-    put("HMFcalc/secret_settings.py", code_dir + "HMFcalc/")
+    put("HMF/secret_settings.py", code_dir + "HMF/")
     with cd(code_dir):
         run("git pull")
         run("pip install hmf --upgrade")
@@ -130,7 +130,7 @@ WSGISocketPrefix /var/run/wsgi
 WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
 
 <VirtualHost *:80>
-    WSGIScriptAlias / %sHMFcalc/wsgi.py
+    WSGIScriptAlias / %sHMF/wsgi.py
     
     WSGIDaemonProcess hmf-test.icrar.org python-path=%s:%shmfenv/lib/python2.7/site-packages
 
@@ -138,7 +138,7 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
 
     WSGIApplicationGroup %%{GLOBAL}
 
-    <Directory %sHMFcalc>
+    <Directory %sHMF>
 
         Order deny,allow
 
