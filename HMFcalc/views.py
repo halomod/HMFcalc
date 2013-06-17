@@ -223,14 +223,12 @@ class HMFInputBase(FormView):
 
         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
-        # Delete the uploaded file. Not needed anymore. Maybe should leave it here for adds??.
-        if form.cleaned_data["co_transfer_file_upload"] != None:
-            os.system("rm " + form.cleaned_data["co_transfer_file_upload"])
-
 
         if self.request.path.endswith('add/'):
-            self.request.session["mass_data"] = pandas.concat([self.request.session["mass_data"], mass_data], join='inner', axis=1)
-            self.request.session["k_data"] = pandas.concat([self.request.session["k_data"], k_data], join='inner', axis=1)
+            #print self.request.session["mass_data"]
+            #print mass_data
+            self.request.session["mass_data"].update(mass_data)
+            self.request.session["k_data"].update(k_data)
             self.request.session['distances'] = self.request.session['distances'] + [distances]
             self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
             self.request.session['warnings'].update(warnings)
@@ -376,64 +374,75 @@ def plots(request, filetype, plottype):
     # DEFINE THE FUNCTION TO BE PLOTTED
     if plottype in mass_plots:
         if plottype == 'hmf':
-            keep = [string for string in mass_data.columns if string.startswith("hmf_")]
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("hmf_")]
+
+
+
+            #mass_data = mass_data[keep]
             title = 'Mass Function'
             ylab = r'Logarithmic Mass Function $\log_{10} \left( \frac{dn}{d \ln M} \right) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'f':
-            keep = [string for string in mass_data.columns if string.startswith("f(sig)_")]
-            # mass_data[i].keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("f(sig)_")]
+
+
+
+            #mass_data = mass_data[keep]
             title = 'Fraction of Mass Collapsed'
             ylab = r'Fraction of Mass Collapsed, $f(\sigma)$'
             yscale = 'linear'
 
         elif plottype == 'ngtm':
-            keep = [string for string in mass_data.columns if string.startswith("NgtM_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("NgtM_")]
+
+
+
             title = 'n(>M)'
             ylab = r'$\log_{10}(n(>M)) h^3 Mpc^{-3}$'
             yscale = 'linear'
 
         elif plottype == 'Mgtm':
-            keep = [string for string in mass_data.columns if string.startswith("MgtM_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("MgtM_")]
+
+
+
             title = 'Total Bound Mass in Haloes Greater Than M'
             ylab = r'Mass(>M), $\log_{10} M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'linear'
 
         elif plottype == 'nltm':
-            keep = [string for string in mass_data.columns if string.startswith("NltM_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("NltM_")]
+
+
+
             title = 'n(<M)'
             ylab = r'$\log_{10}(n(>M)) h^3 Mpc^{-3}$'
             yscale = 'linear'
 
         elif plottype == 'Mltm':
-            keep = [string for string in mass_data.columns if string.startswith("MltM_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("MltM_")]
+
+
+
             title = 'Total Bound Mass in Haloes Smaller Than M'
             ylab = r'Mass(<M), $\log_{10} M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'linear'
 
         elif plottype == 'mhmf':
-            keep = [string for string in mass_data.columns if string.startswith("M*hmf_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("M*hmf_")]
+
+
+
             title = 'Mass by Mass Function'
             ylab = r'Mass by Mass Function $\left( M\frac{dn}{d \ln M} \right) M_{sun} h^3 Mpc^{-3}$'
             yscale = 'linear'
 
         elif plottype == 'comparison_hmf':
-            keep = [string for string in mass_data.columns if string.startswith("hmf_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("hmf_")]
+
+
+
             mass_data = mass_data
             first_column = mass_data.columns[0]
             mass_data = mass_data.div(mass_data[first_column], axis=0)
@@ -442,8 +451,10 @@ def plots(request, filetype, plottype):
             ylab = r'Ratio of Logarithmic Mass Functions $ \left(\frac{dn}{d \ln M}\right) / \left( \frac{dn}{d \ln M} \right)_0 $'
 
         elif plottype == 'comparison_f':
-            keep = [string for string in mass_data.columns if string.startswith("f(sig)_")]
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("f(sig)_")]
+
+
+
 
             first_column = mass_data.columns[0]
             mass_data = mass_data.div(mass_data[first_column], axis=0)
@@ -455,44 +466,48 @@ def plots(request, filetype, plottype):
 
 
         elif plottype == 'L':
-            keep = [string for string in mass_data.columns if string.startswith("L(N=1)_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("L(N=1)_")]
+
+
+
             title = "Box Size, L, required to expect one halo"
             ylab = "Box Size, L (Mpc/h)"
             yscale = 'log'
 
         elif plottype == 'sigma':
-            keep = [string for string in mass_data.columns if string.startswith("sigma_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("sigma_")]
+
+
+
             title = "Mass Variance"
             ylab = r'Mass Variance, $\sigma$'
             yscale = 'linear'
 
         elif plottype == 'lnsigma':
-            keep = [string for string in mass_data.columns if string.startswith("lnsigma_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("lnsigma_")]
+
+
+
             title = "Logarithm of Inverse Sigma"
             ylab = r'$\ln(\sigma^{-1})$'
             yscale = 'linear'
 
         elif plottype == 'n_eff':
-            keep = [string for string in mass_data.columns if string.startswith("neff_")]
-            # mass_data.keep_columns(keep)
-            mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("neff_")]
+
+
+
             title = "Effective Spectral Index"
             ylab = r'Effective Spectral Index, $n_{eff}$'
             yscale = 'linear'
 
-        canvas = utils.create_canvas(masses, mass_data, title, xlab, ylab, yscale)
+        canvas = utils.create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep)
 
     else:
         xlab = "Wavenumber"
         if plottype == 'power_spec':
-            k_keys = [string for string in k_data.columns if string.startswith("k_")]
-            p_keys = [string for string in k_data.columns if string.startswith("P(k)_")]
+            k_keys = [string for string in k_data if string.startswith("k_")]
+            p_keys = [string for string in k_data if string.startswith("P(k)_")]
 
             title = "Power Spectra"
             ylab = "Power"

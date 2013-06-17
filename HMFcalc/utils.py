@@ -33,10 +33,10 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
     masses = np.arange(min_M, max_M, M_step)
 
     #Create a dataframe to hold the mass-based data
-    mass_data = pandas.DataFrame({'M':10 ** masses})
+    mass_data = {'M':10 ** masses}
 
     #Create a table to hold the k-based data
-    k_data = pandas.DataFrame(index=range(4097))
+    k_data = {}
 
     labels = {}
     warnings = {}
@@ -161,7 +161,7 @@ def cosmography(cosmology_list, cosmo_labels, redshifts, growth):
 
     return distances
 
-def create_canvas(masses, mass_data, title, xlab, ylab, yscale):
+def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep):
     ######################################################
     # IMAGE (CANVAS) PLOTTING
     ######################################################
@@ -179,7 +179,7 @@ def create_canvas(masses, mass_data, title, xlab, ylab, yscale):
 
     counter = 0
     print mass_data
-    for column in mass_data.columns:
+    for column in keep:
         ax.plot(masses, mass_data[column],
                 color=linecolours[(counter / 4) % 7],
                 linestyle=lines[counter % 4],
