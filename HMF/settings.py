@@ -63,8 +63,6 @@ INSTALLED_APPS = (
     'analytical',
     'crispy_forms',
     'HMFcalc',
-    'envelope',
-    'honeypot',
     'floppyforms',
     # Uncomment the next line to enable the admin:
     #'django.contrib.admin',

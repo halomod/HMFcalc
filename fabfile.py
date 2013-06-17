@@ -39,7 +39,7 @@ def deploy():
     with cd(code_dir):
         run("git pull")
         run("pip install hmf --upgrade")
-        run("touch %s/wsgi.py" % (app_name))
+        run("touch HMF/wsgi.py")
 
 
 def yum_installs():
