@@ -7,7 +7,7 @@ Created on May 3, 2012
 #from django import forms
 from django.utils.safestring import mark_safe
 import numpy as np
-import floppyforms as forms
+# import floppyforms as forms
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Div
