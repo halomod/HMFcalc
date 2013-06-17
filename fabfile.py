@@ -95,7 +95,7 @@ def python_packages():
         run(hmfenvpip + " install scipy")
         run(hmfenvpip + " install matplotlib")
         run(hmfenvpip + " install SciTools")
-        run(hmfenvpip + " install pandas")
+#        run(hmfenvpip + " install pandas")
         run(hmfenvpip + " install cosmolopy")
         run(hmfenvpip + " install django")
         run(hmfenvpip + " install django-tabination")
