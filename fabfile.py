@@ -4,11 +4,12 @@ Created on Jun 14, 2013
 @author: Steven
 '''
 
-from fabric.api import env, settings, local, run, abort, cd, put
+from fabric.api import env, settings, local, run, abort, cd, put, sudo
 from fabric.contrib.console import confirm
 
 env.hosts = ['hmf@hmf-test.icrar.org']
-home_dir = '/home/hmf/'
+username = "hmf"
+home_dir = '/home/' + username + '/'  #hmf/'
 app_name = 'HMFcalc'
 code_dir = home_dir + app_name + '/'
 
@@ -33,39 +34,41 @@ def deploy():
     with settings(warn_only=True):
         if run("test -d %s" % code_dir).failed:
             run("git clone https://github.com/steven-murray/HMFcalc.git %s" % code_dir)
+    run("chmod 777 %s" % (code_dir))
     put("HMFcalc/secret_settings.py", code_dir + "HMFcalc/")
     with cd(code_dir):
         run("git pull")
         run("pip install hmf --upgrade")
-        run("touch wsgi.py")
+        run("touch %s/wsgi.py" % (app_name))
 
 
 def yum_installs():
-    run("yum install git")
-    run("yum install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel")
-    run("yum install blas.x86_64")
-    run("yum install blas-devel.x86_64")
-    run("yum install lapack.x86_64")
-    run("yum install lapack-devel.x86_64")
-    run("yum install httpd.x86_64")
-    run("chkconfig --levels 235 httpd on")
-    run("yum install httpd-devel.x86_64")
-    run("yum install libpng-devel.x86_64")
+    sudo("yum install --assumeyes git")
+    sudo("yum install --assumeyes zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel")
+    sudo("yum install --assumeyes blas.x86_64")
+    sudo("yum install --assumeyes blas-devel.x86_64")
+    sudo("yum install --assumeyes lapack.x86_64")
+    sudo("yum install --assumeyes lapack-devel.x86_64")
+    sudo("yum install --assumeyes httpd.x86_64")
+    sudo("chkconfig --levels 235 httpd on")
+    sudo("yum install --assumeyes httpd-devel.x86_64")
+    sudo("yum install --assumeyes libpng-devel.x86_64")
+    # sudo("yum install --assumeyes python27 python27-devel")
 
 def python_install():
     with cd(home_dir):
         run("wget http://python.org/ftp/python/2.7.4/Python-2.7.4.tar.bz2")
         run("tar xf Python-2.7.4.tar.bz2")
     with cd(home_dir + "/Python-2.7.4"):
-        run("mkdir -p /opt/python2.7/lib")
-        run("./configure --prefix=/opt/python2.7 --with-threads --enable-shared LDFLAGS='-Wl,-rpath /opt/python2.7/lib'")
+        sudo("mkdir -p /opt/python2.7/lib")
+        sudo("./configure --prefix=/opt/python2.7 --with-threads --enable-shared LDFLAGS='-Wl,-rpath /opt/python2.7/lib'")
 
-        run("make && make altinstall")
+        sudo("make && make altinstall")
 
     with cd(home_dir):
-        run("ln -s /opt/python2.7/bin/python /usr/bin/python2.7")
-        run("echo '/opt/python2.7/lib'>> /etc/ld.so.conf.d/opt-python2.7.conf")
-        run("ldconfig")
+        sudo("ln -s /opt/python2.7/bin/python /usr/bin/python2.7")
+        sudo("echo '/opt/python2.7/lib'>> /etc/ld.so.conf.d/opt-python2.7.conf")
+        sudo("ldconfig")
 
 def python_dist_tools():
     with cd(home_dir):
@@ -73,35 +76,41 @@ def python_dist_tools():
         run("tar xf distribute-0.6.39.tar.gz")
 
     with cd(home_dir + "distribute-0.6.39"):
-        run("/usr/bin/python2.7 setup.py install")
+        sudo("/opt/python2.7/bin/python2.7 setup.py install")
+        #sudo("python2.7 setup.py install")
 
     with cd(home_dir):
-        run("/opt/python2.7/bin/easy_install pip")
-        run("/opt/python2.7/bin/pip install virtualenv")
-        run("virtualenv --distribute hmfenv")
+        sudo("/opt/python2.7/bin/easy_install pip")
+        sudo("/opt/python2.7/bin/pip install virtualenv")
+        #sudo("easy_install-2.7 pip")
+        #run("easy_install-2.7 virtualenv")
+        run("/opt/python2.7/bin/virtualenv --distribute hmfenv")
         run("source hmfenv/bin/activate")
         run("echo 'source $HOME/hmfenv/bin/activate'>>$HOME/.bashrc")
 
 def python_packages():
     with cd(home_dir):
-        run("pip install numpy")
-        run("pip install scipy")
-        run("pip install matplotlib")
-        run("pip install SciTools")
-        run("pip install pandas")
-        run("pip install cosmolopy")
-        run("pip install django")
-        run("pip install django-tabination")
-        run("pip install django-crispy-forms")
-        run("pip install django-analytical")
-        run("pip install django-floppyforms")
-        run("pip install hmf")
+        hmfenvpip = home_dir + 'hmfenv/bin/pip'
+        run(hmfenvpip + " install numpy")
+        run(hmfenvpip + " install scipy")
+        run(hmfenvpip + " install matplotlib")
+        run(hmfenvpip + " install SciTools")
+        run(hmfenvpip + " install pandas")
+        run(hmfenvpip + " install cosmolopy")
+        run(hmfenvpip + " install django")
+        run(hmfenvpip + " install django-tabination")
+        run(hmfenvpip + " install django-crispy-forms")
+        run(hmfenvpip + " install django-analytical")
+        run(hmfenvpip + " install django-floppyforms")
+
 
         run("git clone https://github.com/steven-murray/pycamb.git")
 
     with cd(home_dir + 'pycamb'):
-        run("python setup.py install")
+        run(home_dir + "hmfenv/bin/python setup.py install")
 
+    with cd(home_dir):
+        run(hmfenvpip + " install hmf")
 def mod_wsgi():
     with cd(home_dir):
         run("wget modwsgi.googlecode.com/files/mod_wsgi-3.4.tar.gz")
@@ -110,7 +119,7 @@ def mod_wsgi():
     with cd(home_dir + "/mod_wsgi-3.4"):
         run("./configure")
         run("make")
-        run("make install")
+        sudo("make install")
 
 def configure_apache():
 
@@ -127,7 +136,7 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
 
     WSGIProcessGroup hmf-test.icrar.org
 
-    WSGIApplicationGroup %{GLOBAL}
+    WSGIApplicationGroup %%{GLOBAL}
 
     <Directory %sHMFcalc>
 
@@ -138,20 +147,32 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
     </Directory>
 </VirtualHost>
 """ % (code_dir, home_dir, code_dir, code_dir, home_dir, code_dir)
-    with open("/etc/httpd/conf.d/hmf.conf") as f:
-        f.write(config_file)
+
+    sudo('echo "%s" > /etc/httpd/conf.d/hmf.conf' % (config_file))
+    #with open("/etc/httpd/conf.d/hmf.conf") as f:
+    #    f.write(config_file)
 
     #Now need to add "LoadModule wsgi_module modules/mod_wsgi.so" to httpd.conf
-    with open("/etc/httpd/conf.d/wsgi.conf") as f:
-        f.write("LoadModule wsgi_module modules/mod_wsgi.so")
+    sudo('echo "LoadModule wsgi_module modules/mod_wsgi.so">/etc/httpd/conf.d/wsgi.conf')
+    #with open("/etc/httpd/conf.d/wsgi.conf") as f:
+    #    f.write("LoadModule wsgi_module modules/mod_wsgi.so")
 
     #Then restart the server
-    run("service httpd restart")
+    sudo("service httpd restart")
 
 def configure_mpl():
     run("echo 'ps.useafm : True'>>$HOME/.matplotlib/matplotlibrc")
     run('echo "pdf.use14corefonts : True" >> $HOME/.matplotlib/matplotlibrc')
     run('echo "text.usetex: True" >> $HOME/.matplotlib/matplotlibrc')
+
+def setup_cron():
+
+    sudo('''echo "# This is to do a heartbeat check of the webapp
+0-59/5 * * * * %shmfenv/bin/python %sHMFcalc/check_alive.py">/var/spool/cron/%s''' % (home_dir, code_dir, username))
+
+def change_bashrc():
+    run('echo "export MY_DJANGO_ENV=production">>$HOME/.bashrc')
+    run("source ~/.bashrc")
 
 def setup_server():
     # First do all the yum installs
@@ -176,8 +197,10 @@ def setup_server():
     configure_mpl()
 
     #Configure the environment as a production env
-    run('"export MY_DJANGO_ENV=production">>$HOME/.bashrc')
-    run("source ~/.bashrc")
+    change_bashrc()
+
+    #Setup cron
+    setup_cron()
 
     #Run the deploy
     deploy()

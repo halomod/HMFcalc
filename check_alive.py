@@ -16,8 +16,10 @@ response = urllib2.urlopen("http://hmf.icrar.org", timeout=5)
 for line in response.readlines():
     if "<a href='hmf_finder/form/create/' class='btn btn-primary btn-large'>Begin!</a>" in line:
         print "found line"
-        sys.exit()
+        found_line = True
+        break
 
-print "Web-page down, restarting"
-call(["service", "httpd", "restart"])
+if not found_line:
+    print "Web-page down, restarting"
+    call(["sudo", "service", "httpd", "restart"])
 
