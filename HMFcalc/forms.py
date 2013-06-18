@@ -241,6 +241,30 @@ class HMFInput(forms.Form):
                                        required=False,
                                        widget=forms.Textarea(attrs={'cols':'40', 'rows':'3'}))
 
+    def clean_alternate_model(self):
+        """
+        Performs some simple parsing to check that the alternate model is not rubbish
+        """
+
+        numbers = "0123456789"
+        operators = ["+", "-", "*", "/", "**"]
+        functions = ['sin', 'cos', 'tan', 'abs', 'arctan', 'arccos', 'arcsin', 'exp', "(", ")"]
+        values = 'x'
+
+        operators_compressed = "".join(operators)
+        functions_compressed = "".join(functions)
+
+        am = self.cleaned_data.get("alternate_model")
+
+        if am is not None:
+            for i, character in enumerate(am):
+                if character not in numbers + operators_compressed + functions_compressed + values + " ":
+                    raise forms.ValidationError("The character ", character, " is not recognized")
+                if character in "+-/" and (am[i - 1] in "+-/" or am[i + 1] in "+-/"):
+                    raise forms.ValidationError("The character ", character, " cannot be next to ", am[i - 1], " and ", am[i + 1])
+
+
+
     transfer_choices = [('transfers/PLANCK_transfer.dat', 'PLANCK'),
                         ('transfers/WMAP9_transfer.dat', 'WMAP9'),
                         ("transfers/WMAP7_transfer.dat", "WMAP7"),
