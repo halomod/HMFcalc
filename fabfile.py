@@ -40,8 +40,8 @@ def deploy():
         run("git fetch --all")
         run("git reset --hard origin/master")
         run("pip install hmf --upgrade")
+        run("%shmfenv/bin/python change_prod_settings.py" % (home_dir))
         run("touch HMF/wsgi.py")
-
     sudo("chmod 777 %s -R" % (home_dir))
 
 def yum_installs():

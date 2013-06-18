@@ -12,16 +12,12 @@ import os
 #===============================================================================
 # SETUP LOCAL/PRODUCTION SPECIFIC VARIABLES
 #===============================================================================
-#ENV = os.environ.get("MY_DJANGO_ENV")
-#print ENV
-#if ENV == 'production':
-#    from prod_settings import *
-#else:
-#    from local_settings import *
-
-DEBUG = True
-TEMPLATE_DEBUG = DEBUG
-CRISPY_FAIL_SILENTLY = not DEBUG
+ENV = os.environ.get("MY_DJANGO_ENV")
+print ENV
+if ENV == 'production':
+    from prod_settings import *
+else:
+    from local_settings import *
 
 from secret_settings import *
 
