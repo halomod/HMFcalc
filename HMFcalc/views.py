@@ -313,9 +313,9 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
     _is_tab = True
     tab_id = '/hmf_finder/form/add/'
     top = False
-    tab_label = "Add Plots"
+    tab_label = "Add Extra Plots"
     def tab_visible(self):
-        return "extrapolate" in self.request.session
+        return "min_M" in self.request.session and "max_M" in self.request.session
 
 
 class ViewPlots(BaseTab):
@@ -402,8 +402,8 @@ def plots(request, filetype, plottype):
 
 
             title = 'n(>M)'
-            ylab = r'$\log_{10}(n(>M)) h^3 Mpc^{-3}$'
-            yscale = 'linear'
+            ylab = r'$(n(>M)) h^3 Mpc^{-3}$'
+            yscale = 'log'
 
         elif plottype == 'Mgtm':
             keep = [string for string in mass_data if string.startswith("MgtM_")]
@@ -411,8 +411,8 @@ def plots(request, filetype, plottype):
 
 
             title = 'Total Bound Mass in Haloes Greater Than M'
-            ylab = r'Mass(>M), $\log_{10} M_{sun}h^{2}Mpc^{-3}$'
-            yscale = 'linear'
+            ylab = r'Mass(>M), $M_{sun}h^{2}Mpc^{-3}$'
+            yscale = 'log'
 
         elif plottype == 'nltm':
             keep = [string for string in mass_data if string.startswith("NltM_")]
@@ -420,8 +420,8 @@ def plots(request, filetype, plottype):
 
 
             title = 'n(<M)'
-            ylab = r'$\log_{10}(n(>M)) h^3 Mpc^{-3}$'
-            yscale = 'linear'
+            ylab = r'$(n(>M)) h^3 Mpc^{-3}$'
+            yscale = 'log'
 
         elif plottype == 'Mltm':
             keep = [string for string in mass_data if string.startswith("MltM_")]
@@ -429,8 +429,8 @@ def plots(request, filetype, plottype):
 
 
             title = 'Total Bound Mass in Haloes Smaller Than M'
-            ylab = r'Mass(<M), $\log_{10} M_{sun}h^{2}Mpc^{-3}$'
-            yscale = 'linear'
+            ylab = r'Mass(<M), $M_{sun}h^{2}Mpc^{-3}$'
+            yscale = 'log'
 
         elif plottype == 'mhmf':
             keep = [string for string in mass_data if string.startswith("M*hmf_")]
