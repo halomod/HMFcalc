@@ -6,13 +6,17 @@ ADMINS = (
      ('Steven', 'steven.jeanette.m@gmail.com'),
 )
 
-#Contact form settings
-CONTACT_RECIPIENTS = 'steven.jeanette.m@gmail.com'
+#===============================================================================
+# EMAIL SETUP
+#===============================================================================
+EMAIL_USE_TLS = True  #Whether to use a TLS (secure) connection when talking to the SMTP server.
 EMAIL_HOST = 'smtp.ivec.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'steven.jeanette.m@gmail.com'
-EMAIL_HOST_PASSWORD = '1l0veg0d.'
-EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = 'hmf@hmf-test.icrar.org'
+#EMAIL_HOST_PASSWORD = 'Password1'
+EMAIL_PORT = 587  #Port to use for the SMTP server defined in EMAIL_HOST.
+
+SERVER_EMAIL = 'django@icrar.org'  #The email address that error messages come from, such as those sent to ADMINS and MANAGERS.
+DEFAULT_FROM_EMAIL = SERVER_EMAIL
 
 MANAGERS = ADMINS
 

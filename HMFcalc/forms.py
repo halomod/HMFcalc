@@ -245,7 +245,7 @@ class HMFInput(forms.Form):
         """
         Performs some simple parsing to check that the alternate model is not rubbish
         """
-
+        #TODO: actually make this (clean_alternate_model) catch all exceptions
         numbers = "0123456789"
         operators = ["+", "-", "*", "/", "**"]
         functions = ['sin', 'cos', 'tan', 'abs', 'arctan', 'arccos', 'arcsin', 'exp', "(", ")"]

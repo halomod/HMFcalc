@@ -22,7 +22,10 @@ from tabination.views import TabView
 from hmf.Perturbations import version
 from django.conf import settings
 from . import version as calc_version
-
+import django
+from django.core.mail.backends.smtp import EmailBackend
+#TODO: figure out why some pages don't display the navbar menu
+import notexist
 # def index(request):
 #   return HttpResponseRedirect('/admin/')
 
@@ -577,6 +580,7 @@ def header_txt(request):
         return response
 
 def hmf_txt(request):
+    #TODO: output HDF5 format
     # Import all the data we need
     mass_data = pandas.DataFrame(request.session["mass_data"])
 
