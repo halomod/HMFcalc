@@ -374,6 +374,7 @@ def plots(request, filetype, plottype):
     elif plottype in k_plots:
         k_data = request.session["k_data"]
 
+    base2 = False
     # DEFINE THE FUNCTION TO BE PLOTTED
     if plottype in mass_plots:
         if plottype == 'hmf':
@@ -443,20 +444,22 @@ def plots(request, filetype, plottype):
 
         elif plottype == 'comparison_hmf':
             keep = [string for string in mass_data if string.startswith("hmf_")]
+            mf_0 = mass_data[keep[0]]
             for key in keep:
-                mass_data[key] = mass_data[key] / mass_data[keep[0]]
-            yscale = 'linear'
+                mass_data[key] = mass_data[key] / mf_0
+            yscale = 'log'
             title = 'Comparison of Mass Functions'
-            ylab = r'Ratio of Logarithmic Mass Functions $ \left(\frac{dn}{d \ln M}\right) / \left( \frac{dn}{d \ln M} \right)_0 $'
-
+            ylab = r'Ratio of Mass Functions $ \left(\frac{dn}{d \ln M}\right) / \left( \frac{dn}{d \ln M} \right)_{%s} $' % (keep[0][4:])
+            base2 = True
         elif plottype == 'comparison_f':
             keep = [string for string in mass_data if string.startswith("f(sig)_")]
+            mf_0 = mass_data[keep[0]]
             for key in keep:
-                mass_data[key] = mass_data[key] / mass_data[keep[0]]
-            yscale = 'linear'
+                mass_data[key] = mass_data[key] / mf_0
+            yscale = 'log'
             title = 'Comparison of Fitting Function(s)'
-            ylab = r'Fitting Function $ (f(\sigma)/ f(\sigma)_0)$'
-
+            ylab = r'Fitting Function $f(\sigma)/ f(\sigma)_{%s}$' % (keep[0][7:])
+            base2 = True
         elif plottype == 'L':
             keep = [string for string in mass_data if string.startswith("L(N=1)_")]
 
@@ -493,7 +496,7 @@ def plots(request, filetype, plottype):
             ylab = r'Effective Spectral Index, $n_{eff}$'
             yscale = 'linear'
 
-        canvas = utils.create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep)
+        canvas = utils.create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2)
 
     else:
         xlab = "Wavenumber"

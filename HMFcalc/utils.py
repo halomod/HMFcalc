@@ -9,9 +9,12 @@ from matplotlib.figure import Figure
 import numpy as np
 import logging
 import cosmolopy.distance as cd
-import pandas
+#import pandas
 import os
+import matplotlib.ticker as tick
 
+#TODO: labels across adds are allllll wrong.
+#TODO: cosmography doesn't do all redshifts if added at once on an add??
 def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer function.
                extrapolate,  #Bool - whether to extrapolate power spectrum
                k_bounds,  #Bounds to extrpolate powe spec to.
@@ -54,7 +57,10 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
     for cosmo_i, cosmo_dict in enumerate(cosmology_list):
         growths.append([])
         #Save the cosmo_label to the column label
-        labels['cosmo'] = cosmo_labels[cosmo_i]
+        if len(cosmology_list) > 1 or max(len(cosmology_list), len(k_bounds), len(z_list), len(approaches), len(overdensities)) == 1:
+            labels['cosmo'] = cosmo_labels[cosmo_i]
+        labels["cosmo_fallback"] = cosmo_labels[cosmo_i]
+
         #Loop through all WDM models (CDM first)
         for k_bound in k_bounds:
             #Save the k_bounds to the label
@@ -73,23 +79,24 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                     if len(z_list) > 1 or z > 0:
                         labels['z'] = 'z=' + str(z)
 
-                    print cosmo_dict
                     #Update pert object optimally with new variables
                     pert.update(k_bounds=k_bound, WDM=wdm, z=z, **cosmo_dict)
 
                     growths[cosmo_i].append(pert.growth)
                     #Save k-based data
-                    k_data["k_" + getname(labels, excl=['deltavir', 'fsig'])] = pert.k
-                    k_data["P(k)_" + getname(labels, excl=['deltavir', 'fsig'])] = pert.power_spectrum
+                    excludes = ['deltavir', 'fsig', "cosmo_fallback"]
+                    k_data["k_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.k
+                    k_data["P(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power_spectrum
 
                     #Save Mass-Based data
-                    mass_data["sigma_" + getname(labels, excl=['deltavir', 'fsig'])] = pert.sigma
-                    mass_data["lnsigma_" + getname(labels, excl=['deltavir', 'fsig'])] = pert.lnsigma
-                    mass_data["neff_" + getname(labels, excl=['deltavir', 'fsig'])] = pert.n_eff
+                    mass_data["sigma_" + (getname(labels, excl=excludes) or getname(labels, excl=excludes[:-1]))] = pert.sigma
+                    mass_data["lnsigma_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnsigma
+                    mass_data["neff_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.n_eff
 
                     #Loop over fitting functions
                     for approach in approaches:
-                        labels['fsig'] = approach
+                        if len(approaches) > 1:
+                            labels['fsig'] = approach
                         for overdensity in overdensities:
                             if len(overdensities) > 1:
                                 labels['deltavir'] = 'Dvir=' + str(overdensity)
@@ -97,25 +104,25 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                             #Save the data
                             mass_func = pert.MassFunction(fsigma=approach, overdensity=overdensity, delta_c=cosmo_dict['delta_c'])
 
-                            mass_data["hmf_" + getname(labels)] = mass_func
-                            mass_data["f(sig)_" + getname(labels)] = pert.vfv
-                            mass_data["M*hmf_" + getname(labels)] = mass_func * pert.M
+                            mass_data["hmf_" + getname(labels, excl=['cosmo_fallback'])] = mass_func
+                            mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.vfv
+                            mass_data["M*hmf_" + getname(labels, excl="cosmo_fallback")] = mass_func * pert.M
 
                             #Easily add more when you need to
                             if 'get_ngtm' in extra_plots:
                                 #mass_data.add_column("NgtM_"+name_ext, pert.NgtM(mass_func),unit="h^3/Mpc^3")
-                                mass_data["NgtM_" + getname(labels)] = pert.NgtM(mass_func)
+                                mass_data["NgtM_" + getname(labels, excl="cosmo_fallback")] = pert.NgtM(mass_func)
                             if 'get_mgtm' in extra_plots:
                                 #mass_data.add_column("MgtM_"+name_ext, pert.MgtM(mass_func),unit="log10(M_sun) h^2/Mpc^3")
-                                mass_data["MgtM_" + getname(labels)] = pert.MgtM(mass_func)
+                                mass_data["MgtM_" + getname(labels, excl="cosmo_fallback")] = pert.MgtM(mass_func)
                             if 'get_nltm' in extra_plots:
                                 #mass_data.add_column("NltM_"+name_ext, pert.NltM(mass_func),unit="h^3/Mpc^3")
-                                mass_data["NltM_" + getname(labels)] = pert.NltM(mass_func)
+                                mass_data["NltM_" + getname(labels, excl="cosmo_fallback")] = pert.NltM(mass_func)
                             if 'get_mltm' in extra_plots:
                                 #mass_data.add_column("MltM_"+name_ext, pert.MltM(mass_func),unit="log10(M_sun) h^3/Mpc^3")
-                                mass_data["MltM_" + getname(labels)] = pert.MltM(mass_func)
+                                mass_data["MltM_" + getname(labels, excl="cosmo_fallback")] = pert.MltM(mass_func)
                             if 'get_L' in extra_plots:
-                                mass_data["L(N=1)_" + getname(labels)] = pert.how_big(mass_func)
+                                mass_data["L(N=1)_" + getname(labels, excl="cosmo_fallback")] = pert.how_big(mass_func)
 
             if pert.max_error:
                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = [pert.max_error]
@@ -161,7 +168,7 @@ def cosmography(cosmology_list, cosmo_labels, redshifts, growth):
 
     return distances
 
-def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep):
+def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2=False):
     ######################################################
     # IMAGE (CANVAS) PLOTTING
     ######################################################
@@ -178,7 +185,6 @@ def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep):
     lines = ["-", "--", "-.", ":"]
 
     counter = 0
-    print mass_data
     for column in keep:
         ax.plot(masses, mass_data[column],
                 color=linecolours[(counter / 4) % 7],
@@ -187,20 +193,21 @@ def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep):
                 )
         print column.split("_", 1)[1].replace("_", ", ")
         counter = counter + 1
-        print "Legend info... ", counter
-        print ax.get_legend_handles_labels()
+
 
 
     # Shrink current axis by 30%
     ax.set_xscale('log')
-    ax.set_yscale(yscale)
+    if not base2:
+        ax.set_yscale(yscale)
+    else:
+        ax.set_yscale(yscale, basey=2)
+        ax.yaxis.set_major_formatter(tick.ScalarFormatter())
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.6, box.height])
 
     # Put a legend to the right of the current axis
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    print "After..."
-    print ax.get_legend_handles_labels()[1]
     #fig.tight_layout()
 
     canvas = FigureCanvas(fig)
