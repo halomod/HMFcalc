@@ -443,30 +443,17 @@ def plots(request, filetype, plottype):
 
         elif plottype == 'comparison_hmf':
             keep = [string for string in mass_data if string.startswith("hmf_")]
-
-
-
-            mass_data = mass_data
-            first_column = mass_data.columns[0]
-            mass_data = mass_data.div(mass_data[first_column], axis=0)
+            mass_data = mass_data.div(mass_data[keep[0]], axis=0)
             yscale = 'linear'
             title = 'Comparison of Mass Functions'
             ylab = r'Ratio of Logarithmic Mass Functions $ \left(\frac{dn}{d \ln M}\right) / \left( \frac{dn}{d \ln M} \right)_0 $'
 
         elif plottype == 'comparison_f':
             keep = [string for string in mass_data if string.startswith("f(sig)_")]
-
-
-
-
-            first_column = mass_data.columns[0]
-            mass_data = mass_data.div(mass_data[first_column], axis=0)
-            mass_data = mass_data
+            mass_data = mass_data.div(mass_data[keep[0]], axis=0)
             yscale = 'linear'
             title = 'Comparison of Fitting Function(s)'
             ylab = r'Fitting Function $ (f(\sigma)/ f(\sigma)_0)$'
-
-
 
         elif plottype == 'L':
             keep = [string for string in mass_data if string.startswith("L(N=1)_")]
