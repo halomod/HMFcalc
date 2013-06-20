@@ -170,7 +170,7 @@ def configure_mpl():
 def setup_cron():
 
     sudo('''echo "# This is to do a heartbeat check of the webapp
-0-59/5 * * * * %shmfenv/bin/python %sHMFcalc/check_alive.py">/var/spool/cron/%s''' % (home_dir, code_dir, username))
+0-59/5 * * * * %shmfenv/bin/python %sHMF/check_alive.py">/var/spool/cron/%s''' % (home_dir, code_dir, username))
 
 def change_bashrc():
     run('echo "export MY_DJANGO_ENV=production">>$HOME/.bashrc')

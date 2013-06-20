@@ -42,7 +42,7 @@ class home(BaseTab):
     _is_tab = True
     tab_id = '/'
     tab_label = 'Home'
-    template_name = 'homey.html'
+    template_name = 'home.html'
 
 
 class InfoParent(BaseTab):
