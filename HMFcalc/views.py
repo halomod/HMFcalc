@@ -25,7 +25,7 @@ from . import version as calc_version
 import django
 from django.core.mail.backends.smtp import EmailBackend
 #TODO: figure out why some pages don't display the navbar menu
-import notexist
+
 # def index(request):
 #   return HttpResponseRedirect('/admin/')
 
@@ -42,7 +42,7 @@ class home(BaseTab):
     _is_tab = True
     tab_id = '/'
     tab_label = 'Home'
-    template_name = 'home.html'
+    template_name = 'homey.html'
 
 
 class InfoParent(BaseTab):
