@@ -1,4 +1,4 @@
-from django.http import HttpResponse  #, HttpResponseRedirect
+from django.http import HttpResponse , HttpResponseRedirect
 #from django.shortcuts import render  # ,get_object_or_404, render_to_response, redirect
 # from django.utils.encoding import iri_to_uri
 # from django.core.context_processors import csrf
@@ -295,17 +295,24 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
 
     def get_form_kwargs(self):
         kwargs = super(HMFInputBase, self).get_form_kwargs()
-        kwargs.update({
-             'add' : 'add',
-             'minm' : self.request.session['min_M'],
-             'maxm' : self.request.session['max_M']
-        })
+        try:
+            kwargs.update({
+                 'add' : 'add',
+                 'minm' : self.request.session['min_M'],
+                 'maxm' : self.request.session['max_M']
+            })
+ #           self.nothin_in_session = True
+        except:
+  #          self.nothing_in_session = True
+            raise NameError("There ain't no min_M in the session!")
         return kwargs
 
     def get(self, request, *args, **kwargs):
         """
         Handles GET requests and instantiates a blank version of the form.
         """
+        if 'min_M' not in self.request.session:
+            return HttpResponseRedirect('/hmf_finder/form/create/')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
         return self.render_to_response(self.get_context_data(form=form))
