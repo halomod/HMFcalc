@@ -7,9 +7,10 @@ Created on Jun 14, 2013
 from fabric.api import env, settings, local, run, abort, cd, put, sudo
 from fabric.contrib.console import confirm
 
-env.hosts = ['hmf@hmf-test.icrar.org']
+
 username = "hmf"
-home_dir = '/home/' + username + '/'  #hmf/'
+home_dir = '/home/' + username + '/'
+env.hosts = [username + '@180.149.251.183']
 app_name = 'HMFcalc'
 code_dir = home_dir + app_name + '/'
 
@@ -39,6 +40,8 @@ def deploy():
     with cd(code_dir):
         run("git fetch --all")
         run("git reset --hard origin/master")
+        #The following line updates the hmf package to the latest on pip. It may not work,
+        #I'll have to look at making it the full url, or perhaps doing it by git with a special branch.
         run("pip install hmf --upgrade")
         run("%shmfenv/bin/python change_prod_settings.py" % (home_dir))
         run("touch HMF/wsgi.py")
@@ -97,7 +100,7 @@ def python_packages():
         run(hmfenvpip + " install scipy")
         run(hmfenvpip + " install matplotlib")
         run(hmfenvpip + " install SciTools")
-#        run(hmfenvpip + " install pandas")
+        run(hmfenvpip + " install pandas")
         run(hmfenvpip + " install cosmolopy")
         run(hmfenvpip + " install django")
         run(hmfenvpip + " install django-tabination")
@@ -178,6 +181,9 @@ def change_bashrc():
     run('echo "export MY_DJANGO_ENV=production">>$HOME/.bashrc')
     run("source ~/.bashrc")
 
+def hack_selinux():
+    sudo("echo 0 > /selinux/enforce")
+
 def setup_server():
     # First do all the yum installs
     yum_installs()
@@ -205,6 +211,9 @@ def setup_server():
 
     #Setup cron
     setup_cron()
+
+    #Make SElinux be nice to us
+    hack_selinux()
 
     #Run the deploy
     deploy()

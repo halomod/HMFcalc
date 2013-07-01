@@ -34,14 +34,13 @@ class FloatListField(forms.CharField):
                     final_list.append(float(number))
                 except ValueError:
                     raise forms.ValidationError("%s is not a float" % number)
-
             for number in final_list:
                 if self.min_val is not None:
                     if number < self.min_val:
-                        raise forms.ValidationError("z must be greater than " + str(self.min_val) + " (" + str(number) + ")")
+                        raise forms.ValidationError("Must be greater than " + str(self.min_val) + " (" + str(number) + ")")
                 if self.max_val is not None:
                     if number > self.max_val:
-                        raise forms.ValidationError("z must be smaller than " + str(self.max_val) + " (" + str(number) + ")")
+                        raise forms.ValidationError("Must be smaller than " + str(self.max_val) + " (" + str(number) + ")")
 
         return final_list
 
@@ -248,7 +247,7 @@ class HMFInput(forms.Form):
         #TODO: actually make this (clean_alternate_model) catch all exceptions
         numbers = "0123456789"
         operators = ["+", "-", "*", "/", "**"]
-        functions = ['sin', 'cos', 'tan', 'abs', 'arctan', 'arccos', 'arcsin', 'exp', "(", ")"]
+        functions = ['sin', 'cos', 'tan', 'abs', 'arctan', 'arccos', 'arcsin', 'exp', "log", "(", ")", "."]
         values = 'x'
 
         operators_compressed = "".join(operators)
@@ -259,9 +258,9 @@ class HMFInput(forms.Form):
         if am is not None:
             for i, character in enumerate(am):
                 if character not in numbers + operators_compressed + functions_compressed + values + " ":
-                    raise forms.ValidationError("The character ", character, " is not recognized")
+                    raise forms.ValidationError("The character " + character + " is not recognized")
                 if character in "+-/" and (am[i - 1] in "+-/" or am[i + 1] in "+-/"):
-                    raise forms.ValidationError("The character ", character, " cannot be next to ", am[i - 1], " and ", am[i + 1])
+                    raise forms.ValidationError("The character " + character + " cannot be next to ", am[i - 1], " and ", am[i + 1])
 
 
 
@@ -383,6 +382,13 @@ class HMFInput(forms.Form):
 #                                       max_val=0.7)
 
     def clean(self):
+        """
+        Clean the form for things that need to be cross-referenced between fields.
+        
+        Most of the tests are in try: except: statements because if a field's individual clean method
+        finds an error, then it will be None and probably raise an exception here which is not handled.
+        With this method, at least this function will finish, and the individual error will be reported
+        """
         cleaned_data = super(HMFInput, self).clean()
 
         #========= Check At Least One Approach Is Chosen ======#
@@ -394,40 +400,46 @@ class HMFInput(forms.Form):
 
         #========= Check That There are Enough Labels =========#
         labels = cleaned_data.get("cp_label")
-        cosmo_quantities = []
-        for key, val in cleaned_data.iteritems():
-            if key.startswith('cp_'):
-                cosmo_quantities.append(key)
+        try:
+            cosmo_quantities = []
+            for key, val in cleaned_data.iteritems():
+                if key.startswith('cp_'):
+                    cosmo_quantities.append(key)
 
-        lengths = []
-        for quantity in cosmo_quantities:
-            lengths = lengths + [len(cleaned_data.get(quantity))]
+            lengths = []
+            for quantity in cosmo_quantities:
+                lengths = lengths + [len(cleaned_data.get(quantity))]
 
-        if len(labels) != max(lengths):
-            raise forms.ValidationError("There must be %s labels separated by commas" % max(lengths))
-
+            if len(labels) != max(lengths):
+                raise forms.ValidationError("There must be %s labels separated by commas" % max(lengths))
+        except:
+            pass
         #========== Check That k limits are right ==============#
         extrapolate = cleaned_data.get("extrapolate")
-        if extrapolate:
-            min_k = cleaned_data.get("k_begins_at")
-            max_k = cleaned_data.get("k_ends_at")
-            num_k_bounds = np.max([len(min_k), len(max_k)])
-            for i in range(num_k_bounds - 1):
-                mink = min_k[np.min([len(min_k) - 1, i])]
-                maxk = max_k[np.min([len(max_k) - 1, i])]
-                if maxk < mink:
-                    raise forms.ValidationError("All min(k) must be less than max(k)")
-
+        try:
+            if extrapolate:
+                min_k = cleaned_data.get("k_begins_at")
+                max_k = cleaned_data.get("k_ends_at")
+                num_k_bounds = np.max([len(min_k), len(max_k)])
+                for i in range(num_k_bounds - 1):
+                    mink = min_k[np.min([len(min_k) - 1, i])]
+                    maxk = max_k[np.min([len(max_k) - 1, i])]
+                    if maxk < mink:
+                        raise forms.ValidationError("All min(k) must be less than max(k)")
+        except:
+            pass
         #=========== Check that Mass limits are right ==========#
-        if not self.minm:
-            minm = cleaned_data.get("min_M")
-            maxm = cleaned_data.get("max_M")
-            mstep = cleaned_data.get("M_step")
-            if maxm < minm:
-                raise forms.ValidationError("min(M) must be less than max(M)")
-            if mstep > maxm - minm:
-                raise forms.ValidationError("Mass bin width must be less than the range of Mass")
-
+        try:
+            if not self.minm:
+                minm = cleaned_data.get("min_M")
+                maxm = cleaned_data.get("max_M")
+                mstep = cleaned_data.get("M_step")
+                if maxm < minm:
+                    raise forms.ValidationError("min(M) must be less than max(M)")
+                if mstep > maxm - minm:
+                    raise forms.ValidationError("Mass bin width must be less than the range of Mass")
+        except:
+            pass
         #=========== Here we check roughly how long we expect calculations to take and make the user adjust if too long
         #        For 50 M's:
         #----------------------------------------------------
@@ -439,22 +451,26 @@ class HMFInput(forms.Form):
         #Get MF            :  6.63149356842e-05
         #----------------------------------------------------
         initial_setup_time = 0.9
-        set_transfer_time = max((len(cleaned_data.get("cp_H0")) , len(cleaned_data.get("cp_omegab")), len(cleaned_data.get("cp_omegac")),
+        try:
+            set_transfer_time = max((len(cleaned_data.get("cp_H0")) , len(cleaned_data.get("cp_omegab")), len(cleaned_data.get("cp_omegac")),
                                  len(cleaned_data.get("cp_omegav")))) * 1.055
 
-        set_kbounds_time = max((len(cleaned_data.get("k_ends_at")), len(cleaned_data.get("k_begins_at")))) * len(cleaned_data.get("cp_n")) * \
+            set_kbounds_time = max((len(cleaned_data.get("k_ends_at")), len(cleaned_data.get("k_begins_at")))) * len(cleaned_data.get("cp_n")) * \
                             len(cleaned_data.get("cp_sigma_8")) * 0.072
 
-        set_WDM_time = len(cleaned_data.get("WDM")) * 0.072
+            set_WDM_time = len(cleaned_data.get("WDM")) * 0.072
 
-        set_z_time = len(cleaned_data.get("z")) * 0.003
+            set_z_time = len(cleaned_data.get("z")) * 0.003
 
-        get_mf_time = len(cleaned_data.get("approach")) * len(cleaned_data.get("overdensity")) * len(cleaned_data.get("cp_delta_c")) * 6.64 * 10 ** -5
+            get_mf_time = len(cleaned_data.get("approach")) * len(cleaned_data.get("overdensity")) * len(cleaned_data.get("cp_delta_c")) * 6.64 * 10 ** -5
 
-        total_time = initial_setup_time + set_transfer_time + set_kbounds_time + set_WDM_time + set_z_time + get_mf_time
+            total_time = initial_setup_time + set_transfer_time + set_kbounds_time + set_WDM_time + set_z_time + get_mf_time
 
-        if total_time > 10.0:
-            raise forms.ValidationError("Your choice of data will take too long to calculate, please reduce the amounts of combinations")
+            if total_time > 10.0:
+                raise forms.ValidationError("Your choice of data will take too long to calculate, please reduce the amounts of combinations")
+
+        except:
+            pass
         return cleaned_data
 
 
@@ -464,19 +480,24 @@ class PlotChoice(forms.Form):
     def __init__(self, request, *args, **kwargs):
         super (PlotChoice, self).__init__(*args, **kwargs)
         # Add in extra plot choices if they are required by the form in the session.
-        session_plots = request.session['extra_plots']
-        extra_plots = []
-        if 'get_ngtm' in session_plots:
-            extra_plots.append(("ngtm", "N(>M)"))
-        if 'get_nltm' in session_plots:
-            extra_plots.append(("nltm", "N(<M)"))
-        if "get_mgtm" in session_plots:
-            extra_plots.append(("Mgtm", "Mass(>M)"))
-        if "get_mltm" in session_plots:
-            extra_plots.append(("Mltm", "Mass(<M)"))
-        if "get_L" in session_plots:
-            extra_plots.append(("L", "Box Size for One Halo"))
-
+        # There have been a lot of errors coming through here -- not really sure why,
+        # probably something to do with a session dying or something. I'm just wrapping
+        # it in a try-except block for now so that people don't get errors at least.
+        try:
+            session_plots = request.session['extra_plots']
+            extra_plots = []
+            if 'get_ngtm' in session_plots:
+                extra_plots.append(("ngtm", "N(>M)"))
+            if 'get_nltm' in session_plots:
+                extra_plots.append(("nltm", "N(<M)"))
+            if "get_mgtm" in session_plots:
+                extra_plots.append(("Mgtm", "Mass(>M)"))
+            if "get_mltm" in session_plots:
+                extra_plots.append(("Mltm", "Mass(<M)"))
+            if "get_L" in session_plots:
+                extra_plots.append(("L", "Box Size for One Halo"))
+        except:
+            session_plots = []
         plot_choices = [("hmf", "Mass Function"),
                         ("f", "f(sigma)"),
                         ("sigma", "Mass Variance"),

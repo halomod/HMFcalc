@@ -6,9 +6,11 @@ This package is a django web-app, implementing the calculation of the halo mass 
 possible while keeping it easy to use. 
 
 This app is not provided as a re-usable app, but rather as an insight into the workings of the current implementation
-at hmf.icrar.org. Feel free to modify it and let me know any bugs.\
+at hmf.icrar.org. Feel free to modify it and let me know any bugs.
 
 HISTORY
+1.0.6 - various bugfixes (especially the form)
+
 1.0.5 - added growth factor to cosmographic table
 		added Bhattacharya function 
 		added email contact form

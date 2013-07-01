@@ -19,7 +19,7 @@ import os
 # import atpy
 import pandas
 from tabination.views import TabView
-from hmf.Perturbations import version
+from hmf.hmf import version
 from django.conf import settings
 from . import version as calc_version
 import django
@@ -384,7 +384,7 @@ def plots(request, filetype, plottype):
 
             #mass_data = mass_data[keep]
             title = 'Mass Function'
-            ylab = r'Logarithmic Mass Function $\log_{10} \left( \frac{dn}{d \ln M} \right) h^3 Mpc^{-3}$'
+            ylab = r'Mass Function $\left( \frac{dn}{d \ln M} \right) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'f':
@@ -403,7 +403,7 @@ def plots(request, filetype, plottype):
 
 
             title = 'n(>M)'
-            ylab = r'$(n(>M)) h^3 Mpc^{-3}$'
+            ylab = r'$n(>M) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'Mgtm':
@@ -462,9 +462,6 @@ def plots(request, filetype, plottype):
             base2 = True
         elif plottype == 'L':
             keep = [string for string in mass_data if string.startswith("L(N=1)_")]
-
-
-
             title = "Box Size, L, required to expect one halo"
             ylab = "Box Size, L (Mpc/h)"
             yscale = 'log'

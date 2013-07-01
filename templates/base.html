@@ -140,9 +140,23 @@
 
       <!-- Begin page content -->
       <div class="container">
-        {% block subheading %}{% endblock %}
-        {% block content %} {% endblock %}
-      </div>
+      	<div class="row">
+      		<div class="span9">
+ 				{% block subheading %}{% endblock %}
+        		{% block content %} {% endblock %}
+      		</div>
+      	
+      		<div class="span3">
+      			<div class='page-header'>
+					<h3 class="pull-right text-info">Tell Us Your Issues!</h3>
+				</div>
+      		 	<a class="twitter-timeline"  href="https://twitter.com/hmfcalc"  data-widget-id="336342300282220544">Tweets by @hmfcalc</a>
+				<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        		<p class="muted pull-right lead">Don't have or like Twitter? Send us an <a href="contact_info/emailme/">email</a>, 
+        		or raise a <a href="https://github.com/steven-murray/HMFcalc/issues">github</a> issue.</p>
+      		</div>
+      	</div>
+     </div>
 
       <div id="push"></div>
     </div>

@@ -9,8 +9,8 @@ from django import template
 register = template.Library()
 
 def current_version():
-    from hmf.Perturbations import version
-    
+    from hmf.hmf import version
+
     return version
 
 register.simple_tag(current_version)

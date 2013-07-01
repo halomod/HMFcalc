@@ -3,7 +3,7 @@ Created on Jun 15, 2012
 
 @author: Steven
 '''
-from hmf.Perturbations import Perturbations
+from hmf import Perturbations
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
@@ -15,6 +15,7 @@ import matplotlib.ticker as tick
 
 #TODO: labels across adds are allllll wrong.
 #TODO: cosmography doesn't do all redshifts if added at once on an add??
+
 def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer function.
                extrapolate,  #Bool - whether to extrapolate power spectrum
                k_bounds,  #Bounds to extrpolate powe spec to.
@@ -38,6 +39,10 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
     #Create a dataframe to hold the mass-based data
     mass_data = {'M':10 ** masses}
 
+    if not extrapolate:
+        for i, bound in enumerate(k_bounds):
+            k_bounds[i] = None
+
     #Create a table to hold the k-based data
     k_data = {}
 
@@ -47,9 +52,11 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
     pert = Perturbations(M=masses,
                          transfer_file=transfer_file,
                          z=z_list[0],
-                         WDM=None,
+                         wdm_mass=None,
                          k_bounds=k_bounds[0],
-                         extrapolate=extrapolate,
+                         delta_vir=overdensities[0],
+                         mf_fit=approaches[0],
+                         user_fit=user_model,
                          reion__use_optical_depth=True,
                          **cosmology_list[0])
 
@@ -80,13 +87,13 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                         labels['z'] = 'z=' + str(z)
 
                     #Update pert object optimally with new variables
-                    pert.update(k_bounds=k_bound, WDM=wdm, z=z, **cosmo_dict)
+                    pert.update(k_bounds=k_bound, wdm_mass=wdm, z=z, **cosmo_dict)
 
                     growths[cosmo_i].append(pert.growth)
                     #Save k-based data
                     excludes = ['deltavir', 'fsig', "cosmo_fallback"]
-                    k_data["k_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.k
-                    k_data["P(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power_spectrum
+                    k_data["k_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnk
+                    k_data["P(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power
 
                     #Save Mass-Based data
                     mass_data["sigma_" + (getname(labels, excl=excludes) or getname(labels, excl=excludes[:-1]))] = pert.sigma
@@ -102,30 +109,28 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                                 labels['deltavir'] = 'Dvir=' + str(overdensity)
 
                             #Save the data
-                            mass_func = pert.MassFunction(fsigma=approach, overdensity=overdensity, delta_c=cosmo_dict['delta_c'])
+                            pert.update(mf_fit=approach, delta_vir=overdensity, delta_c=cosmo_dict['delta_c'])
 
-                            mass_data["hmf_" + getname(labels, excl=['cosmo_fallback'])] = mass_func
-                            mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.vfv
-                            mass_data["M*hmf_" + getname(labels, excl="cosmo_fallback")] = mass_func * pert.M
+                            mass_data["hmf_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlnm
+                            mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.fsigma
+                            mass_data["M*hmf_" + getname(labels, excl="cosmo_fallback")] = pert.dndlnm * pert.M
 
                             #Easily add more when you need to
                             if 'get_ngtm' in extra_plots:
-                                #mass_data.add_column("NgtM_"+name_ext, pert.NgtM(mass_func),unit="h^3/Mpc^3")
-                                mass_data["NgtM_" + getname(labels, excl="cosmo_fallback")] = pert.NgtM(mass_func)
+                                mass_data["NgtM_" + getname(labels, excl="cosmo_fallback")] = pert.ngtm
                             if 'get_mgtm' in extra_plots:
-                                #mass_data.add_column("MgtM_"+name_ext, pert.MgtM(mass_func),unit="log10(M_sun) h^2/Mpc^3")
-                                mass_data["MgtM_" + getname(labels, excl="cosmo_fallback")] = pert.MgtM(mass_func)
+                                mass_data["MgtM_" + getname(labels, excl="cosmo_fallback")] = pert.mgtm
                             if 'get_nltm' in extra_plots:
-                                #mass_data.add_column("NltM_"+name_ext, pert.NltM(mass_func),unit="h^3/Mpc^3")
-                                mass_data["NltM_" + getname(labels, excl="cosmo_fallback")] = pert.NltM(mass_func)
+                                mass_data["NltM_" + getname(labels, excl="cosmo_fallback")] = pert.nltm
                             if 'get_mltm' in extra_plots:
-                                #mass_data.add_column("MltM_"+name_ext, pert.MltM(mass_func),unit="log10(M_sun) h^3/Mpc^3")
-                                mass_data["MltM_" + getname(labels, excl="cosmo_fallback")] = pert.MltM(mass_func)
+                                mass_data["MltM_" + getname(labels, excl="cosmo_fallback")] = pert.mltm
                             if 'get_L' in extra_plots:
-                                mass_data["L(N=1)_" + getname(labels, excl="cosmo_fallback")] = pert.how_big(mass_func)
+                                mass_data["L(N=1)_" + getname(labels, excl="cosmo_fallback")] = pert.how_big
 
             if pert.max_error:
                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = [pert.max_error]
+            else:
+                warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = []
             if pert.min_error:
                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.min_error)
 
