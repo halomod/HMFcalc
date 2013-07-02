@@ -181,6 +181,7 @@ class HMFInputBase(FormView):
             form.cleaned_data['min_M'] = self.request.session['min_M']
             form.cleaned_data['max_M'] = self.request.session['max_M']
             form.cleaned_data['M_step'] = self.request.session['M_step']
+            form.cleaned_data['hmf_form'] = self.request.session['hmf_form']
 
         #=========== Set the Transfer Function File correctly ===== #
         transfer_file = form.cleaned_data["co_transfer_file"]
@@ -222,7 +223,8 @@ class HMFInputBase(FormView):
                                                        M_step=form.cleaned_data['M_step'],
                                                        user_model=form.cleaned_data['alternate_model'],
                                                        cosmo_labels=form.cleaned_data['cp_label'],
-                                                       extra_plots=form.cleaned_data['extra_plots'])
+                                                       extra_plots=form.cleaned_data['extra_plots'],
+                                                       hmf_form=form.cleaned_data['hmf_form'])
 
         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
@@ -246,6 +248,7 @@ class HMFInputBase(FormView):
             self.request.session['M_step'] = form.cleaned_data['M_step']
             self.request.session['warnings'] = warnings
             self.request.session['extra_plots'] = form.cleaned_data['extra_plots']
+            self.request.session['hmf_form'] = form.cleaned_data['hmf_form']
 
 
         return super(HMFInputBase, self).form_valid(form)
@@ -295,16 +298,11 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
 
     def get_form_kwargs(self):
         kwargs = super(HMFInputBase, self).get_form_kwargs()
-        try:
-            kwargs.update({
-                 'add' : 'add',
-                 'minm' : self.request.session['min_M'],
-                 'maxm' : self.request.session['max_M']
-            })
- #           self.nothin_in_session = True
-        except:
-  #          self.nothing_in_session = True
-            raise NameError("There ain't no min_M in the session!")
+        kwargs.update({
+             'add' : 'add',
+             'minm' : self.request.session['min_M'],
+             'maxm' : self.request.session['max_M']
+        })
         return kwargs
 
     def get(self, request, *args, **kwargs):
@@ -388,72 +386,60 @@ def plots(request, filetype, plottype):
     # DEFINE THE FUNCTION TO BE PLOTTED
     if plottype in mass_plots:
         if plottype == 'hmf':
-            keep = [string for string in mass_data if string.startswith("hmf_")]
-
-
-
-            #mass_data = mass_data[keep]
+            keep = [string for string in mass_data if string.startswith("dnd")]
             title = 'Mass Function'
-            ylab = r'Mass Function $\left( \frac{dn}{d \ln M} \right) h^3 Mpc^{-3}$'
+            if request.session['hmf_form'] == 'dndlnm':
+                ylab = r'Mass Function $\left( \frac{dn}{d \ln M} \right) h^3 Mpc^{-3}$'
+            elif request.session['hmf_form'] == 'dndlog10m':
+                ylab = r'Mass Function $\left( \frac{dn}{d \log_{10} M} \right) h^3 Mpc^{-3}$'
+            elif request.session['hmf_form'] == 'dndm':
+                ylab = r'Mass Function $\left( \frac{dn}{dM} \right) h^3 Mpc^{-3}$'
+
             yscale = 'log'
 
         elif plottype == 'f':
             keep = [string for string in mass_data if string.startswith("f(sig)_")]
-
-
-
-            #mass_data = mass_data[keep]
             title = 'Fraction of Mass Collapsed'
             ylab = r'Fraction of Mass Collapsed, $f(\sigma)$'
             yscale = 'linear'
 
         elif plottype == 'ngtm':
             keep = [string for string in mass_data if string.startswith("NgtM_")]
-
-
-
             title = 'n(>M)'
             ylab = r'$n(>M) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'Mgtm':
             keep = [string for string in mass_data if string.startswith("MgtM_")]
-
-
-
             title = 'Total Bound Mass in Haloes Greater Than M'
             ylab = r'Mass(>M), $M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'nltm':
             keep = [string for string in mass_data if string.startswith("NltM_")]
-
-
-
             title = 'n(<M)'
             ylab = r'$(n(>M)) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'Mltm':
             keep = [string for string in mass_data if string.startswith("MltM_")]
-
-
-
             title = 'Total Bound Mass in Haloes Smaller Than M'
             ylab = r'Mass(<M), $M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'mhmf':
-            keep = [string for string in mass_data if string.startswith("M*hmf_")]
-
-
-
+            keep = [string for string in mass_data if string.startswith("M*")]
             title = 'Mass by Mass Function'
-            ylab = r'Mass by Mass Function $\left( M\frac{dn}{d \ln M} \right) M_{sun} h^3 Mpc^{-3}$'
+            if request.session['hmf_form'] == 'dndlnm':
+                ylab = r'Mass by Mass Function $\left( M\frac{dn}{d \ln M} \right)  M_{\odot}h^2 Mpc^{-3}$'
+            elif request.session['hmf_form'] == 'dndlog10m':
+                ylab = r'Mass by Mass Function $\left( M\frac{dn}{d \log_{10} M} \right)  M_{\odot}h^2 Mpc^{-3}$'
+            elif request.session['hmf_form'] == 'dndm':
+                ylab = r'Mass by Mass Function $\left( M\frac{dn}{dM} \right)  M_{\odot}h^2 Mpc^{-3}$'
             yscale = 'linear'
 
         elif plottype == 'comparison_hmf':
-            keep = [string for string in mass_data if string.startswith("hmf_")]
+            keep = [string for string in mass_data if string.startswith("dnd")]
             mf_0 = mass_data[keep[0]]
             for key in keep:
                 mass_data[key] = mass_data[key] / mf_0
@@ -472,33 +458,24 @@ def plots(request, filetype, plottype):
             base2 = True
         elif plottype == 'L':
             keep = [string for string in mass_data if string.startswith("L(N=1)_")]
-            title = "Box Size, L, required to expect one halo"
-            ylab = "Box Size, L (Mpc/h)"
+            title = r"Box Size, $L$, required to expect one halo $> M$"
+            ylab = r"Box Size, $L$ Mpc$h^{-1}$"
             yscale = 'log'
 
         elif plottype == 'sigma':
             keep = [string for string in mass_data if string.startswith("sigma_")]
-
-
-
             title = "Mass Variance"
             ylab = r'Mass Variance, $\sigma$'
             yscale = 'linear'
 
         elif plottype == 'lnsigma':
             keep = [string for string in mass_data if string.startswith("lnsigma_")]
-
-
-
             title = "Logarithm of Inverse Sigma"
             ylab = r'$\ln(\sigma^{-1})$'
             yscale = 'linear'
 
         elif plottype == 'n_eff':
             keep = [string for string in mass_data if string.startswith("neff_")]
-
-
-
             title = "Effective Spectral Index"
             ylab = r'Effective Spectral Index, $n_{eff}$'
             yscale = 'linear'
@@ -506,7 +483,7 @@ def plots(request, filetype, plottype):
         canvas = utils.create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2)
 
     else:
-        xlab = "Wavenumber"
+        xlab = r"Wavenumber, $k$ [$h$/Mpc]"
         if plottype == 'power_spec':
             k_keys = [string for string in k_data if string.startswith("k_")]
             p_keys = [string for string in k_data if string.startswith("P(k)_")]
@@ -541,53 +518,62 @@ def header_txt(request):
     formdata = request.session['input_data']
 
     # Write the parameter info
-    response.write('# File Created On: ' + str(datetime.datetime.now()) + '\n')
-    response.write('# With version ' + calc_version + ' of HMFcalc \n')
-    response.write('# And version ' + version + ' of hmf (backend) \n')
-    response.write('# \n')
-    response.write('# SETS OF PARAMETERS USED \n')
-    response.write('# The following blocks indicate sets of parameters that were used in all combinations' + '\n')
+    response.write('File Created On: ' + str(datetime.datetime.now()) + '\n')
+    response.write('With version ' + calc_version + ' of HMFcalc \n')
+    response.write('And version ' + version + ' of hmf (backend) \n')
+    response.write('\n')
+    response.write('SETS OF PARAMETERS USED \n')
+    response.write('The following blocks indicate sets of parameters that were used in all combinations' + '\n')
     for data in formdata:
-        response.write('# =====================================================\n')
-        response.write('# Redshifts: ' + str(data['z']) + '\n')
-        response.write('# WDM Masses: ' + str(data['WDM']) + '\n')
-        response.write('# Fitting functions: ' + str(data['approach']) + '\n')
-        response.write('# Virial Overdensity: ' + str(data['overdensity']) + '\n')
-        response.write('# Transfer Function: ' + str(data['co_transfer_file']) + '\n')
+        response.write('=====================================================\n')
+        response.write('Redshifts: ' + str(data['z']) + '\n')
+        response.write('WDM Masses: ' + str(data['WDM']) + '\n')
+        response.write('Fitting functions: ' + str(data['approach']) + '\n')
+        response.write('Virial Overdensity: ' + str(data['overdensity']) + '\n')
+        response.write('Transfer Function: ' + str(data['co_transfer_file']) + '\n')
         if data['extrapolate']:
-            response.write('# Minimum k: ' + str(data['k_begins_at']) + '\n')
-            response.write('# Maximum k: ' + str(data['k_ends_at']) + '\n')
+            response.write('Minimum k: ' + str(data['k_begins_at']) + '\n')
+            response.write('Maximum k: ' + str(data['k_ends_at']) + '\n')
 
-        response.write('# Cosmologies: \n')
-        response.write('# \n')
+        response.write('Cosmologies: \n')
+        response.write('\n')
         for j, cosmo in enumerate(data['cp_label']):
-            response.write('# ' + cosmo + ': \n')
-            response.write('# -----------------------------------------------------\n')
-            response.write('# Critical Overdensity: ' + str(data['cp_delta_c'][min(j, len(data['cp_delta_c']) - 1)]) + '\n')
-            response.write('# Power Spectral Index: ' + str(data['cp_n'][min(j, len(data['cp_n']) - 1)]) + '\n')
-            response.write('# Sigma_8: ' + str(data['cp_sigma_8'][min(j, len(data['cp_sigma_8']) - 1)]) + '\n')
-            response.write('# Hubble Parameter: ' + str(data['cp_H0'][min(j, len(data['cp_H0']) - 1)]) + '\n')
-            response.write('# Omega_b: ' + str(data['cp_omegab'][min(j, len(data['cp_omegab']) - 1)]) + '\n')
-            response.write('# Omega_CDM: ' + str(data['cp_omegac'][min(j, len(data['cp_omegac']) - 1)]) + '\n')
-            response.write('# Omega_Lambda: ' + str(data['cp_omegav'][min(j, len(data['cp_omegav']) - 1)]) + '\n')
+            response.write('' + cosmo + ': \n')
+            response.write('-----------------------------------------------------\n')
+            response.write('Critical Overdensity: ' + str(data['cp_delta_c'][min(j, len(data['cp_delta_c']) - 1)]) + '\n')
+            response.write('Power Spectral Index: ' + str(data['cp_n'][min(j, len(data['cp_n']) - 1)]) + '\n')
+            response.write('Sigma_8: ' + str(data['cp_sigma_8'][min(j, len(data['cp_sigma_8']) - 1)]) + '\n')
+            response.write('Hubble Parameter: ' + str(data['cp_H0'][min(j, len(data['cp_H0']) - 1)]) + '\n')
+            response.write('Omega_b: ' + str(data['cp_omegab'][min(j, len(data['cp_omegab']) - 1)]) + '\n')
+            response.write('Omega_CDM: ' + str(data['cp_omegac'][min(j, len(data['cp_omegac']) - 1)]) + '\n')
+            response.write('Omega_Lambda: ' + str(data['cp_omegav'][min(j, len(data['cp_omegav']) - 1)]) + '\n')
 #            response.write('# w: ' + str(data['cp_w_lam'][min(j, len(data['cp_w_lam']) - 1)]) + '\n')
 #            response.write('# Omega_nu: ' + str(data['cp_omegan'][min(j, len(data['cp_omegan']) - 1)]) + '\n')
-            response.write('# -----------------------------------------------------\n')
-        response.write('# =====================================================\n')
-        response.write('# \n')
+            response.write('-----------------------------------------------------\n')
+        response.write('=====================================================\n')
+        response.write('\n')
 
         return response
 
 def hmf_txt(request):
     #TODO: output HDF5 format
     # Import all the data we need
+    def sf(val):
+        #Returns the string rep of a number in scientific notation
+        return '%.5e' % val
+
     mass_data = pandas.DataFrame(request.session["mass_data"])
+
+    formatters = {}
+    for col in mass_data.columns:
+        if not col.startswith("sigma") and not col.startswith("lnsigma") and not col.startswith("neff"):
+            formatters.update({col:sf})
 
     # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
     response['Content-Disposition'] = 'attachment; filename=mass_functions.dat'
 
-    table = mass_data.to_string(index_names=False, index=False)
+    table = mass_data.to_string(index_names=False, index=False, formatters=formatters)
     response.write(table)
 
     return response
@@ -602,6 +588,28 @@ def power_txt(request):
 
     table = k_data.to_string(index_names=False, index=False)
     response.write(table)
+
+    return response
+
+def units_txt(request):
+    # Set up the response object as a text file
+    response = HttpResponse(mimetype='text/plain')
+    response['Content-Disposition'] = 'attachment; filename=units.dat'
+
+
+    # Write the parameter info
+    response.write('File Created On: ' + str(datetime.datetime.now()) + '\n')
+    response.write('With version ' + calc_version + ' of HMFcalc \n')
+    response.write('And version ' + version + ' of hmf (backend) \n')
+    response.write('\n')
+
+    response.write(" ====== UNIT INFORMATION ====== \n")
+    response.write("\n")
+    response.write("k:       [h/Mpc] \n")
+    response.write("M:       [M_solar/h] \n")
+    response.write("Any HMF: [h^3/Mpc^3] \n")
+    response.write("M*HMF:   [h^2/Mpc^3] \n")
+    response.write("L(N=1):  [Mpc/h]\n")
 
     return response
 

@@ -200,5 +200,9 @@ $(function(){
 			var newlink = "parameters.dat"
 			$('a#plot_download').attr('href',newlink);
 		}
+		if($(this).val() == 'units'){
+			var newlink = "units.dat"
+			$('a#plot_download').attr('href',newlink);
+		}
 	});
 });

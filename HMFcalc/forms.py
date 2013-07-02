@@ -54,6 +54,7 @@ class HMFInput(forms.Form):
         self.add = add
         self.minm = minm
         self.maxm = maxm
+#        self.hmfform = hmfform
         super (HMFInput, self).__init__(*args, **kwargs)
 
         if add == 'create':
@@ -74,6 +75,13 @@ class HMFInput(forms.Form):
                                                      help_text="Logarithmic Bins",
                                                      min_value=0.00001,
                                                      max_value=15.0)
+            hmf_form_choices = [("dndlnm", "dn/dln(M)"),
+                                ("dndlog10m", "dn/dlog10(M)"),
+                                ("dndm", "dn/dM")]
+
+            self.fields['hmf_form'] = forms.ChoiceField(label="Form of HMF",
+                                                        initial='dndlnm',
+                                                        choices=hmf_form_choices)
 
         self.helper = FormHelper()
         self.helper.form_id = 'input_form'
@@ -88,7 +96,8 @@ class HMFInput(forms.Form):
                                         TabHolder(
                                                   Tab('Run Parameters',
                                                       Div(
-                                                          Div('z',
+                                                          Div('hmf_form',
+                                                              'z',
                                                               'overdensity',
                                                               'WDM',
                                                               'approach',
@@ -190,6 +199,8 @@ class HMFInput(forms.Form):
     ###########################################################
     # MAIN RUN PARAMETERS
     ###########################################################
+
+
     # Redshift at which to calculate the mass variance.
     z = FloatListField(label="Redshifts",
                        initial='0',
@@ -525,7 +536,8 @@ class PlotChoice(forms.Form):
                     ("pdf-all", "PDF's of All Plots"),
                     ("ASCII-mass", "ASCII table of all functions of mass"),
                     ("ASCII-k", "ASCII table of all functions of wavenumber"),
-                    ("parameters", "List of parameter values")]
+                    ("parameters", "List of parameter values"),
+                    ("units", "Unit Information")]
 
     download_choice = forms.ChoiceField(label=mark_safe('<a href="../hmf.pdf" id="plot_download">Download </a>'),
                                 choices=download_choices,

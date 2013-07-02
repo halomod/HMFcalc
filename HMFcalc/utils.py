@@ -28,7 +28,8 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                M_step,  #Step size in log10(M_sun)
                user_model,  #An optional mass function model from the user
                cosmo_labels,  #Labels for each of the cosmologies
-               extra_plots):  #A dictionary of bools for optional extra plots.
+               extra_plots,
+               hmf_form):  #A dictionary of bools for optional extra plots.
 
     # Change directory to this file (for picking up transfer files if pre-made)
     os.chdir(os.path.dirname(__file__))
@@ -110,20 +111,28 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
 
                             #Save the data
                             pert.update(mf_fit=approach, delta_vir=overdensity, delta_c=cosmo_dict['delta_c'])
-
-                            mass_data["hmf_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlnm
                             mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.fsigma
-                            mass_data["M*hmf_" + getname(labels, excl="cosmo_fallback")] = pert.dndlnm * pert.M
 
-                            #Easily add more when you need to
+                            # ----- Mass Functions -----
+                            if hmf_form == 'dndlnm':
+                                mass_data["dndlnm_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlnm
+                                mass_data["M*dndlnm_" + getname(labels, excl="cosmo_fallback")] = pert.dndlnm * pert.M
+                            elif hmf_form == 'dndlog10m':
+                                mass_data["dndlog10m_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlog10m
+                                mass_data["M*dndlog10m_" + getname(labels, excl="cosmo_fallback")] = pert.dndlog10m * pert.M
+                            elif hmf_form == 'dndm':
+                                mass_data["dndm_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndm
+                                mass_data["M*dndm_" + getname(labels, excl="cosmo_fallback")] = pert.dndm * pert.M
+
+                            #Extra Plots: Easily add more when you need to
                             if 'get_ngtm' in extra_plots:
-                                mass_data["NgtM_" + getname(labels, excl="cosmo_fallback")] = pert.ngtm
+                                mass_data["ngtm_" + getname(labels, excl="cosmo_fallback")] = pert.ngtm
                             if 'get_mgtm' in extra_plots:
-                                mass_data["MgtM_" + getname(labels, excl="cosmo_fallback")] = pert.mgtm
+                                mass_data["mgtm_" + getname(labels, excl="cosmo_fallback")] = pert.mgtm
                             if 'get_nltm' in extra_plots:
-                                mass_data["NltM_" + getname(labels, excl="cosmo_fallback")] = pert.nltm
+                                mass_data["nltm_" + getname(labels, excl="cosmo_fallback")] = pert.nltm
                             if 'get_mltm' in extra_plots:
-                                mass_data["MltM_" + getname(labels, excl="cosmo_fallback")] = pert.mltm
+                                mass_data["mltm_" + getname(labels, excl="cosmo_fallback")] = pert.mltm
                             if 'get_L' in extra_plots:
                                 mass_data["L(N=1)_" + getname(labels, excl="cosmo_fallback")] = pert.how_big
 
@@ -174,9 +183,7 @@ def cosmography(cosmology_list, cosmo_labels, redshifts, growth):
     return distances
 
 def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2=False):
-    ######################################################
-    # IMAGE (CANVAS) PLOTTING
-    ######################################################
+    #TODO: make log scaling automatic
     fig = Figure(figsize=(11, 6), edgecolor='white', facecolor='white', dpi=100)
     ax = fig.add_subplot(111)
     ax.set_title(title)
@@ -184,8 +191,6 @@ def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2=Fals
     ax.set_xlabel(xlab)
     ax.set_ylabel(ylab)
 
-
-#    mass_data.plot(ax=ax, legend=False)
     linecolours = ('b', 'g', 'r', 'c', 'm', 'y', 'k')
     lines = ["-", "--", "-.", ":"]
 
