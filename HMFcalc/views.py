@@ -346,7 +346,10 @@ class ViewPlots(BaseTab):
         return final_d
 
     def get(self, request, *args, **kwargs):
-        self.form = forms.PlotChoice(request)
+        if 'extra_plots' in request.session:
+            self.form = forms.PlotChoice(request)
+        else:
+            return HttpResponseRedirect('/hmf_finder/form/create/')
         distances = request.session['distances']
         self.warnings = request.session['warnings']
         self.final_dist = self.collect_dist(distances)
