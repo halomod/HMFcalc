@@ -2,7 +2,7 @@ $(function(){
 
 	/* ************** EXTRAPOLATION FIELDS *************************** */
 	// Make the initial state of the extrapolate fields correct
-	if($('#id_extrapolate').not(':checked')){
+	/*if($('#id_extrapolate').not(':checked')){
 		$('#div_id_k_begins_at').hide();
 		$('#div_id_k_ends_at').hide();
 	};
@@ -15,9 +15,9 @@ $(function(){
 	$('#id_extrapolate').change(function(){
 		$('#div_id_k_begins_at').toggle();
 		$('#div_id_k_ends_at').toggle();
-	});
+	});*/
 	
-	
+
 	/* ************* COSMOLOGY FIELDS ****************************** */
 	// Initially HIDE the file upload (since transfer_file
 	// default is WMAP7) and set all the relevant cosmo
@@ -32,6 +32,7 @@ $(function(){
 		$("#id_cp_omegan").prop("readonly",true);
 		$("#id_cp_H0").prop("readonly",true);
 		$("#id_cp_reion__optical_depth").prop("readonly",true);
+		$('#div_id_transfer_fit').hide();
 	}
 
 	
@@ -40,6 +41,8 @@ $(function(){
 		//When changed to something other than custom
 		if ($(this).val() != 'custom')
 		{
+			$('#div_id_transfer_fit').hide();
+			
 			//First, set the cosmo params to the correct values
 			if($(this).val() == "transfers/WMAP7_transfer.dat" )
 			{
@@ -163,6 +166,7 @@ $(function(){
 			$("#id_cp_omegan").removeAttr("readonly");
 			$("#id_cp_reion__optical_depth").removeAttr("readonly");
 			$("#id_cp_H0").removeAttr("readonly");
+			$('#div_id_transfer_fit').show();
 		}
 	});
 	

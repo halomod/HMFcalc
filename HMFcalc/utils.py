@@ -17,7 +17,7 @@ import matplotlib.ticker as tick
 #TODO: cosmography doesn't do all redshifts if added at once on an add??
 
 def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer function.
-               extrapolate,  #Bool - whether to extrapolate power spectrum
+              # extrapolate,  #Bool - whether to extrapolate power spectrum
                k_bounds,  #Bounds to extrpolate powe spec to.
                z_list,  #Redshifts
                WDM_list,  #WDM masses
@@ -29,7 +29,8 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                user_model,  #An optional mass function model from the user
                cosmo_labels,  #Labels for each of the cosmologies
                extra_plots,
-               hmf_form):  #A dictionary of bools for optional extra plots.
+               hmf_form,
+               transfer_fit):  #A dictionary of bools for optional extra plots.
 
     # Change directory to this file (for picking up transfer files if pre-made)
     os.chdir(os.path.dirname(__file__))
@@ -40,9 +41,9 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
     #Create a dataframe to hold the mass-based data
     mass_data = {'M':10 ** masses}
 
-    if not extrapolate:
-        for i, bound in enumerate(k_bounds):
-            k_bounds[i] = None
+#    if not extrapolate:
+#        for i, bound in enumerate(k_bounds):
+#            k_bounds[i] = None
 
     #Create a table to hold the k-based data
     k_data = {}
@@ -59,6 +60,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                          mf_fit=approaches[0],
                          user_fit=user_model,
                          reion__use_optical_depth=True,
+                         transfer_fit=transfer_fit,
                          **cosmology_list[0])
 
     #Loop through all the different cosmologies
@@ -93,8 +95,8 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                     growths[cosmo_i].append(pert.growth)
                     #Save k-based data
                     excludes = ['deltavir', 'fsig', "cosmo_fallback"]
-                    k_data["k_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnk
-                    k_data["P(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power
+                    k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnk
+                    k_data["ln(P(k))_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power
 
                     #Save Mass-Based data
                     mass_data["sigma_" + (getname(labels, excl=excludes) or getname(labels, excl=excludes[:-1]))] = pert.sigma

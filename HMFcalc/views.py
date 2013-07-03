@@ -24,6 +24,7 @@ from django.conf import settings
 from . import version as calc_version
 import django
 from django.core.mail.backends.smtp import EmailBackend
+import numpy as np
 #TODO: figure out why some pages don't display the navbar menu
 
 # def index(request):
@@ -212,7 +213,7 @@ class HMFInputBase(FormView):
 
         # DO THE CALCULATIONS
         mass_data, k_data, growth, warnings = utils.hmf_driver(transfer_file=transfer_file,
-                                                       extrapolate=form.cleaned_data['extrapolate'],
+                                                       #extrapolate=form.cleaned_data['extrapolate'],
                                                        k_bounds=k_bounds,
                                                        z_list=form.cleaned_data['z'],
                                                        WDM_list=form.cleaned_data['WDM'],
@@ -224,7 +225,8 @@ class HMFInputBase(FormView):
                                                        user_model=form.cleaned_data['alternate_model'],
                                                        cosmo_labels=form.cleaned_data['cp_label'],
                                                        extra_plots=form.cleaned_data['extra_plots'],
-                                                       hmf_form=form.cleaned_data['hmf_form'])
+                                                       hmf_form=form.cleaned_data['hmf_form'],
+                                                       transfer_fit=form.cleaned_data['transfer_fit'])
 
         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
@@ -404,25 +406,25 @@ def plots(request, filetype, plottype):
             yscale = 'linear'
 
         elif plottype == 'ngtm':
-            keep = [string for string in mass_data if string.startswith("NgtM_")]
+            keep = [string for string in mass_data if string.startswith("ngtm_")]
             title = 'n(>M)'
             ylab = r'$n(>M) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'Mgtm':
-            keep = [string for string in mass_data if string.startswith("MgtM_")]
+            keep = [string for string in mass_data if string.startswith("mgtm_")]
             title = 'Total Bound Mass in Haloes Greater Than M'
             ylab = r'Mass(>M), $M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'nltm':
-            keep = [string for string in mass_data if string.startswith("NltM_")]
+            keep = [string for string in mass_data if string.startswith("nltm_")]
             title = 'n(<M)'
             ylab = r'$(n(>M)) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'Mltm':
-            keep = [string for string in mass_data if string.startswith("MltM_")]
+            keep = [string for string in mass_data if string.startswith("mltm_")]
             title = 'Total Bound Mass in Haloes Smaller Than M'
             ylab = r'Mass(<M), $M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'log'
@@ -485,11 +487,11 @@ def plots(request, filetype, plottype):
     else:
         xlab = r"Wavenumber, $k$ [$h$/Mpc]"
         if plottype == 'power_spec':
-            k_keys = [string for string in k_data if string.startswith("k_")]
-            p_keys = [string for string in k_data if string.startswith("P(k)_")]
+            k_keys = [string for string in k_data if string.startswith("ln(k)_")]
+            p_keys = [string for string in k_data if string.startswith("ln(P(k))_")]
 
             title = "Power Spectra"
-            ylab = "Power"
+            ylab = r"$P(k)$, [Mpc$^2 h^{-2}$]"
 
         canvas = utils.create_k_canvas(k_data, k_keys, p_keys, title, xlab, ylab)
 
@@ -556,6 +558,7 @@ def header_txt(request):
         return response
 
 def hmf_txt(request):
+
     #TODO: output HDF5 format
     # Import all the data we need
     def sf(val):
@@ -563,17 +566,19 @@ def hmf_txt(request):
         return '%.5e' % val
 
     mass_data = pandas.DataFrame(request.session["mass_data"])
-
+    columns = mass_data.columns
+    mass_data['#'] = ''
+    columns = np.hstack(('#', columns))
     formatters = {}
     for col in mass_data.columns:
-        if not col.startswith("sigma") and not col.startswith("lnsigma") and not col.startswith("neff"):
+        if not col.startswith("sigma") and not col.startswith("lnsigma") and not col.startswith("neff") and not col == '#':
             formatters.update({col:sf})
 
     # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
     response['Content-Disposition'] = 'attachment; filename=mass_functions.dat'
 
-    table = mass_data.to_string(index_names=False, index=False, formatters=formatters)
+    table = mass_data.to_string(index_names=False, index=False, formatters=formatters, columns=columns)
     response.write(table)
 
     return response
@@ -582,11 +587,15 @@ def power_txt(request):
     # Import all the data we need
     k_data = pandas.DataFrame(request.session["k_data"])
 
+    columns = k_data.columns
+    k_data['#'] = ''
+    columns = np.hstack(('#', columns))
+
     # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
     response['Content-Disposition'] = 'attachment; filename=power_spectra.dat'
 
-    table = k_data.to_string(index_names=False, index=False)
+    table = k_data.to_string(index_names=False, index=False, columns=columns)
     response.write(table)
 
     return response
@@ -610,6 +619,7 @@ def units_txt(request):
     response.write("Any HMF: [h^3/Mpc^3] \n")
     response.write("M*HMF:   [h^2/Mpc^3] \n")
     response.write("L(N=1):  [Mpc/h]\n")
+    response.write("P(k):    [Mpc^2/h^2]")
 
     return response
 

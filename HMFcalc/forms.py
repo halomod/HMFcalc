@@ -104,7 +104,7 @@ class HMFInput(forms.Form):
                                                               'alternate_model',
                                                               css_class='span4'
                                                               ),
-                                                           Div('extrapolate',
+                                                           Div(#'extrapolate',
                                                                'k_begins_at',
                                                                'k_ends_at',
                                                                'min_M',
@@ -124,6 +124,7 @@ class HMFInput(forms.Form):
                                                       Div(
                                                           Div('co_transfer_file',
                                                               'co_transfer_file_upload',
+                                                              'transfer_fit',
                                                               'cp_label',
                                                               'cp_delta_c',
                                                               'cp_n',
@@ -174,6 +175,7 @@ class HMFInput(forms.Form):
                                                       Div(
                                                           Div('co_transfer_file',
                                                               'co_transfer_file_upload',
+                                                              'transfer_fit',
                                                               'cp_label',
                                                               'cp_delta_c',
                                                               'cp_n',
@@ -284,6 +286,13 @@ class HMFInput(forms.Form):
                         ("transfers/Millennium_transfer.dat", "Millennium (and WALLABY)"),
                         ("transfers/GiggleZ_transfer.dat", "GiggleZ"),
                         ("custom", "Custom")]
+
+    transfer_fit_choices = [('CAMB', 'CAMB'),
+                            ("EH", "Eisenstein-Hu")]
+
+    transfer_fit = forms.ChoiceField(label="Transfer Calculator",
+                                     choices=transfer_fit_choices,
+                                     initial="CAMB")
 
     co_transfer_file = forms.ChoiceField(label="Transfer Function",
                                 choices=transfer_choices,
