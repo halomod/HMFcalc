@@ -491,7 +491,7 @@ def plots(request, filetype, plottype):
             p_keys = [string for string in k_data if string.startswith("ln(P(k))_")]
 
             title = "Power Spectra"
-            ylab = r"$P(k)$, [Mpc$^2 h^{-2}$]"
+            ylab = r"$P(k)$, [Mpc$^3 h^{-3}$]"
 
         canvas = utils.create_k_canvas(k_data, k_keys, p_keys, title, xlab, ylab)
 
@@ -619,7 +619,7 @@ def units_txt(request):
     response.write("Any HMF: [h^3/Mpc^3] \n")
     response.write("M*HMF:   [h^2/Mpc^3] \n")
     response.write("L(N=1):  [Mpc/h]\n")
-    response.write("P(k):    [Mpc^2/h^2]")
+    response.write("P(k):    [Mpc^3/h^3]")
 
     return response
 
