@@ -19,6 +19,7 @@ SERVER_EMAIL = 'hmfcalc@gmail.com'  #The email address that error messages come 
 DEFAULT_FROM_EMAIL = SERVER_EMAIL
 
 MANAGERS = ADMINS
+CONTACT_RECIPIENTS = 'steven.jeanette.m@gmail.com'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = ')#4yu%#tt5@cp4ot0!fntm!1fcapxe8pnb%9v9p7%w8c5=+aa1'

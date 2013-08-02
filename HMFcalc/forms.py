@@ -241,6 +241,7 @@ class HMFInput(forms.Form):
                         ("Angulo_Bound", "Angulo (Subhaloes) (2012)"),
                         ("Watson_FoF", "Watson (FoF Universal) (2012)"),
                         ("Watson", "Watson (Redshift Dependent) (2012)"),
+                        ("Behroozi", "Behroozi (Tinker Extension to High-z) (2013)")
                         ]
 
     approach = forms.MultipleChoiceField(label="Fitting Function",

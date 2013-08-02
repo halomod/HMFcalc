@@ -407,26 +407,26 @@ def plots(request, filetype, plottype):
 
         elif plottype == 'ngtm':
             keep = [string for string in mass_data if string.startswith("ngtm_")]
-            title = 'n(>M)'
+            title = r'$n(>M)$'
             ylab = r'$n(>M) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'Mgtm':
             keep = [string for string in mass_data if string.startswith("mgtm_")]
             title = 'Total Bound Mass in Haloes Greater Than M'
-            ylab = r'Mass(>M), $M_{sun}h^{2}Mpc^{-3}$'
+            ylab = r'Mass($>M$), $M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'nltm':
             keep = [string for string in mass_data if string.startswith("nltm_")]
-            title = 'n(<M)'
+            title = r'$n(<M)$'
             ylab = r'$(n(>M)) h^3 Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'Mltm':
             keep = [string for string in mass_data if string.startswith("mltm_")]
             title = 'Total Bound Mass in Haloes Smaller Than M'
-            ylab = r'Mass(<M), $M_{sun}h^{2}Mpc^{-3}$'
+            ylab = r'Mass($<M$), $M_{sun}h^{2}Mpc^{-3}$'
             yscale = 'log'
 
         elif plottype == 'mhmf':
