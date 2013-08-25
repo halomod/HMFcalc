@@ -441,6 +441,7 @@ def plots(request, filetype, plottype):
             yscale = 'linear'
 
         elif plottype == 'comparison_hmf':
+            #TODO: logs are stupid - need to automatically choose best scale...
             keep = [string for string in mass_data if string.startswith("dnd")]
             mf_0 = mass_data[keep[0]]
             for key in keep:
