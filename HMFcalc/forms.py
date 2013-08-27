@@ -520,16 +520,25 @@ class PlotChoice(forms.Form):
                 extra_plots.append(("L", "Box Size for One Halo"))
         except:
             session_plots = []
-        plot_choices = [("hmf", "Mass Function"),
-                        ("f", "f(sigma)"),
-                        ("sigma", "Mass Variance"),
-                        ("lnsigma", "ln(1/sigma)"),
-                        ("n_eff", "Effective Spectral Index"),
-                        ("comparison_hmf", "Comparison of Mass Functions"),
-                        ("comparison_f", "Comparison of Fitting Functions"),
-                        ("mhmf", "Mass by Mass Function"),
-                        ("power_spec", "Power Spectrum")] + extra_plots
 
+        if len(request.session['mass_data']) > 1:
+            plot_choices = [("hmf", "Mass Function"),
+                            ("f", "f(sigma)"),
+                            ("sigma", "Mass Variance"),
+                            ("lnsigma", "ln(1/sigma)"),
+                            ("n_eff", "Effective Spectral Index"),
+                            ("comparison_hmf", "Comparison of Mass Functions"),
+                            ("comparison_f", "Comparison of Fitting Functions"),
+                            ("mhmf", "Mass by Mass Function"),
+                            ("power_spec", "Power Spectrum")] + extra_plots
+        else:
+            plot_choices = [("hmf", "Mass Function"),
+                            ("f", "f(sigma)"),
+                            ("sigma", "Mass Variance"),
+                            ("lnsigma", "ln(1/sigma)"),
+                            ("n_eff", "Effective Spectral Index"),
+                            ("mhmf", "Mass by Mass Function"),
+                            ("power_spec", "Power Spectrum")] + extra_plots
         self.fields["plot_choice"] = forms.ChoiceField(label="View plot of",
                                         choices=plot_choices,
                                         initial='hmf')
