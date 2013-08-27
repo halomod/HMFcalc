@@ -214,6 +214,7 @@ class HMFInputBase(FormView):
         # DO THE CALCULATIONS
         mass_data, k_data, growth, warnings = utils.hmf_driver(transfer_file=transfer_file,
                                                        #extrapolate=form.cleaned_data['extrapolate'],
+                                                       cut_fit=form.cleaned_data['cut_fit'],
                                                        k_bounds=k_bounds,
                                                        z_list=form.cleaned_data['z'],
                                                        WDM_list=form.cleaned_data['WDM'],

@@ -104,7 +104,7 @@ class HMFInput(forms.Form):
                                                               'alternate_model',
                                                               css_class='span4'
                                                               ),
-                                                           Div(#'extrapolate',
+                                                           Div('cut_fit',
                                                                'k_begins_at',
                                                                'k_ends_at',
                                                                'min_M',
@@ -157,7 +157,7 @@ class HMFInput(forms.Form):
                                                               'approach',
                                                               css_class='span4'
                                                               ),
-                                                          Div('extrapolate',
+                                                          Div('cut_fit',
                                                               'k_begins_at',
                                                               'k_ends_at',
                                                               'alternate_model',
@@ -314,7 +314,8 @@ class HMFInput(forms.Form):
 #    RUN PARAMETERS
 #===================================================================
     # Extrapolation parameters.
-    extrapolate = forms.BooleanField(label='Extrapolate bounds of k?', initial=True, required=False)
+    #extrapolate = forms.BooleanField(label='Extrapolate bounds of k?', initial=True, required=False)
+    cut_fit = forms.BooleanField(label="Restrict mass range to fitted range?", initial=True, required=False)
     k_ends_at = FloatListField(label="Maximum k",
                                initial=2000.0,
                                help_text="Highest Wavenumber Used, Comma-Separated Decimals",

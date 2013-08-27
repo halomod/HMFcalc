@@ -19,6 +19,7 @@ import matplotlib.ticker as tick
 def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer function.
               # extrapolate,  #Bool - whether to extrapolate power spectrum
                k_bounds,  #Bounds to extrpolate powe spec to.
+               cut_fit,  #Whether to restrict the fit to their fitted range
                z_list,  #Redshifts
                WDM_list,  #WDM masses
                approaches,  #Fitting Functions
@@ -61,6 +62,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                          user_fit=user_model,
                          reion__use_optical_depth=True,
                          transfer_fit=transfer_fit,
+                         cut_fit=cut_fit,
                          **cosmology_list[0])
 
     #Loop through all the different cosmologies
