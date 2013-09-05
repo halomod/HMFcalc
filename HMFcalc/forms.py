@@ -221,8 +221,8 @@ class HMFInput(forms.Form):
                                  min_val=10)
 
     delta_wrt = forms.ChoiceField(label=mark_safe("&#916<sub>halo</sub> with respect to"),
-                                  choices=[("mean", mark_safe("&#961<sub>m</sub>(z)")),
-                                           ("crit", mark_safe("&#961<sub>c</sub>"))],
+                                  choices=[("mean", "Mean Density"),
+                                           ("crit", "Critical Density")],
                                   initial="mean",
                                   required=True,
                                   widget=forms.RadioSelect)
