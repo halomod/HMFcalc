@@ -220,6 +220,7 @@ class HMFInputBase(FormView):
                                                        WDM_list=form.cleaned_data['WDM'],
                                                        approaches=approach,
                                                        overdensities=form.cleaned_data['overdensity'],
+                                                       delta_wrt=form.cleaned_data['delta_wrt'],
                                                        cosmology_list=cosmology_list,
                                                        min_M=form.cleaned_data['min_M'], max_M=form.cleaned_data['max_M'],
                                                        M_step=form.cleaned_data['M_step'],

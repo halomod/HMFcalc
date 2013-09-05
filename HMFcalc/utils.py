@@ -23,7 +23,8 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                z_list,  #Redshifts
                WDM_list,  #WDM masses
                approaches,  #Fitting Functions
-               overdensities,  #Virial overdensity parameters
+               overdensities,  #overdensities of haloes
+               delta_wrt,  #what the overdensity is with respect to.
                cosmology_list,  #List of cosmology dictionaries
                min_M, max_M,  #Minimum and Maximum mass to calculate for
                M_step,  #Step size in log10(M_sun)
@@ -57,7 +58,8 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                          z=z_list[0],
                          wdm_mass=None,
                          k_bounds=k_bounds[0],
-                         delta_vir=overdensities[0],
+                         delta_halo=overdensities[0],
+                         delta_wrt=delta_wrt,
                          mf_fit=approaches[0],
                          user_fit=user_model,
                          reion__use_optical_depth=True,

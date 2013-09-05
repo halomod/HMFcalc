@@ -99,14 +99,16 @@ class HMFInput(forms.Form):
                                                           Div('hmf_form',
                                                               'z',
                                                               'overdensity',
-                                                              'WDM',
+                                                              'delta_wrt',
+
                                                               'approach',
                                                               'alternate_model',
                                                               css_class='span4'
                                                               ),
-                                                           Div('cut_fit',
+                                                           Div('WDM',
                                                                'k_begins_at',
                                                                'k_ends_at',
+                                                               'cut_fit',
                                                                'min_M',
                                                                'max_M',
                                                                'M_step',
@@ -153,13 +155,14 @@ class HMFInput(forms.Form):
                                                       Div(
                                                           Div('z',
                                                               'overdensity',
-                                                              'WDM',
+                                                              'delta_wrt',
                                                               'approach',
                                                               css_class='span4'
                                                               ),
-                                                          Div('cut_fit',
+                                                          Div('WDM',
                                                               'k_begins_at',
                                                               'k_ends_at',
+                                                              'cut_fit',
                                                               'alternate_model',
                                                               css_class='span4'
                                                               )),
@@ -211,12 +214,18 @@ class HMFInput(forms.Form):
                        min_val=0,
                        max_val=1100)
 
-
-    overdensity = FloatListField(label="Virial Overdensity",
+    overdensity = FloatListField(label=mark_safe("&#916<sub>halo</sub>"),
                                  help_text="Comma-separated list",
                                  max_length=50,
-                                 initial=178,
+                                 initial=200.0,
                                  min_val=10)
+
+    delta_wrt = forms.ChoiceField(label=mark_safe("&#916<sub>halo</sub> with respect to"),
+                                  choices=[("mean", mark_safe("&#961<sub>m</sub>(z)")),
+                                           ("crit", mark_safe("&#961<sub>c</sub>"))],
+                                  initial="mean",
+                                  required=True,
+                                  widget=forms.RadioSelect)
 
     # WDM particle masses (empty list if none)
     WDM = FloatListField(label="WDM Masses",
