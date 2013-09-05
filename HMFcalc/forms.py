@@ -530,7 +530,12 @@ class PlotChoice(forms.Form):
         except:
             session_plots = []
 
-        if len(request.session['mass_data']) > 1:
+        num = 0
+        for label in request.session['mass_data']:
+            if label.startswith('f(sig)'):
+                num += 1
+
+        if num > 1:
             plot_choices = [("hmf", "Mass Function"),
                             ("f", "f(sigma)"),
                             ("sigma", "Mass Variance"),
