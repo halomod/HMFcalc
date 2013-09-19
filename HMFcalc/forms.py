@@ -237,11 +237,12 @@ class HMFInput(forms.Form):
 
     # Mass Function fit
     approach_choices = [("PS", "Press-Schechter (1974)"),
-                        ("ST", "Sheth-Tormen (2001)"),
+                        ("SMT", "Sheth-Mo-Tormen (2001)"),
                         ("Jenkins", "Jenkins (2001)"),
                         ("Reed03", "Reed (2003)"),
                         ("Warren", "Warren (2006)"),
                         ("Reed07", "Reed (2007)"),
+                        ("Peacock", "Peaock (2007)"),
                         ("Tinker", "Tinker (2008)"),
                         ("Crocce", "Crocce (2010)"),
                         ("Courtin", "Courtin (2010)"),
@@ -255,7 +256,7 @@ class HMFInput(forms.Form):
 
     approach = forms.MultipleChoiceField(label="Fitting Function",
                                          choices=approach_choices,
-                                         initial=['ST'],
+                                         initial=['SMT'],
                                          required=False)
 
     alternate_model = forms.CharField(label=mark_safe('Custom Fitting Function'),
@@ -310,7 +311,7 @@ class HMFInput(forms.Form):
 
     co_transfer_file_upload = forms.FileField(label="Upload Transfer Function",
                                               required=False,
-                                              help_text="Custom file only used if Transfer Functions is 'Custom'")
+                                              help_text="File in CAMB format")
 
     def clean_co_transfer_file_upload(self):
         thefile = self.cleaned_data['co_transfer_file_upload']
@@ -375,7 +376,7 @@ class HMFInput(forms.Form):
     # Power spectral index
     cp_n = FloatListField(label=mark_safe("n<sub>s</sub> "),
                           initial='0.967',
-                          min_val= -4,
+                          min_val=-4,
                           max_val=3)
 
     # Mass variance on a scale of 8Mpc

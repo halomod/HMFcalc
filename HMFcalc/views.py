@@ -40,9 +40,9 @@ class home(BaseTab):
     The home-page. Should just be simple html with links to what to do.
     """
 
-    _is_tab = True
-    tab_id = '/'
-    tab_label = 'Home'
+    _is_tab = False
+#    tab_id = '/'
+#    tab_label = 'Home'
     template_name = 'home.html'
 
 
@@ -51,29 +51,29 @@ class InfoParent(BaseTab):
     tab_id = 'info'
     tab_label = 'Info'
     template_name = 'doesnt_exist.html'
-    my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/', '/hmf_parameter_discussion/', '/contact_info/']
+    my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/']
 
 class InfoChild(BaseTab):
     """Base class for all child navigation tabs."""
-    tab_parent = InfoParent
-
+    #tab_parent = InfoParent
+    pass
 class parameters(InfoChild):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
     _is_tab = True
     tab_id = '/hmf_parameters/'
-    tab_label = 'Parameter Defaults'
-    template_name = 'parameters.html'
+    tab_label = 'How To Use HMFcalc'
+    template_name = 'help.html'
     top = False
 
-class contact(InfoChild):
+class contact(BaseTab):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
     _is_tab = True
     tab_id = '/contact_info/'
-    tab_label = 'Contact Us!'
+    tab_label = 'Contact Us'
     template_name = 'contact_info.html'
     top = True
 
@@ -97,12 +97,12 @@ class acknowledgments(InfoChild):
     template_name = 'acknowledgments.html'
     top = False
 
-class param_discuss(InfoChild):
-    _is_tab = True
-    tab_id = '/hmf_parameter_discussion/'
-    tab_label = 'Parameter Info'
-    template_name = 'parameter_discuss.html'
-    top = False
+#class param_discuss(InfoChild):
+#    _is_tab = True
+#    tab_id = '/hmf_parameter_discussion/'
+#    tab_label = 'Parameter Info'
+#    template_name = 'parameter_discuss.html'
+#    top = False
 
 
 class HMFInputBase(FormView):
@@ -268,8 +268,8 @@ class HMFInputParent(BaseTab):
 
 class HMFInputChild(BaseTab):
     """Base class for all child navigation tabs."""
-    tab_parent = HMFInputParent
-
+    #tab_parent = HMFInputParent
+    pass
 
 class HMFInputCreate(HMFInputBase, HMFInputChild):
 
@@ -323,8 +323,11 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
     tab_id = '/hmf_finder/form/add/'
     top = False
     tab_label = "Add Extra Plots"
+
+    @property
     def tab_visible(self):
-        return "min_M" in self.request.session and "max_M" in self.request.session
+        print "things in current tab: ", self.current_tab.__dict__
+        return "min_M" in self.current_tab.request.session and "max_M" in self.current_tab.request.session
 
 
 class ViewPlots(BaseTab):
@@ -363,8 +366,9 @@ class ViewPlots(BaseTab):
     tab_label = 'View Plots'
     top = True
 
+    @property
     def tab_visible(self):
-        return "extrapolate" in self.request.session
+        return "mass_data" in self.current_tab.request.session
 
 def plots(request, filetype, plottype):
     """
@@ -536,9 +540,8 @@ def header_txt(request):
         response.write('Fitting functions: ' + str(data['approach']) + '\n')
         response.write('Virial Overdensity: ' + str(data['overdensity']) + '\n')
         response.write('Transfer Function: ' + str(data['co_transfer_file']) + '\n')
-        if data['extrapolate']:
-            response.write('Minimum k: ' + str(data['k_begins_at']) + '\n')
-            response.write('Maximum k: ' + str(data['k_ends_at']) + '\n')
+        response.write('Minimum k: ' + str(data['k_begins_at']) + '\n')
+        response.write('Maximum k: ' + str(data['k_ends_at']) + '\n')
 
         response.write('Cosmologies: \n')
         response.write('\n')
@@ -666,6 +669,12 @@ def hmf_all_plots(request):
     response.write(ret_zip)
     return response
 
+def fitting_functions_pdf(request):
+    with open('HMFcalc/fitting_function_table/fitting_functions.pdf', 'r') as f:
+        response = HttpResponse(f.read(), content_type="application/pdf")
+        response["Content-Disposition"] = "attachment;filename=fitting_functions.pdf"
+        return response
+
 from django.core.mail import send_mail
 
 class ContactFormView(FormView):
@@ -690,3 +699,21 @@ class ContactFormView(FormView):
 
 class EmailSuccess(TemplateView):
     template_name = "email_sent.html"
+
+
+#===============================================================================
+# Some views that just return downloadable content
+#===============================================================================
+def get_code(request, name):
+    suffix = name.split('.')[-1]
+
+    with open(name, 'r') as f:
+        if suffix == 'pdf':
+            response = HttpResponse(f.read(), content_type="application/pdf")
+        elif suffix == "py":
+            response = HttpResponse(f.read(), content_type="text/plain")
+        elif suffix == "zip":
+            response = HttpResponse(f.read(), content_type="application/zip")
+
+        response["Content-Disposition"] = "attachment;filename=" + name
+        return response

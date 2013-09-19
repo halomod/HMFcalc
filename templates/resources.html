@@ -9,29 +9,57 @@
 {% endblock %}
 
 {% block content %}
-<h4>Some papers surveying the mass function and various fitting functions:</h4>
+<p class="lead muted">
+This page contains several downloads and links to resources about the HMF. Whether it is downloadable code,
+articles or summary tables, you'll find it here. 
+</p>
+
+<h3>Getting the code</h3>
+You can use the functionality of HMF<em>calc</em> offline with greater flexibility by using the backend package, hmf, directly. It is a python
+package, and relies on several other libraries, including numpy, scipy and pycamb. To get it for yourself, simply use pip:
+<pre>
+$ pip install hmf
+</pre>
+If you have any trouble installing, please let us know or head to the <a href="www.github.com/steven-murray/hmf">github repository</a> where the
+entire code is made open source. While you're there, raise any issues you have with the code, and feel free to grab it and start contributing!
+
+The <a href="www.github.com/steven-murray/HMFcalc">code for HMF<em>calc</em></a> is also made available on github, so go and check it out and fix
+any bugs you find!
+<!-- 
+<h3>Code Using hmf</h3>
+<p>
+Here are some code snippets which use hmf to do a variety of things. Grab them for inspiration or education.
+If you have code of your own that you would like to share, get in contact with us and we'll add it!
+</p>
 <ul>
-	<li> Lukic et. al., 2007 (<a href ='http://iopscience.iop.org/0004-637X/671/2/1160/'>Refereed</a>|<a href="http://arxiv.org/abs/astro-ph/0702360">arXiv</a>)</li> 
+	<li> Code to <a href="/downloads/app-paper-figures.py">generate plots</a> for the article describing HMF<em>calc</em>.
+	<li> Code to <a href="/downloads/variance_in_hmf.zip">calculate variance in HMF</a> due to uncertainty in cosmological parameters, and generate plots 
+		(used in <a href="http://arxiv.org/abs/1306.5140">this article</a>) 
+</ul>
+ -->
+<h3>Papers Using HMF<em>calc</em> or hmf</h3>
+<p>
+Please let us know if your paper uses the hmf code or HMF<em>calc</em> and it's not listed here!
+</p>
+<ul>
+	<li> <a href="http://arxiv.org/abs/1306.6721">Murray, Power, Robotham, 2013</a></li>
+	<li> <a href="http://arxiv.org/abs/1306.5140">Murray, Power, Robotham, 2013</a></li>
 </ul>
 
-<h4>The papers detailing the several fitting functions used in this app</h4>
+<h3>Tables and Miscellaneous</h3>
 <ul>
-	<li> Press, Schechter, 1974 (<a href ='http://iopscience.iop.org/0004-637X/671/2/1160/'>Refereed</a>)</li>
-	<li> Sheth, Tormen, 2001 (<a href='http://doi.wiley.com/10.1046/j.1365-8711.2001.04006.x'>Refereed</a>)</li>
-	<li> Jenkins 2001 (<a href ='http://adsabs.harvard.edu/abs/2001MNRAS.321..372J'>Refereed</a>)</li> 
-	<li> Reed, 2003(<a href ='http://adsabs.harvard.edu/abs/2003MNRAS.346..565R'>Refereed</a> | <a href="http://arxiv.org/abs/astro-ph/0301270">arXiv</a>)</li>
-	<li> Warren, 2006 (<a href ='http://adsabs.harvard.edu/abs/2006ApJ...646..881W'>Refereed</a>)</li>
-	<li> Reed, 2007 (<a href ='http://adsabs.harvard.edu/abs/2007MNRAS.374....2R'>Refereed</a>)</li>
-	<li> Tinker, 2008 (<a href ='http://iopscience.iop.org/0004-637X/688/2/709'>Refereed</a> | <a href="http://arxiv.org/abs/0803.2706">arXiv</a>)</li>
-	<li> Crocce et. al., 2010 (<a href ='http://doi.wiley.com/10.1111/j.1365-2966.2009.16194.x'>Refereed</a>)</li>
-	<li> Courtin et. al., 2010 (<a href ='http://doi.wiley.com/10.1111/j.1365-2966.2010.17573.x'>Refereed</a> | <a href="http://arxiv.org/abs/1001.3425">arXiv</a>)</li>
-	<li> Angulo et. al., 2012 (<a href ='http://adsabs.harvard.edu/abs/2012MNRAS.426.2046A'>Refereed</a> | <a href="arXiv:1203.3216v1">arXiv</a>)</li>
-	<li> Watson et. al., 2012 (<a href="http://arxiv.org/abs/1212.0095">arXiv</a>)</li>
-	
+	<li><a href="/downloads/fitting_functions.pdf">Table of fitting function forms</a></li>
 </ul>
 
-<h4>Other helpful resources</h4>
+<h3>HMF Review Papers</h3>
 <ul>
-	<li> David Hogg, 1999 - <a href="arXiv:astro-ph/9905116v4" >Distance Measures in Cosmology</a></li>
+	<li> <a href="http://arxiv.org/abs/astro-ph/0702360">Lukic et. al., 2007 </a></li> 
+	<li> <a href="http://iopscience.iop.org/0067-0049/143/2/241">White, 2002</a></li>
+</ul>
+
+
+<h3>Other Papers</h3>
+<ul>
+	<li> Hogg, 1999 - <a href="arXiv:astro-ph/9905116v4" >Distance Measures in Cosmology</a></li>
 </ul>
 {% endblock %}

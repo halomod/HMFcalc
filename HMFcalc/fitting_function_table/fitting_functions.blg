@@ -1,0 +1,49 @@
+This is BibTeX, Version 0.99d (TeX Live 2012)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: fitting_functions.aux
+The style file: elsarticle-harv.bst
+Database file #1: library.bib
+Warning--empty journal in Angulo2012
+Warning--empty journal in Watson2012
+You've used 14 entries,
+            2821 wiz_defined-function locations,
+            740 strings with 7996 characters,
+and the built_in function-call counts, 8391 in all, are:
+= -- 793
+> -- 593
+< -- 2
++ -- 221
+- -- 207
+* -- 872
+:= -- 1537
+add.period$ -- 40
+call.type$ -- 14
+change.case$ -- 139
+chr.to.int$ -- 14
+cite$ -- 16
+duplicate$ -- 250
+empty$ -- 466
+format.name$ -- 249
+if$ -- 1597
+int.to.chr$ -- 1
+int.to.str$ -- 1
+missing$ -- 14
+newline$ -- 62
+num.names$ -- 56
+pop$ -- 127
+preamble$ -- 1
+purify$ -- 125
+quote$ -- 0
+skip$ -- 161
+stack$ -- 0
+substring$ -- 429
+swap$ -- 39
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 126
+warning$ -- 2
+while$ -- 67
+width$ -- 0
+write$ -- 170
+(There were 2 warnings)

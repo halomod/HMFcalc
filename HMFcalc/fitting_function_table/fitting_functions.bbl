@@ -1,0 +1,100 @@
+\begin{thebibliography}{14}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+
+\bibitem[{Angulo et~al.(2012)Angulo, Springel, White, Jenkins, Baugh, and
+  Frenk}]{Angulo2012}
+Angulo, R.~E., Springel, V., White, S. D.~M., Jenkins, A., Baugh, C.~M., Frenk,
+  C.~S., 2012. {Scaling relations for galaxy clusters in the Millennium-XXL
+  simulation} 19~(March), 1--19.
+
+\bibitem[{Behroozi et~al.(2013)Behroozi, Wechsler, and Conroy}]{Behroozi2013}
+Behroozi, P.~S., Wechsler, R.~H., Conroy, C., Jun. 2013. {THE AVERAGE STAR
+  FORMATION HISTORIES OF GALAXIES IN DARK MATTER HALOS FROM z = 0-8}. The
+  Astrophysical Journal 770~(1), 57.
+\newline\urlprefix\url{http://arxiv.org/abs/1207.6105}
+
+\bibitem[{Bhattacharya et~al.(2011)Bhattacharya, Heitmann, White, Luki\'{c},
+  Wagner, and Habib}]{Bhattacharya2011}
+Bhattacharya, S., Heitmann, K., White, M., Luki\'{c}, Z., Wagner, C., Habib,
+  S., May 2011. {MASS FUNCTION PREDICTIONS BEYOND $\Lambda$CDM}. The
+  Astrophysical Journal 732~(2), 122.
+\newline\urlprefix\url{http://labs.adsabs.harvard.edu/ui/abs/2011ApJ...732..122B}
+
+\bibitem[{Courtin et~al.(2010)Courtin, Rasera, Alimi, Corasaniti, Boucher, and
+  F\"{u}zfa}]{Courtin2010}
+Courtin, J., Rasera, Y., Alimi, J.-M., Corasaniti, P.~S., Boucher, V.,
+  F\"{u}zfa, a., Oct. 2010. {Imprints of dark energy on cosmic structure
+  formation - II. Non-universality of the halo mass function}. Monthly Notices
+  of the Royal Astronomical Society 1931, no--no.
+\newline\urlprefix\url{http://doi.wiley.com/10.1111/j.1365-2966.2010.17573.x}
+
+\bibitem[{Crocce et~al.(2010)Crocce, Fosalba, Castander, and
+  Gazta\~{n}aga}]{Crocce2010}
+Crocce, M., Fosalba, P., Castander, F.~J., Gazta\~{n}aga, E., Apr. 2010.
+  {Simulating the Universe with MICE: the abundance of massive clusters}.
+  Monthly Notices of the Royal Astronomical Society 403~(3), 1353--1367.
+\newline\urlprefix\url{http://doi.wiley.com/10.1111/j.1365-2966.2009.16194.x}
+
+\bibitem[{Jenkins et~al.(2001)Jenkins, Frenk, White, Colberg, Cole, Evrard,
+  Couchman, and Yoshida}]{Jenkins2001}
+Jenkins, A.~R., Frenk, C.~S., White, S. D.~M., Colberg, J.~M., Cole, S.,
+  Evrard, a.~E., Couchman, H. M.~P., Yoshida, N., Feb. 2001. {The mass function
+  of dark matter haloes}. Monthly Notices of the Royal Astronomical Society
+  321~(2), 372--384.
+\newline\urlprefix\url{http://doi.wiley.com/10.1046/j.1365-8711.2001.04029.x}
+
+\bibitem[{Peacock(2007)}]{Peacock2007}
+Peacock, J.~A., Aug. 2007. {Testing anthropic predictions for   and the cosmic
+  microwave background temperature}. Monthly Notices of the Royal Astronomical
+  Society 379~(3), 1067--1074.
+\newline\urlprefix\url{http://adsabs.harvard.edu/abs/2007MNRAS.379.1067P}
+
+\bibitem[{Press and Schechter(1974)}]{Press1974}
+Press, W.~H., Schechter, P., 1974. {Formation of galaxies and clusters of
+  galaxies by self-similar gravitational condensation}. The Astrophysical
+  Journal 187, 425--438.
+\newline\urlprefix\url{http://adsabs.harvard.edu/full/1974ApJ...187..425P}
+
+\bibitem[{Reed et~al.(2003)Reed, Gardner, Quinn, Stadel, Fardal, Lake, and
+  Governato}]{Reed2003}
+Reed, D., Gardner, J., Quinn, T., Stadel, J., Fardal, M., Lake, G., Governato,
+  F., Dec. 2003. {Evolution of the mass function of dark matter haloes}.
+  Monthly Notices of the Royal Astronomical Society 346~(2), 565--572.
+\newline\urlprefix\url{http://adsabs.harvard.edu/abs/2003MNRAS.346..565R}
+
+\bibitem[{Reed et~al.(2007)Reed, Bower, Frenk, Jenkins, and Theuns}]{Reed2007}
+Reed, D.~S., Bower, R., Frenk, C.~S., Jenkins, A., Theuns, T., Jan. 2007. {The
+  halo mass function from the dark ages through the present day}. Monthly
+  Notices of the Royal Astronomical Society 374~(1), 2--15.
+\newline\urlprefix\url{http://adsabs.harvard.edu/abs/2007MNRAS.374....2R}
+
+\bibitem[{Sheth et~al.(2001)Sheth, Mo, and Tormen}]{Sheth2001}
+Sheth, R.~K., Mo, H.~J., Tormen, G., May 2001. {Ellipsoidal collapse and an
+  improved model for the number and spatial distribution of dark matter
+  haloes}. Monthly Notices of the Royal Astronomical Society 323~(1), 1--12.
+\newline\urlprefix\url{http://doi.wiley.com/10.1046/j.1365-8711.2001.04006.x}
+
+\bibitem[{Tinker et~al.(2008)Tinker, Kravtsov, Klypin, Abazajian, Warren,
+  Yepes, Gottl\"{o}ber, and Holz}]{Tinker2008}
+Tinker, J., Kravtsov, A.~V., Klypin, A., Abazajian, K., Warren, M.~S., Yepes,
+  G., Gottl\"{o}ber, S., Holz, D.~E., 2008. {Toward a halo mass function for
+  precision cosmology: the limits of universality}. The Astrophysical Journal
+  688, 709--728.
+\newline\urlprefix\url{http://iopscience.iop.org/0004-637X/688/2/709}
+
+\bibitem[{Warren et~al.(2006)Warren, Abazajian, Holz, and Teodoro}]{Warren2006}
+Warren, M.~S., Abazajian, K., Holz, D.~E., Teodoro, L., Aug. 2006. {Precision
+  Determination of the Mass Function of Dark Matter Halos}. The Astrophysical
+  Journal 646~(2), 881--885.
+\newline\urlprefix\url{http://adsabs.harvard.edu/abs/2006ApJ...646..881W}
+
+\bibitem[{Watson et~al.(2012)Watson, Iliev, D'Aloisio, Knebe, Shapiro, and
+  Yepes}]{Watson2012}
+Watson, W.~A., Iliev, I.~T., D'Aloisio, A., Knebe, A., Shapiro, P.~R., Yepes,
+  G., Dec. 2012. {The halo mass function through the cosmic ages}, 16.
+\newline\urlprefix\url{http://arxiv.org/abs/1212.0095}
+
+\end{thebibliography}
