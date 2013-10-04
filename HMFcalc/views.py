@@ -669,11 +669,6 @@ def hmf_all_plots(request):
     response.write(ret_zip)
     return response
 
-def fitting_functions_pdf(request):
-    with open('HMFcalc/fitting_function_table/fitting_functions.pdf', 'r') as f:
-        response = HttpResponse(f.read(), content_type="application/pdf")
-        response["Content-Disposition"] = "attachment;filename=fitting_functions.pdf"
-        return response
 
 from django.core.mail import send_mail
 

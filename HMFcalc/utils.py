@@ -98,7 +98,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
 
                     growths[cosmo_i].append(pert.growth)
                     #Save k-based data
-                    excludes = ['deltavir', 'fsig', "cosmo_fallback"]
+                    excludes = ['deltahalo', 'fsig', "cosmo_fallback"]
                     k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnk
                     k_data["ln(P(k))_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power
 
@@ -113,10 +113,10 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                             labels['fsig'] = approach
                         for overdensity in overdensities:
                             if len(overdensities) > 1:
-                                labels['deltavir'] = 'Dvir=' + str(overdensity)
+                                labels['deltahalo'] = 'Delta_h=' + str(overdensity)
 
                             #Save the data
-                            pert.update(mf_fit=approach, delta_vir=overdensity, delta_c=cosmo_dict['delta_c'])
+                            pert.update(mf_fit=approach, delta_halo=overdensity, delta_c=cosmo_dict['delta_c'])
                             mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.fsigma
 
                             # ----- Mass Functions -----

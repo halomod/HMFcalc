@@ -44,6 +44,7 @@ def deploy():
         #I'll have to look at making it the full url, or perhaps doing it by git with a special branch.
         run("pip install hmf --upgrade")
         run("%shmfenv/bin/python change_prod_settings.py" % (home_dir))
+        run("%shmfenv/bin/python manage.py collectstatic --noinput")
         run("touch HMF/wsgi.py")
     sudo("chmod 777 %s -R" % (home_dir))
 
@@ -143,6 +144,7 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
 
     WSGIApplicationGroup %%{GLOBAL}
 
+    Alias /static/ %sstatic/
     <Directory %sHMF>
 
         Order deny,allow
@@ -151,7 +153,7 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
 
     </Directory>
 </VirtualHost>
-""" % (code_dir, home_dir, code_dir, code_dir, home_dir, code_dir)
+""" % (code_dir, home_dir, code_dir, code_dir, home_dir, code_dir, code_dir)
 
     sudo('echo "%s" > /etc/httpd/conf.d/hmf.conf' % (config_file))
     #with open("/etc/httpd/conf.d/hmf.conf") as f:
