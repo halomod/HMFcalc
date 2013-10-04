@@ -14,6 +14,8 @@ env.hosts = [username + '@180.149.251.183']
 app_name = 'HMFcalc'
 code_dir = home_dir + app_name + '/'
 
+def collect():
+    local("python manage.py collectstatic --noinput")
 def test():
     with settings(warn_only=True):
         result = local('./manage.py test hmf_finder', capture=True)
@@ -27,6 +29,7 @@ def push():
     local("git push")
 
 def prepare_deploy():
+    collect()
     test()
     commit()
     push()
@@ -44,9 +47,12 @@ def deploy():
         #I'll have to look at making it the full url, or perhaps doing it by git with a special branch.
         run("pip install hmf --upgrade")
         run("%shmfenv/bin/python change_prod_settings.py" % (home_dir))
-        run("%shmfenv/bin/python manage.py collectstatic --noinput")
         run("touch HMF/wsgi.py")
     sudo("chmod 777 %s -R" % (home_dir))
+
+def pd():
+    prepare_deploy()
+    deploy()
 
 def yum_installs():
     sudo("yum install --assumeyes git")
