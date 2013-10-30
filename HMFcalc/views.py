@@ -620,12 +620,19 @@ def units_txt(request):
 
     response.write(" ====== UNIT INFORMATION ====== \n")
     response.write("\n")
-    response.write("k:       [h/Mpc] \n")
-    response.write("M:       [M_solar/h] \n")
-    response.write("Any HMF: [h^3/Mpc^3] \n")
-    response.write("M*HMF:   [h^2/Mpc^3] \n")
-    response.write("L(N=1):  [Mpc/h]\n")
-    response.write("P(k):    [Mpc^3/h^3]")
+    response.write("k:            [h/Mpc] \n")
+    response.write("m:            [M_sun/h] \n")
+    response.write("dn/dm:        [h^3/(Mpc^3*M_sun)] \n")
+    response.write("dn/dlnm:      [h^3/Mpc^3] \n")
+    response.write("dn/dlog10m:   [h^3/Mpc^3] \n")
+    response.write("M*dn/dm:      [M_sun*h^2/(Mpc^3*M_sun)] \n")
+    response.write("M*dn/dlnm:    [M_un*h^2/Mpc^3] \n")
+    response.write("M*dn/dlog10m: [M_sun*h^2/Mpc^3] \n")
+    response.write("M*HMF:        [M_sun*h^2/Mpc^3] \n")
+    response.write("n(>/<m):      [h^3/Mpc^3] \n")
+    response.write("m(>/<m):      [M_sun*h^2/Mpc^3] \n")
+    response.write("L(N=1):       [Mpc/h]\n")
+    response.write("P(k):         [Mpc^3/h^3]")
 
     return response
 

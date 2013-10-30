@@ -99,7 +99,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                     growths[cosmo_i].append(pert.growth)
                     #Save k-based data
                     excludes = ['deltahalo', 'fsig', "cosmo_fallback"]
-                    k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnk
+                    k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnkh
                     k_data["ln(P(k))_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power
 
                     #Save Mass-Based data
