@@ -148,7 +148,8 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = []
             if pert.min_error:
                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.min_error)
-
+            if hasattr(pert, "massrange_error"):
+                warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.massrange_error)
 
     return mass_data, k_data, growths, warnings
 
