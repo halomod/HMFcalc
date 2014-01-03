@@ -9,45 +9,40 @@ from matplotlib.figure import Figure
 import numpy as np
 import logging
 import cosmolopy.distance as cd
-#import pandas
+# import pandas
 import os
 import matplotlib.ticker as tick
 
-#TODO: labels across adds are allllll wrong.
-#TODO: cosmography doesn't do all redshifts if added at once on an add??
+# TODO: labels across adds are allllll wrong.
+# TODO: cosmography doesn't do all redshifts if added at once on an add??
 
-def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer function.
-              # extrapolate,  #Bool - whether to extrapolate power spectrum
-               k_bounds,  #Bounds to extrpolate powe spec to.
-               cut_fit,  #Whether to restrict the fit to their fitted range
-               z_list,  #Redshifts
-               WDM_list,  #WDM masses
-               approaches,  #Fitting Functions
-               overdensities,  #overdensities of haloes
-               delta_wrt,  #what the overdensity is with respect to.
-               cosmology_list,  #List of cosmology dictionaries
-               min_M, max_M,  #Minimum and Maximum mass to calculate for
-               M_step,  #Step size in log10(M_sun)
-               user_model,  #An optional mass function model from the user
-               cosmo_labels,  #Labels for each of the cosmologies
+def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer function.
+               k_bounds,  # Bounds to extrpolate powe spec to.
+               cut_fit,  # Whether to restrict the fit to their fitted range
+               z_list,  # Redshifts
+               WDM_list,  # WDM masses
+               approaches,  # Fitting Functions
+               overdensities,  # overdensities of haloes
+               delta_wrt,  # what the overdensity is with respect to.
+               cosmology_list,  # List of cosmology dictionaries
+               min_M, max_M,  # Minimum and Maximum mass to calculate for
+               M_step,  # Step size in log10(M_sun)
+               user_model,  # An optional mass function model from the user
+               cosmo_labels,  # Labels for each of the cosmologies
                extra_plots,
                hmf_form,
-               transfer_fit):  #A dictionary of bools for optional extra plots.
+               transfer_fit):  # A dictionary of bools for optional extra plots.
 
     # Change directory to this file (for picking up transfer files if pre-made)
     os.chdir(os.path.dirname(__file__))
 
-    #Set-up array of masses
+    # Set-up array of masses
     masses = np.arange(min_M, max_M, M_step)
 
-    #Create a dataframe to hold the mass-based data
+    # Create a dataframe to hold the mass-based data
     mass_data = {'M':10 ** masses}
 
-#    if not extrapolate:
-#        for i, bound in enumerate(k_bounds):
-#            k_bounds[i] = None
-
-    #Create a table to hold the k-based data
+    # Create a table to hold the k-based data
     k_data = {}
 
     labels = {}
@@ -67,47 +62,47 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                          cut_fit=cut_fit,
                          **cosmology_list[0])
 
-    #Loop through all the different cosmologies
+    # Loop through all the different cosmologies
     for cosmo_i, cosmo_dict in enumerate(cosmology_list):
         growths.append([])
-        #Save the cosmo_label to the column label
+        # Save the cosmo_label to the column label
         if len(cosmology_list) > 1 or max(len(cosmology_list), len(k_bounds), len(z_list), len(approaches), len(overdensities)) == 1:
             labels['cosmo'] = cosmo_labels[cosmo_i]
         labels["cosmo_fallback"] = cosmo_labels[cosmo_i]
 
-        #Loop through all WDM models (CDM first)
+        # Loop through all WDM models (CDM first)
         for k_bound in k_bounds:
-            #Save the k_bounds to the label
+            # Save the k_bounds to the label
             if len(k_bounds) > 1:
                 labels['k'] = 'k{' + str(k_bound[0]) + ',' + str(k_bound[1]) + '}'
             for wdm in [None] + WDM_list:
-                #Add WDM label
+                # Add WDM label
                 if len(WDM_list) > 0:
                     if wdm is None:
                         labels['wdm'] = 'CDM'
                     else:
                         labels['wdm'] = 'WDM=' + str(wdm)
-                #Loop over all redshifts
+                # Loop over all redshifts
                 for z in z_list:
-                    #Define a column-name extension for the table
+                    # Define a column-name extension for the table
                     if len(z_list) > 1 or z > 0:
                         labels['z'] = 'z=' + str(z)
 
-                    #Update pert object optimally with new variables
+                    # Update pert object optimally with new variables
                     pert.update(k_bounds=k_bound, wdm_mass=wdm, z=z, **cosmo_dict)
 
                     growths[cosmo_i].append(pert.growth)
-                    #Save k-based data
+                    # Save k-based data
                     excludes = ['deltahalo', 'fsig', "cosmo_fallback"]
-                    k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnkh
+                    k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnk
                     k_data["ln(P(k))_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power
 
-                    #Save Mass-Based data
+                    # Save Mass-Based data
                     mass_data["sigma_" + (getname(labels, excl=excludes) or getname(labels, excl=excludes[:-1]))] = pert.sigma
                     mass_data["lnsigma_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnsigma
                     mass_data["neff_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.n_eff
 
-                    #Loop over fitting functions
+                    # Loop over fitting functions
                     for approach in approaches:
                         if len(approaches) > 1:
                             labels['fsig'] = approach
@@ -115,7 +110,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                             if len(overdensities) > 1:
                                 labels['deltahalo'] = 'Delta_h=' + str(overdensity)
 
-                            #Save the data
+                            # Save the data
                             pert.update(mf_fit=approach, delta_halo=overdensity, delta_c=cosmo_dict['delta_c'])
                             mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.fsigma
 
@@ -130,7 +125,7 @@ def hmf_driver(transfer_file,  #File produced by CAMB containing the transfer fu
                                 mass_data["dndm_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndm
                                 mass_data["M*dndm_" + getname(labels, excl="cosmo_fallback")] = pert.dndm * pert.M
 
-                            #Extra Plots: Easily add more when you need to
+                            # Extra Plots: Easily add more when you need to
                             if 'get_ngtm' in extra_plots:
                                 mass_data["ngtm_" + getname(labels, excl="cosmo_fallback")] = pert.ngtm
                             if 'get_mgtm' in extra_plots:
@@ -161,19 +156,19 @@ def cosmography(cosmology_list, cosmo_labels, redshifts, growth):
     ######################################################
     distances = []
     for i, cosmology in enumerate(cosmology_list):
-        #Set a cosmology for cosmolopy
+        # Set a cosmology for cosmolopy
         cosmo = {'omega_M_0':cosmology['omegab'] + cosmology['omegac'],
                  'omega_lambda_0':cosmology['omegav'],
                  'h':cosmology['H0'] / 100.0,
                  'omega_b_0':cosmology['omegab'],
-                 'omega_n_0':0,  #cosmology['omegan'],
+                 'omega_n_0':0,  # cosmology['omegan'],
                  'N_nu':0,
                  'n':cosmology['n'],
                  'sigma_8':cosmology['sigma_8']}
 
         cd.set_omega_k_0(cosmo)
 
-        #Age of the Universe
+        # Age of the Universe
         for j, z in enumerate(redshifts):
             distances = distances + [[cosmo_labels[i],
                                       z,
@@ -190,7 +185,7 @@ def cosmography(cosmology_list, cosmo_labels, redshifts, growth):
     return distances
 
 def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2=False):
-    #TODO: make log scaling automatic
+    # TODO: make log scaling automatic
     fig = Figure(figsize=(11, 6), edgecolor='white', facecolor='white', dpi=100)
     ax = fig.add_subplot(111)
     ax.set_title(title)
@@ -225,7 +220,7 @@ def create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2=Fals
 
     # Put a legend to the right of the current axis
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    #fig.tight_layout()
+    # fig.tight_layout()
 
     canvas = FigureCanvas(fig)
     return canvas
@@ -251,7 +246,7 @@ def create_k_canvas(k_data, k_keys, p_keys, title, xlab, ylab):
                     label=k_key.split("_", 1)[1].replace("_", ", "))
         counter = counter + 1
 
-    #Make the axes logarithmic
+    # Make the axes logarithmic
     ax.set_yscale('log')
     ax.set_xscale('log')
     # Shrink current axis by 20%
