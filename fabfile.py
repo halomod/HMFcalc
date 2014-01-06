@@ -43,11 +43,14 @@ def deploy():
     with cd(code_dir):
         run("git fetch --all")
         run("git reset --hard origin/master")
-        #The following line updates the hmf package to the latest on pip. It may not work,
-        #I'll have to look at making it the full url, or perhaps doing it by git with a special branch.
-        run("pip install hmf --upgrade")
         run("%shmfenv/bin/python change_prod_settings.py" % (home_dir))
         run("touch HMF/wsgi.py")
+
+    # Update hmf from git repo
+    with cd(home_dir + "hmf"):
+        run("git pull")
+        run("python setup.py install")
+
     sudo("chmod 777 %s -R" % (home_dir))
 
 def pd():
@@ -89,13 +92,13 @@ def python_dist_tools():
 
     with cd(home_dir + "distribute-0.6.39"):
         sudo("/opt/python2.7/bin/python2.7 setup.py install")
-        #sudo("python2.7 setup.py install")
+        # sudo("python2.7 setup.py install")
 
     with cd(home_dir):
         sudo("/opt/python2.7/bin/easy_install pip")
         sudo("/opt/python2.7/bin/pip install virtualenv")
-        #sudo("easy_install-2.7 pip")
-        #run("easy_install-2.7 virtualenv")
+        # sudo("easy_install-2.7 pip")
+        # run("easy_install-2.7 virtualenv")
         run("/opt/python2.7/bin/virtualenv --distribute hmfenv")
         run("source hmfenv/bin/activate")
         run("echo 'source $HOME/hmfenv/bin/activate'>>$HOME/.bashrc")
@@ -122,7 +125,11 @@ def python_packages():
         run(home_dir + "hmfenv/bin/python setup.py install")
 
     with cd(home_dir):
-        run(hmfenvpip + " install hmf")
+        run("git clone https://github.com/steven-murray/hmf.git")
+
+    with cd(home_dir + "hmf"):
+        run("hmfenv/bin/python setup.py install")
+
 def mod_wsgi():
     with cd(home_dir):
         run("wget modwsgi.googlecode.com/files/mod_wsgi-3.4.tar.gz")
@@ -162,15 +169,15 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
 """ % (code_dir, home_dir, code_dir, code_dir, home_dir, code_dir, code_dir)
 
     sudo('echo "%s" > /etc/httpd/conf.d/hmf.conf' % (config_file))
-    #with open("/etc/httpd/conf.d/hmf.conf") as f:
+    # with open("/etc/httpd/conf.d/hmf.conf") as f:
     #    f.write(config_file)
 
-    #Now need to add "LoadModule wsgi_module modules/mod_wsgi.so" to httpd.conf
+    # Now need to add "LoadModule wsgi_module modules/mod_wsgi.so" to httpd.conf
     sudo('echo "LoadModule wsgi_module modules/mod_wsgi.so">/etc/httpd/conf.d/wsgi.conf')
-    #with open("/etc/httpd/conf.d/wsgi.conf") as f:
+    # with open("/etc/httpd/conf.d/wsgi.conf") as f:
     #    f.write("LoadModule wsgi_module modules/mod_wsgi.so")
 
-    #Then restart the server
+    # Then restart the server
     sudo("service httpd restart")
 
 def configure_mpl():
@@ -196,33 +203,33 @@ def setup_server():
     # First do all the yum installs
     yum_installs()
 
-    #Now install python 2.7.4
+    # Now install python 2.7.4
     python_install()
 
-    #Install the python virtualenv and setup tools
+    # Install the python virtualenv and setup tools
     python_dist_tools()
 
-    #Install python packages required
+    # Install python packages required
     python_packages()
 
-    #Install mod_wsgi
+    # Install mod_wsgi
     mod_wsgi()
 
-    #Configure apache
+    # Configure apache
     configure_apache()
 
-    #Configure matplotlib
+    # Configure matplotlib
     configure_mpl()
 
-    #Configure the environment as a production env
+    # Configure the environment as a production env
     change_bashrc()
 
-    #Setup cron
+    # Setup cron
     setup_cron()
 
-    #Make SElinux be nice to us
+    # Make SElinux be nice to us
     hack_selinux()
 
-    #Run the deploy
+    # Run the deploy
     deploy()
 
