@@ -3,7 +3,7 @@ Created on Jun 15, 2012
 
 @author: Steven
 '''
-from hmf import Perturbations
+from hmf import MassFunction
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
@@ -48,16 +48,17 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
     labels = {}
     warnings = {}
     growths = []
-    pert = Perturbations(M=masses,
-                         transfer_file=transfer_file,
-                         z=z_list[0],
-                         wdm_mass=None,
-                         k_bounds=k_bounds[0],
-                         delta_halo=overdensities[0],
-                         delta_wrt=delta_wrt,
-                         mf_fit=approaches[0],
+
+    if transfer_file is not None:
+        transfer_fit = transfer_file
+
+    pert = MassFunction(M=masses,
+                        z=z_list[0],
+                        wdm_mass=None,
+                        delta_h=overdensities[0],
+                        delta_wrt=delta_wrt,
+                        mf_fit=approaches[0],
                          user_fit=user_model,
-                         reion__use_optical_depth=True,
                          transfer_fit=transfer_fit,
                          cut_fit=cut_fit,
                          **cosmology_list[0])
@@ -73,6 +74,7 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
         # Loop through all WDM models (CDM first)
         for k_bound in k_bounds:
             # Save the k_bounds to the label
+            lnk = np.linspace(np.log(k_bound[0]), np.log(k_bound[1]), 250)
             if len(k_bounds) > 1:
                 labels['k'] = 'k{' + str(k_bound[0]) + ',' + str(k_bound[1]) + '}'
             for wdm in [None] + WDM_list:
@@ -89,13 +91,13 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
                         labels['z'] = 'z=' + str(z)
 
                     # Update pert object optimally with new variables
-                    pert.update(k_bounds=k_bound, wdm_mass=wdm, z=z, **cosmo_dict)
+                    pert.update(lnk=lnk, wdm_mass=wdm, z=z, **cosmo_dict)
 
-                    growths[cosmo_i].append(pert.growth)
+                    growths[cosmo_i].append(pert.transfer.growth)
                     # Save k-based data
                     excludes = ['deltahalo', 'fsig', "cosmo_fallback"]
-                    k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnk
-                    k_data["ln(P(k))_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.power
+                    k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.transfer.lnk
+                    k_data["ln(P(k))_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.transfer.power
 
                     # Save Mass-Based data
                     mass_data["sigma_" + (getname(labels, excl=excludes) or getname(labels, excl=excludes[:-1]))] = pert.sigma
@@ -111,9 +113,9 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
                                 labels['deltahalo'] = 'Delta_h=' + str(overdensity)
 
                             # Save the data
-                            pert.update(mf_fit=approach, delta_halo=overdensity, delta_c=cosmo_dict['delta_c'])
+                            pert.update(mf_fit=approach, delta_h=overdensity, delta_c=cosmo_dict['delta_c'])
                             mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.fsigma
-
+                            print "M:: ", pert.M
                             # ----- Mass Functions -----
                             if hmf_form == 'dndlnm':
                                 mass_data["dndlnm_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlnm
@@ -137,12 +139,12 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
                             if 'get_L' in extra_plots:
                                 mass_data["L(N=1)_" + getname(labels, excl="cosmo_fallback")] = pert.how_big
 
-            if pert.max_error:
-                warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = [pert.max_error]
-            else:
-                warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = []
-            if pert.min_error:
-                warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.min_error)
+#             if pert.max_error:
+#                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = [pert.max_error]
+#             else:
+#                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = []
+#             if pert.min_error:
+#                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.min_error)
             if hasattr(pert, "massrange_error"):
                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.massrange_error)
 
