@@ -48,7 +48,8 @@ def deploy():
 
     # Update hmf from git repo
     with cd(home_dir + "hmf"):
-        run("git pull")
+        run("git fetch --all")
+        run("git reset --hard origin/master")
         run("python setup.py install")
 
     sudo("chmod 777 %s -R" % (home_dir))
