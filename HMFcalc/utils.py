@@ -12,12 +12,13 @@ import cosmolopy.distance as cd
 # import pandas
 import os
 import matplotlib.ticker as tick
+import StringIO
 
 # TODO: labels across adds are allllll wrong.
 # TODO: cosmography doesn't do all redshifts if added at once on an add??
 
 def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer function.
-               k_bounds,  # Bounds to extrpolate powe spec to.
+               k_bounds,  # Bounds to extrpolate power spec to.
                cut_fit,  # Whether to restrict the fit to their fitted range
                z_list,  # Redshifts
                WDM_list,  # WDM masses
@@ -36,6 +37,12 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
     # Change directory to this file (for picking up transfer files if pre-made)
     os.chdir(os.path.dirname(__file__))
 
+    # Set up a logger
+    hmflog = logging.getLogger("hmf")
+    stream = StringIO.StringIO()
+    ch = logging.StreamHandler(stream)
+    hmflog.addHandler(ch)
+
     # Set-up array of masses
     masses = np.arange(min_M, max_M, M_step)
 
@@ -46,7 +53,6 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
     k_data = {}
 
     labels = {}
-    warnings = {}
     growths = []
 
     if transfer_file is not None:
@@ -115,7 +121,7 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
                             # Save the data
                             pert.update(mf_fit=approach, delta_h=overdensity, delta_c=cosmo_dict['delta_c'])
                             mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.fsigma
-                            print "M:: ", pert.M
+
                             # ----- Mass Functions -----
                             if hmf_form == 'dndlnm':
                                 mass_data["dndlnm_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlnm
@@ -139,15 +145,10 @@ def hmf_driver(transfer_file,  # File produced by CAMB containing the transfer f
                             if 'get_L' in extra_plots:
                                 mass_data["L(N=1)_" + getname(labels, excl="cosmo_fallback")] = pert.how_big
 
-#             if pert.max_error:
-#                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = [pert.max_error]
-#             else:
-#                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])] = []
-#             if pert.min_error:
-#                 warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.min_error)
-            if hasattr(pert, "massrange_error"):
-                warnings[getname(labels, excl=['deltavir', 'fsig', 'z', 'wdm'])].append(pert.massrange_error)
+    # print stream.getvalue()
 
+    warnings = stream.buflist
+    warnings = list(set(warnings))
     return mass_data, k_data, growths, warnings
 
 

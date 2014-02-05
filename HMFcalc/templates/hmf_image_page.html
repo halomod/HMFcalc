@@ -43,10 +43,8 @@
 			<div class='span12'>
 				
 				<ul>
-				{% for label,list in warnings.items %}
-				{% for warning in list %}
+				{% for warning in warnings %}
 					<li class="text-warning"> {{ warning }} </li>
-				{% endfor %}
 				{% endfor %}
 				</ul>
 				

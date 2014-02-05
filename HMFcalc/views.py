@@ -1,5 +1,5 @@
 from django.http import HttpResponse , HttpResponseRedirect
-#from django.shortcuts import render  # ,get_object_or_404, render_to_response, redirect
+# from django.shortcuts import render  # ,get_object_or_404, render_to_response, redirect
 # from django.utils.encoding import iri_to_uri
 # from django.core.context_processors import csrf
 # from django.template import RequestContext
@@ -7,14 +7,14 @@ import utils
 import forms
 from django.views.generic.edit import FormView
 from django.views.generic.base import TemplateView
-#from django.core.files.base import ContentFile
-#from django.core.files.storage import default_storage
-#import numpy as np
+# from django.core.files.base import ContentFile
+# from django.core.files.storage import default_storage
+# import numpy as np
 import datetime
 # import logging
 import StringIO
 import zipfile
-#import time
+# import time
 import os
 # import atpy
 import pandas
@@ -25,7 +25,7 @@ from . import version as calc_version
 import django
 from django.core.mail.backends.smtp import EmailBackend
 import numpy as np
-#TODO: figure out why some pages don't display the navbar menu
+# TODO: figure out why some pages don't display the navbar menu
 
 # def index(request):
 #   return HttpResponseRedirect('/admin/')
@@ -55,7 +55,7 @@ class InfoParent(BaseTab):
 
 class InfoChild(BaseTab):
     """Base class for all child navigation tabs."""
-    #tab_parent = InfoParent
+    # tab_parent = InfoParent
     pass
 class parameters(InfoChild):
     """
@@ -97,7 +97,7 @@ class acknowledgments(InfoChild):
     template_name = 'acknowledgments.html'
     top = False
 
-#class param_discuss(InfoChild):
+# class param_discuss(InfoChild):
 #    _is_tab = True
 #    tab_id = '/hmf_parameter_discussion/'
 #    tab_label = 'Parameter Info'
@@ -110,12 +110,12 @@ class HMFInputBase(FormView):
     The form for input. 
     """
 
-    #Define the needed variables for FormView class
+    # Define the needed variables for FormView class
     form_class = forms.HMFInput
     success_url = '../../hmf_image_page/'
     template_name = 'hmfform.html'
 
-    #Define what to do if the form is valid.
+    # Define what to do if the form is valid.
     def form_valid(self, form):
         # log = logging.getLogger(__name__)
 
@@ -213,7 +213,6 @@ class HMFInputBase(FormView):
 
         # DO THE CALCULATIONS
         mass_data, k_data, growth, warnings = utils.hmf_driver(transfer_file=transfer_file,
-                                                       #extrapolate=form.cleaned_data['extrapolate'],
                                                        cut_fit=form.cleaned_data['cut_fit'],
                                                        k_bounds=k_bounds,
                                                        z_list=form.cleaned_data['z'],
@@ -234,8 +233,8 @@ class HMFInputBase(FormView):
 
 
         if self.request.path.endswith('add/'):
-            #print self.request.session["mass_data"]
-            #print mass_data
+            # print self.request.session["mass_data"]
+            # print mass_data
             self.request.session["mass_data"].update(mass_data)
             self.request.session["k_data"].update(k_data)
             self.request.session['distances'] = self.request.session['distances'] + [distances]
@@ -268,12 +267,12 @@ class HMFInputParent(BaseTab):
 
 class HMFInputChild(BaseTab):
     """Base class for all child navigation tabs."""
-    #tab_parent = HMFInputParent
+    # tab_parent = HMFInputParent
     pass
 
 class HMFInputCreate(HMFInputBase, HMFInputChild):
 
-    #This defines whether to add the M-bounds fields to the form (here we do)
+    # This defines whether to add the M-bounds fields to the form (here we do)
     def get_form_kwargs(self):
         kwargs = super(HMFInputBase, self).get_form_kwargs()
         kwargs.update({
@@ -281,7 +280,7 @@ class HMFInputCreate(HMFInputBase, HMFInputChild):
         })
         return kwargs
 
-    #We must define 'get' as TabView is based on TemplateView which has a different form for get (form variable lost).
+    # We must define 'get' as TabView is based on TemplateView which has a different form for get (form variable lost).
     def get(self, request, *args, **kwargs):
         """
         Handles GET requests and instantiates a blank version of the form.
@@ -290,7 +289,7 @@ class HMFInputCreate(HMFInputBase, HMFInputChild):
         form = self.get_form(form_class)
         return self.render_to_response(self.get_context_data(form=form))
 
-    #TabView-specific things
+    # TabView-specific things
     _is_tab = True
     tab_id = '/hmf_finder/form/create/'
     tab_label = 'Begin New'
@@ -374,7 +373,7 @@ def plots(request, filetype, plottype):
     """
     Chooses the type of plot needed and the filetype (pdf or png) and outputs it
     """
-    #TODO: give user an option for ylim dynamically?
+    # TODO: give user an option for ylim dynamically?
     # Definitions of plot-types
     mass_plots = ['hmf', 'f', 'ngtm', 'mhmf', 'comparison_hmf',
                   'comparison_f', 'Mgtm', 'nltm', 'Mltm', 'L',
@@ -447,7 +446,7 @@ def plots(request, filetype, plottype):
             yscale = 'linear'
 
         elif plottype == 'comparison_hmf':
-            #TODO: logs are stupid - need to automatically choose best scale...
+            # TODO: logs are stupid - need to automatically choose best scale...
             keep = [string for string in mass_data if string.startswith("dnd")]
             mf_0 = mass_data[keep[0]]
             for key in keep:
@@ -565,10 +564,10 @@ def header_txt(request):
 
 def hmf_txt(request):
 
-    #TODO: output HDF5 format
+    # TODO: output HDF5 format
     # Import all the data we need
     def sf(val):
-        #Returns the string rep of a number in scientific notation
+        # Returns the string rep of a number in scientific notation
         return '%.5e' % val
 
     mass_data = pandas.DataFrame(request.session["mass_data"])
