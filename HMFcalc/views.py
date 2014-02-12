@@ -239,7 +239,7 @@ class HMFInputBase(FormView):
             self.request.session["k_data"].update(k_data)
             self.request.session['distances'] = self.request.session['distances'] + [distances]
             self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
-            self.request.session['warnings'].update(warnings)
+            self.request.session['warnings'].extend(warnings)
             self.request.session['extra_plots'] = list(set(form.cleaned_data['extra_plots'] + self.request.session['extra_plots']))
         elif self.request.path.endswith('create/'):
             self.request.session["mass_data"] = mass_data
