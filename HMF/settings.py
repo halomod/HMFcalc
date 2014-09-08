@@ -12,11 +12,11 @@ import os
 #===============================================================================
 # SETUP LOCAL/PRODUCTION SPECIFIC VARIABLES
 #===============================================================================
-#ENV = os.environ.get("MY_DJANGO_ENV")
-#print ENV
-#if ENV == 'production':
+# ENV = os.environ.get("MY_DJANGO_ENV")
+# print ENV
+# if ENV == 'production':
 #    from prod_settings import *
-#else:
+# else:
 #    from local_settings import *
 
 DEBUG = True
@@ -35,7 +35,7 @@ ROOT_DIR = os.path.split(os.path.dirname(__file__))[0]
 #===============================================================================
 # SOME NON-DEFAULT SETTINGS
 #===============================================================================
-#This apparently needs to be here to let people actually access the site?
+# This apparently needs to be here to let people actually access the site?
 ALLOWED_HOSTS = '*'
 
 
@@ -69,12 +69,15 @@ INSTALLED_APPS = (
     'HMFcalc',
 #    'floppyforms',
     # Uncomment the next line to enable the admin:
-    #'django.contrib.admin',
+    # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
 
-
+#===============================================================================
+# CRISPY SETTINGS
+#===============================================================================
+CRISPY_TEMPLATE_PACK = "bootstrap"
 #===============================================================================
 # LOGGING SETUP
 #===============================================================================
@@ -210,7 +213,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'HMF.urls'
-
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'HMF.wsgi.application'
 

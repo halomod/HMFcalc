@@ -10,7 +10,7 @@ from fabric.contrib.console import confirm
 
 username = "hmf"
 home_dir = '/home/' + username + '/'
-env.hosts = [username + '@180.149.251.183']
+env.hosts = [username + '@icrar-nix-023.icrar.org']
 app_name = 'HMFcalc'
 code_dir = home_dir + app_name + '/'
 

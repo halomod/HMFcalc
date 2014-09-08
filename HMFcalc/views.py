@@ -123,135 +123,123 @@ class HMFInputBase(FormView):
         # FORM DATA MANIPULATION
         ###############################################################
         #==================== Now save and merge the cosmology ===============================================================
-        cosmo_quantities = [key for key in form.cleaned_data.keys() if key.startswith('cp_')]
-        n_cosmologies = len(form.cleaned_data['cp_label'])
+       # cosmo_quantities = [key for key in form.cleaned_data.keys() if key.startswith('cp_')]
+       # n_cosmologies = len(form.cleaned_data['cp_label'])
 
 
-        cosmology_list = []
-        for i in range(n_cosmologies):
-            cosmology_list = cosmology_list + [{}]
-            for quantity in cosmo_quantities:
-                index = min(len(form.cleaned_data[quantity]) - 1, i)
-                cosmology_list[i][quantity[3:]] = form.cleaned_data[quantity][index]
+#         cosmology_list = []
+#         for i in range(n_cosmologies):
+#             cosmology_list = cosmology_list + [{}]
+#             for quantity in cosmo_quantities:
+#                 index = min(len(form.cleaned_data[quantity]) - 1, i)
+#                 cosmology_list[i][quantity[3:]] = form.cleaned_data[quantity][index]
 
         #==================== We make sure the cosmologies are all unique (across adds) =================================
-        if self.request.path.endswith('create/'):
-            # If we are creating for the first time, just save the labels to the session
-            self.request.session["cosmo_labels"] = form.cleaned_data["cp_label"]  # A compressed list of all unique labels
-            self.request.session["cosmologies"] = cosmology_list  # A compressed list of dicts of unique parameters.
+#         if self.request.path.endswith('create/'):
+#             # If we are creating for the first time, just save the labels to the session
+#             #self.request.session["cosmo_labels"] = form.cleaned_data["cp_label"]  # A compressed list of all unique labels
+#             #self.request.session["cosmologies"] = cosmology_list  # A compressed list of dicts of unique parameters.
+#             pass
+#
+#         elif self.request.path.endswith('add/'):
+#             # Go through each new label/cosmology added to check uniqueness
+#             for i, label in enumerate(form.cleaned_data["cp_label"]):
+#                 counter = 0
+#
+#                 # If the label is not unique across adds
+#                 if label in self.request.session['cosmo_labels']:
+#                     # Extract the cosmological parameters associated with this label from the previous add
+#                     cosmology = self.request.session['cosmologies'][self.request.session['cosmo_labels'].index(label)]
+#
+#                     same = True
+#                     # Check if all the parameters from the old add are the same as the new add. If not, same = False.
+#                     for key in cosmology_list[i].keys():
+#                         same = same and cosmology_list[i][key] == cosmology[key]
+#
+#                     # If the cosmologies aren't the same, then we modify the label to be unique by suffixing a unique integer
+#                     while label in self.request.session['cosmo_labels'] and not same:
+#                         counter = counter + 1
+#
+#                         if counter == 1:
+#                             # Add a number to the end to make it unique
+#                             label = label + '(' + str(counter) + ')'
+#                         else:
+#                             label = label[:-3] + '(' + str(counter) + ')'
+#
+#                     # If the cosmologies are unique, the labels are now also unique, so save the new cosmology/label to session.
+#                     if not same:
+#                         self.request.session["cosmo_labels"].append(label)
+#                         self.request.session['cosmologies'].append(cosmology_list[i])
+#
+#                 else:
+#                     # The label is already unique so just append it to session
+#                     self.request.session["cosmo_labels"].append(label)
+#                     self.request.session['cosmologies'].append(cosmology_list[i])
+#
+#                 # Change the label in the form
+#                 form.cleaned_data["cp_label"][i] = label
 
-        elif self.request.path.endswith('add/'):
-            # Go through each new label/cosmology added to check uniqueness
-            for i, label in enumerate(form.cleaned_data["cp_label"]):
-                counter = 0
-
-                # If the label is not unique across adds
-                if label in self.request.session['cosmo_labels']:
-                    # Extract the cosmological parameters associated with this label from the previous add
-                    cosmology = self.request.session['cosmologies'][self.request.session['cosmo_labels'].index(label)]
-
-                    same = True
-                    # Check if all the parameters from the old add are the same as the new add. If not, same = False.
-                    for key in cosmology_list[i].keys():
-                        same = same and cosmology_list[i][key] == cosmology[key]
-
-                    # If the cosmologies aren't the same, then we modify the label to be unique by suffixing a unique integer
-                    while label in self.request.session['cosmo_labels'] and not same:
-                        counter = counter + 1
-
-                        if counter == 1:
-                            # Add a number to the end to make it unique
-                            label = label + '(' + str(counter) + ')'
-                        else:
-                            label = label[:-3] + '(' + str(counter) + ')'
-
-                    # If the cosmologies are unique, the labels are now also unique, so save the new cosmology/label to session.
-                    if not same:
-                        self.request.session["cosmo_labels"].append(label)
-                        self.request.session['cosmologies'].append(cosmology_list[i])
-
-                else:
-                    # The label is already unique so just append it to session
-                    self.request.session["cosmo_labels"].append(label)
-                    self.request.session['cosmologies'].append(cosmology_list[i])
-
-                # Change the label in the form
-                form.cleaned_data["cp_label"][i] = label
-
-
-            form.cleaned_data['min_M'] = self.request.session['min_M']
-            form.cleaned_data['max_M'] = self.request.session['max_M']
-            form.cleaned_data['M_step'] = self.request.session['M_step']
-            form.cleaned_data['hmf_form'] = self.request.session['hmf_form']
+        if self.request.path.endswith('add/'):
+            form.cleaned_data['Mmin'] = self.request.session['Mmin']
+            form.cleaned_data['Mmax'] = self.request.session['Mmax']
+            form.cleaned_data['dlog10m'] = self.request.session['dlog10m']
+#            form.cleaned_data['hmf_form'] = self.request.session['hmf_form']
 
         #=========== Set the Transfer Function File correctly ===== #
-        transfer_file = form.cleaned_data["co_transfer_file"]
+        transfer_file = form.cleaned_data.pop("transfer_file")
+        transfer_options = {}
+        transfer_fit = form.cleaned_data.pop("transfer_fit")
+        tfile = form.cleaned_data.pop('transfer_file_upload')
         if transfer_file == 'custom':
-            if form.cleaned_data["co_transfer_file_upload"] == None:
-                transfer_file = None
-            else:
-                transfer_file = form.cleaned_data['co_transfer_file_upload']
+            if transfer_fit == "FromFile":
+                transfer_options = {"fname":tfile}
+        else:
+            transfer_fit = "FromFile"
+            transfer_options = {"fname":transfer_file}
 
         #=========== Set k-bounds as a list of tuples ==============================#
-        min_k = form.cleaned_data['k_begins_at']
-        max_k = form.cleaned_data['k_ends_at']
-        num_k_bounds = max(len(min_k), len(max_k))
-        k_bounds = []
-        for i in range(num_k_bounds):
-            mink = min_k[min(len(min_k) - 1, i)]
-            maxk = max_k[min(len(max_k) - 1, i)]
-            k_bounds.append((mink, maxk))
+#         min_k = form.cleaned_data['k_begins_at']
+#         max_k = form.cleaned_data['k_ends_at']
+#         num_k_bounds = max(len(min_k), len(max_k))
+#         k_bounds = []
+#         for i in range(num_k_bounds):
+#             mink = min_k[min(len(min_k) - 1, i)]
+#             maxk = max_k[min(len(max_k) - 1, i)]
+#             k_bounds.append((mink, maxk))
 
         #============ Set other simple data ========================================#
-        approach = []
-        if form.cleaned_data['approach']:
-            for i in form.cleaned_data["approach"]:
-                approach = approach + [str(i)]
+#         approach = []
+#         if form.cleaned_data['approach']:
+#             for i in form.cleaned_data["approach"]:
+#                 approach = approach + [str(i)]
+#
+#         if form.cleaned_data["alternate_model"]:
+#             approach = approach + ['user_model']
 
-        if form.cleaned_data["alternate_model"]:
-            approach = approach + ['user_model']
+        #========== GET NON-HMF KEYS OUT OF FORM ==============================
+#         extra_plots = form.cleaned_data.pop("extra_plots")
 
-        # DO THE CALCULATIONS
-        mass_data, k_data, growth, warnings = utils.hmf_driver(transfer_file=transfer_file,
-                                                       cut_fit=form.cleaned_data['cut_fit'],
-                                                       k_bounds=k_bounds,
-                                                       z_list=form.cleaned_data['z'],
-                                                       WDM_list=form.cleaned_data['WDM'],
-                                                       approaches=approach,
-                                                       overdensities=form.cleaned_data['overdensity'],
-                                                       delta_wrt=form.cleaned_data['delta_wrt'],
-                                                       cosmology_list=cosmology_list,
-                                                       min_M=form.cleaned_data['min_M'], max_M=form.cleaned_data['max_M'],
-                                                       M_step=form.cleaned_data['M_step'],
-                                                       user_model=form.cleaned_data['alternate_model'],
-                                                       cosmo_labels=form.cleaned_data['cp_label'],
-                                                       extra_plots=form.cleaned_data['extra_plots'],
-                                                       hmf_form=form.cleaned_data['hmf_form'],
-                                                       transfer_fit=form.cleaned_data['transfer_fit'])
-
-        distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
+        # # FIXME : have to do this only if cleaned_data is NOT a dictionary already
+        kwargs = {k:form.cleaned_data[k] for k in form.cleaned_data.keys()}
+        objects, labels, warnings = utils.hmf_driver(transfer_fit, transfer_options, **kwargs)
+        print "LEN OF OBJECTS: ", len(objects)
+#         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
 
         if self.request.path.endswith('add/'):
-            # print self.request.session["mass_data"]
-            # print mass_data
-            self.request.session["mass_data"].update(mass_data)
-            self.request.session["k_data"].update(k_data)
-            self.request.session['distances'] = self.request.session['distances'] + [distances]
+            self.request.session["objects"].extend(objects)
+            self.request.session["labels"].extend(labels)
+#             self.request.session['distances'] = self.request.session['distances'] + [distances]
             self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
             self.request.session['warnings'].extend(warnings)
-            self.request.session['extra_plots'] = list(set(form.cleaned_data['extra_plots'] + self.request.session['extra_plots']))
         elif self.request.path.endswith('create/'):
-            self.request.session["mass_data"] = mass_data
-            self.request.session["k_data"] = k_data
-            self.request.session['distances'] = [distances]
+            self.request.session["objects"] = objects
+            self.request.session["labels"] = labels
             self.request.session['input_data'] = [form.cleaned_data]
-            self.request.session['min_M'] = form.cleaned_data['min_M']
-            self.request.session['max_M'] = form.cleaned_data['max_M']
-            self.request.session['M_step'] = form.cleaned_data['M_step']
+            self.request.session['Mmin'] = form.cleaned_data['Mmin']
+            self.request.session['Mmax'] = form.cleaned_data['Mmax']
+            self.request.session['dlog10m'] = form.cleaned_data['dlog10m']
             self.request.session['warnings'] = warnings
-            self.request.session['extra_plots'] = form.cleaned_data['extra_plots']
-            self.request.session['hmf_form'] = form.cleaned_data['hmf_form']
 
 
         return super(HMFInputBase, self).form_valid(form)
@@ -303,8 +291,8 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
         kwargs = super(HMFInputBase, self).get_form_kwargs()
         kwargs.update({
              'add' : 'add',
-             'minm' : self.request.session['min_M'],
-             'maxm' : self.request.session['max_M']
+             'minm' : self.request.session['Mmin'],
+             'maxm' : self.request.session['Mmax']
         })
         return kwargs
 
@@ -312,7 +300,7 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
         """
         Handles GET requests and instantiates a blank version of the form.
         """
-        if 'min_M' not in self.request.session:
+        if 'Mmin' not in self.request.session:
             return HttpResponseRedirect('/hmf_finder/form/create/')
         form_class = self.get_form_class()
         form = self.get_form(form_class)
@@ -325,39 +313,40 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
 
     @property
     def tab_visible(self):
-        print "things in current tab: ", self.current_tab.__dict__
-        return "min_M" in self.current_tab.request.session and "max_M" in self.current_tab.request.session
+        return "Mmin" in self.current_tab.request.session and "Mmax" in self.current_tab.request.session
 
 
 class ViewPlots(BaseTab):
 
-    def collect_dist(self, distances):
-        final_d = []
-        collected_cosmos = []
-        collected_z = []
-        for dist in distances:  # dist is one matrix of distances
-            for d in dist:  # d is one vector (different calculations - a row of final table)
-                if d[0] in collected_cosmos and d[1] in collected_z:
-                    b = [item for item in range(len(collected_cosmos)) if collected_cosmos[item] == d[0]]
-                    if d[1] in b:
-                        break
-                    else:
-                        collected_cosmos = collected_cosmos + [d[0]]
-                        collected_z = collected_z + [d[1]]
-                collected_cosmos = collected_cosmos + [d[0]]
-                collected_z = collected_z + [d[1]]
-                final_d = final_d + [d]
-        return final_d
+#     def collect_dist(self, distances):
+#         final_d = []
+#         collected_cosmos = []
+#         collected_z = []
+#         for dist in distances:  # dist is one matrix of distances
+#             for d in dist:  # d is one vector (different calculations - a row of final table)
+#                 if d[0] in collected_cosmos and d[1] in collected_z:
+#                     b = [item for item in range(len(collected_cosmos)) if collected_cosmos[item] == d[0]]
+#                     if d[1] in b:
+#                         break
+#                     else:
+#                         collected_cosmos = collected_cosmos + [d[0]]
+#                         collected_z = collected_z + [d[1]]
+#                 collected_cosmos = collected_cosmos + [d[0]]
+#                 collected_z = collected_z + [d[1]]
+#                 final_d = final_d + [d]
+#         return final_d
 
     def get(self, request, *args, **kwargs):
-        if 'extra_plots' in request.session:
+        if 'objects' in request.session:
             self.form = forms.PlotChoice(request)
         else:
             return HttpResponseRedirect('/hmf_finder/form/create/')
-        distances = request.session['distances']
+#         distances = request.session['distances']
         self.warnings = request.session['warnings']
-        self.final_dist = self.collect_dist(distances)
-        return self.render_to_response(self.get_context_data(form=self.form, distances=self.final_dist, warnings=self.warnings))
+#         self.final_dist = self.collect_dist(distances)
+        print "======================="
+        print self.form
+        return self.render_to_response(self.get_context_data(form=self.form, warnings=self.warnings))
 
     template_name = 'hmf_image_page.html'
     _is_tab = True
@@ -367,140 +356,76 @@ class ViewPlots(BaseTab):
 
     @property
     def tab_visible(self):
-        return "mass_data" in self.current_tab.request.session
+        return "objects" in self.current_tab.request.session
 
 def plots(request, filetype, plottype):
     """
     Chooses the type of plot needed and the filetype (pdf or png) and outputs it
     """
     # TODO: give user an option for ylim dynamically?
-    # Definitions of plot-types
-    mass_plots = ['hmf', 'f', 'ngtm', 'mhmf', 'comparison_hmf',
-                  'comparison_f', 'Mgtm', 'nltm', 'Mltm', 'L',
-                  'sigma', 'lnsigma', 'n_eff']
+    objects = request.session["objects"]
+    labels = request.session['labels']
 
-    k_plots = ['power_spec']
-    print plottype
-    # Get data from session object
-    if plottype in mass_plots:
-        mass_data = request.session["mass_data"]
-        masses = mass_data["M"]
-        xlab = r'Mass $(M_{\odot}h^{-1})$'
-    elif plottype in k_plots:
-        k_data = request.session["k_data"]
 
-    base2 = False
-    # DEFINE THE FUNCTION TO BE PLOTTED
-    if plottype in mass_plots:
-        if plottype == 'hmf':
-            keep = [string for string in mass_data if string.startswith("dnd")]
-            title = 'Mass Function'
-            if request.session['hmf_form'] == 'dndlnm':
-                ylab = r'Mass Function $\left( \frac{dn}{d \ln M} \right) h^3 Mpc^{-3}$'
-            elif request.session['hmf_form'] == 'dndlog10m':
-                ylab = r'Mass Function $\left( \frac{dn}{d \log_{10} M} \right) h^3 Mpc^{-3}$'
-            elif request.session['hmf_form'] == 'dndm':
-                ylab = r'Mass Function $\left( \frac{dn}{dM} \right) h^3 Mpc^{-3}$'
+    keymap = {"dndm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Mass Function $\left( \frac{dn}{dM} \right) h^4 Mpc^{-3}$',
+                      "yscale":'log'},
+              "dndlnm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Mass Function $\left( \frac{dn}{d\ln M} \right) h^3 Mpc^{-3}$',
+                      "yscale":'log'},
+              "dndlog10m":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Mass Function $\left( \frac{dn}{d\log_{10}M} \right) h^3 Mpc^{-3}$',
+                      "yscale":'log'},
+              "fsigma":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'$f(\sigma) = \nu f(\nu)$',
+                      "yscale":'linear'},
+              "ngtm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'$n(>M) h^3 Mpc^{-3}$',
+                      "yscale":'log'},
+              "mgtm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Mass($>M$), $M_{sun}h^{2}Mpc^{-3}$',
+                      "yscale":'log'},
+              "nltm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'$(n(>M)) h^3 Mpc^{-3}$',
+                      "yscale":'log'},
+              "mltm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Mass($<M$), $M_{sun}h^{2}Mpc^{-3}$',
+                      "yscale":'log'},
+              "mltm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Mass($<M$), $M_{sun}h^{2}Mpc^{-3}$',
+                      "yscale":'log'},
+              "how_big":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Box Size, $L$ Mpc$h^{-1}$',
+                      "yscale":'log'},
+              "sigma":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Mass Variance, $\sigma$',
+                      "yscale":'linear'},
+              "lnsigma":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'$\ln(\sigma^{-1})$',
+                      "yscale":'linear'},
+              "n_eff":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Effective Spectral Index, $n_{eff}$',
+                      "yscale":'linear'},
+              "power":{"xlab":r"Wavenumber, $k$ [$h$/Mpc]",
+                      "ylab":r'$\ln(P(k))$, [Mpc$^3 h^{-3}$]',
+                      "yscale":'linear'},
+              "transfer":{"xlab":r"Wavenumber, $k$ [$h$/Mpc]",
+                      "ylab":r'$\ln(T(k))$, [Mpc$^3 h^{-3}$]',
+                      "yscale":'linear'},
+              "delta_k":{"xlab":r"Wavenumber, $k$ [$h$/Mpc]",
+                      "ylab":r'$\ln(\Delta(k))$',
+                      "yscale":'linear'},
+              "comparison_dndm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Ratio of Mass Functions $ \left(\frac{dn}{dM}\right) / \left( \frac{dn}{dM} \right)_{%s} $' % labels[0],
+                      "yscale":'log',
+                      "basey":2},
+              "comparison_fsigma":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+                      "ylab":r'Ratio of Fitting Functions $f(\sigma)/ f(\sigma)_{%s}$' % labels[0],
+                      "yscale":'log',
+                      "basey":2}
+              }
 
-            yscale = 'log'
-
-        elif plottype == 'f':
-            keep = [string for string in mass_data if string.startswith("f(sig)_")]
-            title = 'Fraction of Mass Collapsed'
-            ylab = r'Fraction of Mass Collapsed, $f(\sigma)$'
-            yscale = 'linear'
-
-        elif plottype == 'ngtm':
-            keep = [string for string in mass_data if string.startswith("ngtm_")]
-            title = r'$n(>M)$'
-            ylab = r'$n(>M) h^3 Mpc^{-3}$'
-            yscale = 'log'
-
-        elif plottype == 'Mgtm':
-            keep = [string for string in mass_data if string.startswith("mgtm_")]
-            title = 'Total Bound Mass in Haloes Greater Than M'
-            ylab = r'Mass($>M$), $M_{sun}h^{2}Mpc^{-3}$'
-            yscale = 'log'
-
-        elif plottype == 'nltm':
-            keep = [string for string in mass_data if string.startswith("nltm_")]
-            title = r'$n(<M)$'
-            ylab = r'$(n(>M)) h^3 Mpc^{-3}$'
-            yscale = 'log'
-
-        elif plottype == 'Mltm':
-            keep = [string for string in mass_data if string.startswith("mltm_")]
-            title = 'Total Bound Mass in Haloes Smaller Than M'
-            ylab = r'Mass($<M$), $M_{sun}h^{2}Mpc^{-3}$'
-            yscale = 'log'
-
-        elif plottype == 'mhmf':
-            keep = [string for string in mass_data if string.startswith("M*")]
-            title = 'Mass by Mass Function'
-            if request.session['hmf_form'] == 'dndlnm':
-                ylab = r'Mass by Mass Function $\left( M\frac{dn}{d \ln M} \right)  M_{\odot}h^2 Mpc^{-3}$'
-            elif request.session['hmf_form'] == 'dndlog10m':
-                ylab = r'Mass by Mass Function $\left( M\frac{dn}{d \log_{10} M} \right)  M_{\odot}h^2 Mpc^{-3}$'
-            elif request.session['hmf_form'] == 'dndm':
-                ylab = r'Mass by Mass Function $\left( M\frac{dn}{dM} \right)  M_{\odot}h^2 Mpc^{-3}$'
-            yscale = 'linear'
-
-        elif plottype == 'comparison_hmf':
-            # TODO: logs are stupid - need to automatically choose best scale...
-            keep = [string for string in mass_data if string.startswith("dnd")]
-            mf_0 = mass_data[keep[0]]
-            for key in keep:
-                mass_data[key] = mass_data[key] / mf_0
-            yscale = 'log'
-            title = 'Comparison of Mass Functions'
-            ylab = r'Ratio of Mass Functions $ \left(\frac{dn}{d \ln M}\right) / \left( \frac{dn}{d \ln M} \right)_{%s} $' % (keep[0][4:])
-            base2 = True
-        elif plottype == 'comparison_f':
-            keep = [string for string in mass_data if string.startswith("f(sig)_")]
-            mf_0 = mass_data[keep[0]]
-            for key in keep:
-                mass_data[key] = mass_data[key] / mf_0
-            yscale = 'log'
-            title = 'Comparison of Fitting Function(s)'
-            ylab = r'Fitting Function $f(\sigma)/ f(\sigma)_{%s}$' % (keep[0][7:])
-            base2 = True
-        elif plottype == 'L':
-            keep = [string for string in mass_data if string.startswith("L(N=1)_")]
-            title = r"Box Size, $L$, required to expect one halo $> M$"
-            ylab = r"Box Size, $L$ Mpc$h^{-1}$"
-            yscale = 'log'
-
-        elif plottype == 'sigma':
-            keep = [string for string in mass_data if string.startswith("sigma_")]
-            title = "Mass Variance"
-            ylab = r'Mass Variance, $\sigma$'
-            yscale = 'linear'
-
-        elif plottype == 'lnsigma':
-            keep = [string for string in mass_data if string.startswith("lnsigma_")]
-            title = "Logarithm of Inverse Sigma"
-            ylab = r'$\ln(\sigma^{-1})$'
-            yscale = 'linear'
-
-        elif plottype == 'n_eff':
-            keep = [string for string in mass_data if string.startswith("neff_")]
-            title = "Effective Spectral Index"
-            ylab = r'Effective Spectral Index, $n_{eff}$'
-            yscale = 'linear'
-
-        canvas = utils.create_canvas(masses, mass_data, title, xlab, ylab, yscale, keep, base2)
-
-    else:
-        xlab = r"Wavenumber, $k$ [$h$/Mpc]"
-        if plottype == 'power_spec':
-            k_keys = [string for string in k_data if string.startswith("ln(k)_")]
-            p_keys = [string for string in k_data if string.startswith("ln(P(k))_")]
-
-            title = "Power Spectra"
-            ylab = r"$P(k)$, [Mpc$^3 h^{-3}$]"
-
-        canvas = utils.create_k_canvas(k_data, k_keys, p_keys, title, xlab, ylab)
-
+    canvas = utils.create_canvas(objects, labels, plottype, keymap[plottype])
 
     # How to output the image
     if filetype == 'png':
@@ -520,10 +445,11 @@ def plots(request, filetype, plottype):
 def header_txt(request):
     # Set up the response object as a text file
     response = HttpResponse(mimetype='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=parameters.dat'
+    response['Content-Disposition'] = 'attachment; filename=parameters.txt'
 
     # Import all the input form data so it can be written to file
-    formdata = request.session['input_data']
+    objects = request.session["objects"]
+    labels = request.session['labels']
 
     # Write the parameter info
     response.write('File Created On: ' + str(datetime.datetime.now()) + '\n')
@@ -531,148 +457,144 @@ def header_txt(request):
     response.write('And version ' + version + ' of hmf (backend) \n')
     response.write('\n')
     response.write('SETS OF PARAMETERS USED \n')
-    response.write('The following blocks indicate sets of parameters that were used in all combinations' + '\n')
-    for data in formdata:
+#     response.write('The following blocks indicate sets of parameters that were used in all combinations' + '\n')
+    for i, o in enumerate(objects):
         response.write('=====================================================\n')
-        response.write('Redshifts: ' + str(data['z']) + '\n')
-        response.write('WDM Masses: ' + str(data['WDM']) + '\n')
-        response.write('Fitting functions: ' + str(data['approach']) + '\n')
-        response.write('Virial Overdensity: ' + str(data['overdensity']) + '\n')
-        response.write('Transfer Function: ' + str(data['co_transfer_file']) + '\n')
-        response.write('Minimum k: ' + str(data['k_begins_at']) + '\n')
-        response.write('Maximum k: ' + str(data['k_ends_at']) + '\n')
-
-        response.write('Cosmologies: \n')
-        response.write('\n')
-        for j, cosmo in enumerate(data['cp_label']):
-            response.write('' + cosmo + ': \n')
-            response.write('-----------------------------------------------------\n')
-            response.write('Critical Overdensity: ' + str(data['cp_delta_c'][min(j, len(data['cp_delta_c']) - 1)]) + '\n')
-            response.write('Power Spectral Index: ' + str(data['cp_n'][min(j, len(data['cp_n']) - 1)]) + '\n')
-            response.write('Sigma_8: ' + str(data['cp_sigma_8'][min(j, len(data['cp_sigma_8']) - 1)]) + '\n')
-            response.write('Hubble Parameter: ' + str(data['cp_H0'][min(j, len(data['cp_H0']) - 1)]) + '\n')
-            response.write('Omega_b: ' + str(data['cp_omegab'][min(j, len(data['cp_omegab']) - 1)]) + '\n')
-            response.write('Omega_CDM: ' + str(data['cp_omegac'][min(j, len(data['cp_omegac']) - 1)]) + '\n')
-            response.write('Omega_Lambda: ' + str(data['cp_omegav'][min(j, len(data['cp_omegav']) - 1)]) + '\n')
-#            response.write('# w: ' + str(data['cp_w_lam'][min(j, len(data['cp_w_lam']) - 1)]) + '\n')
-#            response.write('# Omega_nu: ' + str(data['cp_omegan'][min(j, len(data['cp_omegan']) - 1)]) + '\n')
-            response.write('-----------------------------------------------------\n')
+        response.write("   %s\n" % (labels[i]))
         response.write('=====================================================\n')
-        response.write('\n')
+        print "KEYS: ", o._Cache__recalc_par_prop.keys()
+        for k in o._Cache__recalc_par_prop.keys():
+            response.write("%s: %s \n" % (k, getattr(o, k)))
+        response.write("\n")
+#
+#     for data in formdata:
+#         response.write('=====================================================\n')
+#         response.write('Redshifts: ' + str(data['z']) + '\n')
+#         response.write('WDM Masses: ' + str(data['WDM']) + '\n')
+#         response.write('Fitting functions: ' + str(data['approach']) + '\n')
+#         response.write('Virial Overdensity: ' + str(data['overdensity']) + '\n')
+#         response.write('Transfer Function: ' + str(data['co_transfer_file']) + '\n')
+#         response.write('Minimum k: ' + str(data['k_begins_at']) + '\n')
+#         response.write('Maximum k: ' + str(data['k_ends_at']) + '\n')
+#
+#         response.write('Cosmologies: \n')
+#         response.write('\n')
+#         for j, cosmo in enumerate(data['cp_label']):
+#             response.write('' + cosmo + ': \n')
+#             response.write('-----------------------------------------------------\n')
+#             response.write('Critical Overdensity: ' + str(data['cp_delta_c'][min(j, len(data['cp_delta_c']) - 1)]) + '\n')
+#             response.write('Power Spectral Index: ' + str(data['cp_n'][min(j, len(data['cp_n']) - 1)]) + '\n')
+#             response.write('Sigma_8: ' + str(data['cp_sigma_8'][min(j, len(data['cp_sigma_8']) - 1)]) + '\n')
+#             response.write('Hubble Parameter: ' + str(data['cp_H0'][min(j, len(data['cp_H0']) - 1)]) + '\n')
+#             response.write('Omega_b: ' + str(data['cp_omegab'][min(j, len(data['cp_omegab']) - 1)]) + '\n')
+#             response.write('Omega_CDM: ' + str(data['cp_omegac'][min(j, len(data['cp_omegac']) - 1)]) + '\n')
+#             response.write('Omega_Lambda: ' + str(data['cp_omegav'][min(j, len(data['cp_omegav']) - 1)]) + '\n')
+# #            response.write('# w: ' + str(data['cp_w_lam'][min(j, len(data['cp_w_lam']) - 1)]) + '\n')
+# #            response.write('# Omega_nu: ' + str(data['cp_omegan'][min(j, len(data['cp_omegan']) - 1)]) + '\n')
+#             response.write('-----------------------------------------------------\n')
+#         response.write('=====================================================\n')
+#         response.write('\n')
 
         return response
 
-def hmf_txt(request):
+def data_output(request):
 
     # TODO: output HDF5 format
     # Import all the data we need
-    def sf(val):
-        # Returns the string rep of a number in scientific notation
-        return '%.5e' % val
+    objects = request.session["objects"]
+    labels = request.session['labels']
 
-    mass_data = pandas.DataFrame(request.session["mass_data"])
-    columns = mass_data.columns
-    mass_data['#'] = ''
-    columns = np.hstack(('#', columns))
-    formatters = {}
-    for col in mass_data.columns:
-        if not col.startswith("sigma") and not col.startswith("lnsigma") and not col.startswith("neff") and not col == '#':
-            formatters.update({col:sf})
-
-    # Set up the response object as a text file
-    response = HttpResponse(mimetype='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=mass_functions.dat'
-
-    table = mass_data.to_string(index_names=False, index=False, formatters=formatters, columns=columns)
-    response.write(table)
-
-    return response
-
-def power_txt(request):
-    # Import all the data we need
-    k_data = pandas.DataFrame(request.session["k_data"])
-
-    columns = k_data.columns
-    k_data['#'] = ''
-    columns = np.hstack(('#', columns))
-
-    # Set up the response object as a text file
-    response = HttpResponse(mimetype='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=power_spectra.dat'
-
-    table = k_data.to_string(index_names=False, index=False, columns=columns)
-    response.write(table)
-
-    return response
-
-def units_txt(request):
-    # Set up the response object as a text file
-    response = HttpResponse(mimetype='text/plain')
-    response['Content-Disposition'] = 'attachment; filename=units.dat'
-
-
-    # Write the parameter info
-    response.write('File Created On: ' + str(datetime.datetime.now()) + '\n')
-    response.write('With version ' + calc_version + ' of HMFcalc \n')
-    response.write('And version ' + version + ' of hmf (backend) \n')
-    response.write('\n')
-
-    response.write(" ====== UNIT INFORMATION ====== \n")
-    response.write("\n")
-    response.write("k:            [h/Mpc] \n")
-    response.write("m:            [M_sun/h] \n")
-    response.write("dn/dm:        [h^4/(Mpc^3*M_sun)] \n")
-    response.write("dn/dlnm:      [h^3/Mpc^3] \n")
-    response.write("dn/dlog10m:   [h^3/Mpc^3] \n")
-    response.write("M*dn/dm:      [h3/Mpc^3] \n")
-    response.write("M*dn/dlnm:    [M_sun*h^2/Mpc^3] \n")
-    response.write("M*dn/dlog10m: [M_sun*h^2/Mpc^3] \n")
-    response.write("n(>/<m):      [h^3/Mpc^3] \n")
-    response.write("m(>/<m):      [M_sun*h^2/Mpc^3] \n")
-    response.write("L(N=1):       [Mpc/h]\n")
-    response.write("P(k):         [Mpc^3/h^3]")
-
-    return response
-
-def hmf_all_plots(request):
-
-
-    # First make all the canvases...
-    mass_func_file_like = plots(request, filetype='zip', plottype='hmf')
-    f_file_like = plots(request, filetype='zip', plottype='f')
-    ngtm_file_like = plots(request, filetype='zip', plottype='ngtm')
-    mhmf_file_like = plots(request, filetype='zip', plottype='mhmf')
-    comparison_mf_file_like = plots(request, filetype='zip', plottype='comparison_hmf')
-    comparison_f_file_like = plots(request, filetype='zip', plottype='comparison_f')
-    mgtm_file_like = plots(request, filetype='zip', plottype='Mgtm')
-    sigma_file_like = plots(request, filetype='zip', plottype='sigma')
-    lnsigma_file_like = plots(request, filetype='zip', plottype='lnsigma')
-    n_eff_file_like = plots(request, filetype='zip', plottype='n_eff')
-    power_spec_file_like = plots(request, filetype='zip', plottype='power_spec')
-
-    # ZIP THEM UP
+    # Open up file-like objects for response
     response = HttpResponse(mimetype='application/zip')
     response['Content-Disposition'] = 'attachment; filename=all_plots.zip'
-
     buff = StringIO.StringIO()
     archive = zipfile.ZipFile(buff, 'w', zipfile.ZIP_DEFLATED)
-    archive.writestr('mass_functions.pdf', mass_func_file_like.getvalue())
-    archive.writestr('fitting_functions.pdf', f_file_like.getvalue())
-    archive.writestr('n_gt_m.pdf', ngtm_file_like.getvalue())
-    archive.writestr('mass_by_mass_functions.pdf', mhmf_file_like.getvalue())
-    archive.writestr('mass_function_comparison.pdf', comparison_mf_file_like.getvalue())
-    archive.writestr('fitting_function_comparison.pdf', comparison_f_file_like.getvalue())
-    archive.writestr('mgtm_comparison.pdf', mgtm_file_like.getvalue())
-    archive.writestr('mass_variance.pdf', sigma_file_like.getvalue())
-    archive.writestr('log_one_on_sigma.pdf', lnsigma_file_like.getvalue())
-    archive.writestr('effective_spectral_index.pdf', n_eff_file_like.getvalue())
-    archive.writestr('power_spectrum.pdf', power_spec_file_like.getvalue())
+
+    # Write out mass-based and k-based data files
+    for i, o in enumerate(objects):
+        s = StringIO.StringIO()
+
+        # MASS BASED
+        s.write("# [1] m:            [M_sun/h] \n")
+        s.write("# [2] sigma \n")
+        s.write("# [3] ln(1/sigma) \n")
+        s.write("# [4] n_eff \n")
+        s.write("# [5] f(sigma) \n")
+        s.write("# [6] dn/dm:        [h^4/(Mpc^3*M_sun)] \n")
+        s.write("# [7] dn/dlnm:      [h^3/Mpc^3] \n")
+        s.write("# [8] dn/dlog10m:   [h^3/Mpc^3] \n")
+        s.write("# [9] n(>m):        [h^3/Mpc^3] \n")
+        s.write("# [10] n(<m):       [h^3/Mpc^3] \n")
+        s.write("# [11] m(>m):       [M_sun*h^2/Mpc^3] \n")
+        s.write("# [11] m(<m):       [M_sun*h^2/Mpc^3] \n")
+        s.write("# [12] Lbox(N=1):   [Mpc/h]\n")
+
+        out = np.array([o.M, o.sigma, o.lnsigma, o.n_eff, o.fsigma, o.dndm, o.dndlnm,
+                        o.dndlog10m, o.ngtm, o.nltm, o.mgtm, o.mltm, o.how_big]).T
+        np.savetxt(s, out)
+
+        archive.writestr('mVector_%s.txt' % labels[i], s.getvalue())
+
+        s.close()
+        s = StringIO.StringIO()
+
+        # K BASED
+        s.write("# [1] k:    [h/Mpc] \n")
+        s.write("# [2] P:    [Mpc^3/h^3] \n")
+        s.write("# [3] T:    [Mpc^3/h^3] \n")  # FIXME probably wrong units
+        s.write("# [4] Delta_k \n")
+
+        out = np.exp(np.array([o.lnk, o.power, o.transfer, o.delta_k]).T)
+        np.savetxt(s, out)
+        archive.writestr('kVector_%s.txt' % labels[i], s.getvalue())
+
     archive.close()
     buff.flush()
     ret_zip = buff.getvalue()
     buff.close()
     response.write(ret_zip)
     return response
+
+
+# def hmf_all_plots(request):
+#
+#
+#     # First make all the canvases...
+#     mass_func_file_like = plots(request, filetype='zip', plottype='hmf')
+#     f_file_like = plots(request, filetype='zip', plottype='f')
+#     ngtm_file_like = plots(request, filetype='zip', plottype='ngtm')
+#     mhmf_file_like = plots(request, filetype='zip', plottype='mhmf')
+#     comparison_mf_file_like = plots(request, filetype='zip', plottype='comparison_hmf')
+#     comparison_f_file_like = plots(request, filetype='zip', plottype='comparison_f')
+#     mgtm_file_like = plots(request, filetype='zip', plottype='Mgtm')
+#     sigma_file_like = plots(request, filetype='zip', plottype='sigma')
+#     lnsigma_file_like = plots(request, filetype='zip', plottype='lnsigma')
+#     n_eff_file_like = plots(request, filetype='zip', plottype='n_eff')
+#     power_spec_file_like = plots(request, filetype='zip', plottype='power_spec')
+#
+#     # ZIP THEM UP
+#     response = HttpResponse(mimetype='application/zip')
+#     response['Content-Disposition'] = 'attachment; filename=all_plots.zip'
+#
+#     buff = StringIO.StringIO()
+#     archive = zipfile.ZipFile(buff, 'w', zipfile.ZIP_DEFLATED)
+#     archive.writestr('mass_functions.pdf', mass_func_file_like.getvalue())
+#     archive.writestr('fitting_functions.pdf', f_file_like.getvalue())
+#     archive.writestr('n_gt_m.pdf', ngtm_file_like.getvalue())
+#     archive.writestr('mass_by_mass_functions.pdf', mhmf_file_like.getvalue())
+#     archive.writestr('mass_function_comparison.pdf', comparison_mf_file_like.getvalue())
+#     archive.writestr('fitting_function_comparison.pdf', comparison_f_file_like.getvalue())
+#     archive.writestr('mgtm_comparison.pdf', mgtm_file_like.getvalue())
+#     archive.writestr('mass_variance.pdf', sigma_file_like.getvalue())
+#     archive.writestr('log_one_on_sigma.pdf', lnsigma_file_like.getvalue())
+#     archive.writestr('effective_spectral_index.pdf', n_eff_file_like.getvalue())
+#     archive.writestr('power_spectrum.pdf', power_spec_file_like.getvalue())
+#     archive.close()
+#     buff.flush()
+#     ret_zip = buff.getvalue()
+#     buff.close()
+#     response.write(ret_zip)
+#     return response
 
 
 from django.core.mail import send_mail
