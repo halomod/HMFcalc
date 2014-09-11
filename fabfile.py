@@ -69,13 +69,16 @@ def yum_installs():
     sudo("chkconfig --levels 235 httpd on")
     sudo("yum install --assumeyes httpd-devel.x86_64")
     sudo("yum install --assumeyes libpng-devel.x86_64")
+    sudo("yum install --assumeyes glibc-devel")
+    sudo("yum install --assumeyes gcc-c++")
     # sudo("yum install --assumeyes python27 python27-devel")
 
 def python_install():
     with cd(home_dir):
-        run("wget http://python.org/ftp/python/2.7.4/Python-2.7.4.tar.bz2")
-        run("tar xf Python-2.7.4.tar.bz2")
-    with cd(home_dir + "/Python-2.7.4"):
+        run("wget https://www.python.org/ftp/python/2.7.8/Python-2.7.8.tgz")
+        run("tar xf Python-2.7.8.tgz")
+        run("rm Python-2.7.8.tgz")
+    with cd(home_dir + "/Python-2.7.8"):
         sudo("mkdir -p /opt/python2.7/lib")
         sudo("./configure --prefix=/opt/python2.7 --with-threads --enable-shared LDFLAGS='-Wl,-rpath /opt/python2.7/lib'")
 
@@ -107,35 +110,39 @@ def python_dist_tools():
 def python_packages():
     with cd(home_dir):
         hmfenvpip = home_dir + 'hmfenv/bin/pip'
-        run(hmfenvpip + " install numpy")
+        run(hmfenvpip + " install numpy==1.8.0")
         run(hmfenvpip + " install scipy")
-        run(hmfenvpip + " install matplotlib")
+        run(hmfenvpip + " install matplotlib==1.3.1")
         run(hmfenvpip + " install pandas")
         run(hmfenvpip + " install cosmolopy")
-        run(hmfenvpip + " install django")
+        run(hmfenvpip + " install django==1.6")
         run(hmfenvpip + " install django-tabination")
         run(hmfenvpip + " install django-crispy-forms")
         run(hmfenvpip + " install django-analytical")
         run(hmfenvpip + " install django-floppyforms")
 
-
-        run("git clone https://github.com/steven-murray/pycamb.git")
-
+        try:
+            run("git clone https://github.com/steven-murray/pycamb.git")
+        except:
+            pass
     with cd(home_dir + 'pycamb'):
-        run(home_dir + "hmfenv/bin/python setup.py install")
+        run(home_dir + "hmfenv/bin/python setup.py install --get=http://camb.info/CAMB_Mar13.tar.gz")
 
     with cd(home_dir):
-        run("git clone https://github.com/steven-murray/hmf.git")
+        try:
+            run("git clone https://github.com/steven-murray/hmf.git")
+        except:
+            pass
 
     with cd(home_dir + "hmf"):
-        run("hmfenv/bin/python setup.py install")
+        run(home_dir + "hmfenv/bin/python setup.py install")
 
 def mod_wsgi():
     with cd(home_dir):
-        run("wget modwsgi.googlecode.com/files/mod_wsgi-3.4.tar.gz")
-        run("tar zxf mod_wsgi-3.4.tar.gz")
+        run("wget https://github.com/GrahamDumpleton/mod_wsgi/archive/3.5.tar.gz")
+        run("tar zxf 3.5.tar.gz")
 
-    with cd(home_dir + "/mod_wsgi-3.4"):
+    with cd(home_dir + "/mod_wsgi-3.5"):
         run("./configure")
         run("make")
         sudo("make install")
@@ -181,9 +188,16 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
     sudo("service httpd restart")
 
 def configure_mpl():
-    run("echo 'ps.useafm : True'>>$HOME/.matplotlib/matplotlibrc")
-    run('echo "pdf.use14corefonts : True" >> $HOME/.matplotlib/matplotlibrc')
-    run('echo "text.usetex: True" >> $HOME/.matplotlib/matplotlibrc')
+    with cd(home_dir):
+        try:
+            run("mkdir .config")
+            run("mkdir .config/matplotlib")
+            run("touch .config/matplotlib/matplotlibrc")
+        except:
+            pass
+    run("echo 'ps.useafm : True'>>$HOME/.config/matplotlib/matplotlibrc")
+    run('echo "pdf.use14corefonts : True" >> $HOME/.config/matplotlib/matplotlibrc')
+    run('echo "text.usetex: True" >> $HOME/.config/matplotlib/matplotlibrc')
 
 def setup_cron():
 
