@@ -197,9 +197,11 @@ class HMFInputBase(FormView):
             transfer_fit = "FromFile"
             transfer_options = {"fname":transfer_file}
 
-        # # FIXME : have to do this only if cleaned_data is NOT a dictionary already
-        kwargs = {k:form.cleaned_data[k] for k in form.cleaned_data.keys()}
-        objects, labels, warnings = utils.hmf_driver(transfer_fit, transfer_options, **kwargs)
+        print transfer_fit
+        print transfer_options
+
+        # Calculate all objects
+        objects, labels, warnings = utils.hmf_driver(transfer_fit, transfer_options, **form.cleaned_data)
 #         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
 
@@ -319,8 +321,6 @@ class ViewPlots(BaseTab):
 #         distances = request.session['distances']
         self.warnings = request.session['warnings']
 #         self.final_dist = self.collect_dist(distances)
-        print "======================="
-        print self.form
         return self.render_to_response(self.get_context_data(form=self.form, warnings=self.warnings))
 
     template_name = 'hmf_image_page.html'

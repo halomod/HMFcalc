@@ -35,7 +35,8 @@ def hmf_driver(transfer_fit,
         kwargs["wdm_mass"] = [None]
     objects = []
     labels = []
-    for res in get_hmf('dndm', get_label=True, **kwargs):
+    for res in get_hmf('dndm', get_label=True, transfer_fit=transfer_fit,
+                       transfer_options=transfer_options, **kwargs):
         objects += [copy.deepcopy(res[1])]
         labels += [res[2]]
 
