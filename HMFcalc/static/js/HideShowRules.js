@@ -38,7 +38,6 @@ $(function(){
 			if($(this).val() == "transfers/WMAP7_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('WMAP7')
 				$('#id_omegav').val('0.728')
 				$('#id_omegac').val('0.226')
 				$('#id_omegab').val('0.0455')
@@ -50,7 +49,6 @@ $(function(){
 			if($(this).val() == "transfers/WMAP5_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('WMAP5')
 				$('#id_omegav').val('0.723')
 				$('#id_omegac').val('0.231')
 				$('#id_omegab').val('0.0459')
@@ -62,7 +60,6 @@ $(function(){
 			if($(this).val() == "transfers/GiggleZ_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('GiggleZ')
 				$('#id_omegav').val('0.726')
 				$('#id_omegac').val('0.228')
 				$('#id_omegab').val('0.0456')
@@ -74,7 +71,6 @@ $(function(){
 			if($(this).val() == "transfers/WMAP3_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('WMAP3')
 				$('#id_omegav').val('0.732')
 				$('#id_omegac').val('0.224')
 				$('#id_omegab').val('0.044')
@@ -86,7 +82,6 @@ $(function(){
 			if($(this).val() == "transfers/WMAP1_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('WMAP1')
 				$('#id_omegav').val('0.710')
 				$('#id_omegac').val('0.243')
 				$('#id_omegab').val('0.047')
@@ -98,7 +93,6 @@ $(function(){
 			if($(this).val() == "transfers/Millennium_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('Millennium')
 				$('#id_omegav').val('0.750')
 				$('#id_omegac').val('0.205')
 				$('#id_omegab').val('0.045')
@@ -111,7 +105,6 @@ $(function(){
 			if($(this).val() == "transfers/PLANCK_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('PLANCK')
 				$('#id_omegav').val('0.6817')
 				$('#id_omegac').val('0.2678')
 				$('#id_omegab').val('0.049')
@@ -124,7 +117,6 @@ $(function(){
 			if($(this).val() == "transfers/WMAP9_transfer.dat" )
 			{
 				//Mean dens, crit dens, w and omega_neutrino are the same for all
-				$("#id_label").val('WMAP9')
 				$('#id_omegav').val('0.7181')
 				$('#id_omegac').val('0.236')
 				$('#id_omegab').val('0.0461')

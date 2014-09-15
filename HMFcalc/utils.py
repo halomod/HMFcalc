@@ -17,7 +17,7 @@ import copy
 # TODO: labels across adds are allllll wrong.
 # TODO: cosmography doesn't do all redshifts if added at once on an add??
 
-def hmf_driver(transfer_fit,
+def hmf_driver(label, transfer_fit,
                transfer_options,
                **kwargs):  # A dictionary of bools for optional extra plots.
 
@@ -38,7 +38,7 @@ def hmf_driver(transfer_fit,
     for res in get_hmf('dndm', get_label=True, transfer_fit=transfer_fit,
                        transfer_options=transfer_options, **kwargs):
         objects += [copy.deepcopy(res[1])]
-        labels += [res[2]]
+        labels += [label + " " + res[2]]
 
     # Loop through all the different cosmologies
 #     for cosmo_i, cosmo_dict in enumerate(cosmology_list):

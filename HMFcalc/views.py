@@ -117,7 +117,6 @@ class HMFInputBase(FormView):
 
     # Define what to do if the form is valid.
     def form_valid(self, form):
-        print "FORM IS VALID!!!!!"
         # log = logging.getLogger(__name__)
 
         ###############################################################
@@ -197,19 +196,19 @@ class HMFInputBase(FormView):
             transfer_fit = "FromFile"
             transfer_options = {"fname":transfer_file}
 
-        print transfer_fit
-        print transfer_options
-
+        label = form.cleaned_data.pop('label')
         # Calculate all objects
-        objects, labels, warnings = utils.hmf_driver(transfer_fit, transfer_options, **form.cleaned_data)
+        objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
 #         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
-
+        print "LABEL IN VIEWS: ", label
         if self.request.path.endswith('add/'):
             self.request.session["objects"].extend(objects)
             self.request.session["labels"].extend(labels)
 #             self.request.session['distances'] = self.request.session['distances'] + [distances]
             self.request.session['warnings'].extend(warnings)
+            self.request.session['base_labels'] += [label]
+
         elif self.request.path.endswith('create/'):
             self.request.session["objects"] = objects
             self.request.session["labels"] = labels
@@ -217,8 +216,9 @@ class HMFInputBase(FormView):
             self.request.session['Mmax'] = form.cleaned_data['Mmax']
             self.request.session['dlog10m'] = form.cleaned_data['dlog10m']
             self.request.session['warnings'] = warnings
+            self.request.session["base_labels"] = [label]
 
-
+        print self.request.session["base_labels"]
         return super(HMFInputBase, self).form_valid(form)
 
 
@@ -269,7 +269,8 @@ class HMFInputAdd(HMFInputBase, HMFInputChild):
         kwargs.update({
              'add' : 'add',
              'minm' : self.request.session['Mmin'],
-             'maxm' : self.request.session['Mmax']
+             'maxm' : self.request.session['Mmax'],
+             'labels': self.request.session['base_labels']
         })
         return kwargs
 

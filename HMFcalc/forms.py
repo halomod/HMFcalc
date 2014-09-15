@@ -50,15 +50,25 @@ class HMFInput(forms.Form):
     Input parameters to the halo mass function finder.
     """
     #------ Init Method for Dynamic Form -------------
-    def __init__(self, add, minm=None, maxm=None, *args, **kwargs):
+    def __init__(self, add, minm=None, maxm=None, labels=None, *args, **kwargs):
         self.add = add
         self.minm = minm
         self.maxm = maxm
+        self.old_labels = labels
         super (HMFInput, self).__init__(*args, **kwargs)
 
+        if self.old_labels:
+            self.fields['label'] = forms.CharField(label="Label",
+                                    initial="new-" + self.old_labels[-1],
+                                    help_text="A base label for this calculation",
+                                    max_length=25)
+        else:
+            self.fields['label'] = forms.CharField(label="Label",
+                                    initial="PLANCK-SMT",
+                                    help_text="A base label for this calculation",
+                                    max_length=25)
         if add == 'create':
             # Then we wnat to display min_M and max_M
-                # Which values of the radius to use?
             self.fields['Mmin'] = forms.FloatField(label="",
                                                     initial=10.0,
                                                     help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"),
@@ -126,7 +136,8 @@ class HMFInput(forms.Form):
         else:
             d = Div('wdm_mass', k_html, 'cut_fit', css_class='col-md-6')
 
-        self.helper.layout = Layout(TabHolder(
+        self.helper.layout = Layout("label",
+                                    TabHolder(
                                               Tab('Run Parameters',
                                                       Div(
                                                           Div('z',
@@ -163,6 +174,15 @@ class HMFInput(forms.Form):
     # MAIN RUN PARAMETERS
     ###########################################################
 
+
+
+    def clean_label(self):
+        label = self.cleaned_data['label']
+        label = label.replace("_", "-")
+        if self.old_labels:
+            if label in self.old_labels:
+                raise forms.ValidationError("Label must be unique")
+        return label
 
     # Redshift at which to calculate the mass variance.
     z = FloatListField(label="Redshifts",
