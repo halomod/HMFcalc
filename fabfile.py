@@ -117,7 +117,7 @@ def python_packages():
         run(hmfenvpip + " install cosmolopy")
         run(hmfenvpip + " install django==1.6")
         run(hmfenvpip + " install django-tabination")
-        run(hmfenvpip + " install django-crispy-forms")
+        run(hmfenvpip + " install django-crispy-forms==1.4.0")
         run(hmfenvpip + " install django-analytical")
         run(hmfenvpip + " install django-floppyforms")
 

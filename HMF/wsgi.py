@@ -15,10 +15,8 @@ framework.
 """
 import os
 import sys
-#import djcelery
-#djcelery.setup_loader()
 
-#Add the path to this file into pythonpath
+# Add the path to this file into pythonpath
 _PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _PROJECT_DIR)
 
@@ -31,5 +29,3 @@ from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
 
 # Apply WSGI middleware here.
-# from helloworld.wsgi import HelloWorldApplication
-# application = HelloWorldApplication(application)

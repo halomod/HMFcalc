@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+
+{% block title %}Mass Function Calculator | Plots {% endblock %}
+
+
+{% block allcontent %}
+	<div class="container">
+    <div class="row">
+		<div class="col-md-10">
+			{% crispy form %}
+      	</div>
+	</div>
+	</div>
+{% endblock %}

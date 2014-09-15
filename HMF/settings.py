@@ -12,13 +12,6 @@ import os
 #===============================================================================
 # SETUP LOCAL/PRODUCTION SPECIFIC VARIABLES
 #===============================================================================
-# ENV = os.environ.get("MY_DJANGO_ENV")
-# print ENV
-# if ENV == 'production':
-#    from prod_settings import *
-# else:
-#    from local_settings import *
-
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 CRISPY_FAIL_SILENTLY = not DEBUG
@@ -67,7 +60,6 @@ INSTALLED_APPS = (
     'analytical',
     'crispy_forms',
     'HMFcalc',
-#    'floppyforms',
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -78,7 +70,7 @@ INSTALLED_APPS = (
 # CRISPY SETTINGS
 #===============================================================================
 
-CRISPY_TEMPLATE_PACK = "bootstrap"
+CRISPY_TEMPLATE_PACK = "bootstrap3"
 #===============================================================================
 # LOGGING SETUP
 #===============================================================================
@@ -160,14 +152,14 @@ MEDIA_URL = '/media/'
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ROOT_DIR + '/static/'
+STATIC_ROOT = os.path.join(ROOT_DIR, 'static')
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
 # Additional locations of static files
-STATICFILES_DIRS = (
+STATICFILES_DIRS = (os.path.join(ROOT_DIR, "HMFcalc", "static"),
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
@@ -178,7 +170,7 @@ STATICFILES_DIRS = (
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 #===============================================================================
@@ -192,13 +184,15 @@ TEMPLATE_LOADERS = (
 #     'django.template.loaders.eggs.Loader',
 )
 
-TEMPLATE_DIRS = (ROOT_DIR + '/templates'
+TEMPLATE_DIRS = (os.path.join(ROOT_DIR, 'templates'),
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
 )
 
-
+TEMPLATE_CONTEXT_PROCESSORS = (
+                               "django.core.context_processors.static",
+                               )
 #===============================================================================
 # MISCELLANEOUS
 #===============================================================================

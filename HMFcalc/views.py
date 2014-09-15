@@ -117,6 +117,7 @@ class HMFInputBase(FormView):
 
     # Define what to do if the form is valid.
     def form_valid(self, form):
+        print "FORM IS VALID!!!!!"
         # log = logging.getLogger(__name__)
 
         ###############################################################
@@ -183,7 +184,6 @@ class HMFInputBase(FormView):
             form.cleaned_data['Mmin'] = self.request.session['Mmin']
             form.cleaned_data['Mmax'] = self.request.session['Mmax']
             form.cleaned_data['dlog10m'] = self.request.session['dlog10m']
-#            form.cleaned_data['hmf_form'] = self.request.session['hmf_form']
 
         #=========== Set the Transfer Function File correctly ===== #
         transfer_file = form.cleaned_data.pop("transfer_file")
@@ -197,32 +197,9 @@ class HMFInputBase(FormView):
             transfer_fit = "FromFile"
             transfer_options = {"fname":transfer_file}
 
-        #=========== Set k-bounds as a list of tuples ==============================#
-#         min_k = form.cleaned_data['k_begins_at']
-#         max_k = form.cleaned_data['k_ends_at']
-#         num_k_bounds = max(len(min_k), len(max_k))
-#         k_bounds = []
-#         for i in range(num_k_bounds):
-#             mink = min_k[min(len(min_k) - 1, i)]
-#             maxk = max_k[min(len(max_k) - 1, i)]
-#             k_bounds.append((mink, maxk))
-
-        #============ Set other simple data ========================================#
-#         approach = []
-#         if form.cleaned_data['approach']:
-#             for i in form.cleaned_data["approach"]:
-#                 approach = approach + [str(i)]
-#
-#         if form.cleaned_data["alternate_model"]:
-#             approach = approach + ['user_model']
-
-        #========== GET NON-HMF KEYS OUT OF FORM ==============================
-#         extra_plots = form.cleaned_data.pop("extra_plots")
-
         # # FIXME : have to do this only if cleaned_data is NOT a dictionary already
         kwargs = {k:form.cleaned_data[k] for k in form.cleaned_data.keys()}
         objects, labels, warnings = utils.hmf_driver(transfer_fit, transfer_options, **kwargs)
-        print "LEN OF OBJECTS: ", len(objects)
 #         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
 
@@ -230,12 +207,10 @@ class HMFInputBase(FormView):
             self.request.session["objects"].extend(objects)
             self.request.session["labels"].extend(labels)
 #             self.request.session['distances'] = self.request.session['distances'] + [distances]
-            self.request.session['input_data'] = self.request.session['input_data'] + [form.cleaned_data]
             self.request.session['warnings'].extend(warnings)
         elif self.request.path.endswith('create/'):
             self.request.session["objects"] = objects
             self.request.session["labels"] = labels
-            self.request.session['input_data'] = [form.cleaned_data]
             self.request.session['Mmin'] = form.cleaned_data['Mmin']
             self.request.session['Mmax'] = form.cleaned_data['Mmax']
             self.request.session['dlog10m'] = form.cleaned_data['dlog10m']
@@ -363,9 +338,13 @@ def plots(request, filetype, plottype):
     Chooses the type of plot needed and the filetype (pdf or png) and outputs it
     """
     # TODO: give user an option for ylim dynamically?
+    if "objects" not in request.session:
+        return HttpResponseRedirect('/hmf_finder/form/create/')
+    else:
+        pass
+
     objects = request.session["objects"]
     labels = request.session['labels']
-
 
     keymap = {"dndm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
                       "ylab":r'Mass Function $\left( \frac{dn}{dM} \right) h^4 Mpc^{-3}$',
@@ -444,7 +423,7 @@ def plots(request, filetype, plottype):
 
 def header_txt(request):
     # Set up the response object as a text file
-    response = HttpResponse(mimetype='text/plain')
+    response = HttpResponse(content_type='text/plain')
     response['Content-Disposition'] = 'attachment; filename=parameters.txt'
 
     # Import all the input form data so it can be written to file
@@ -505,7 +484,7 @@ def data_output(request):
     labels = request.session['labels']
 
     # Open up file-like objects for response
-    response = HttpResponse(mimetype='application/zip')
+    response = HttpResponse(content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename=all_plots.zip'
     buff = StringIO.StringIO()
     archive = zipfile.ZipFile(buff, 'w', zipfile.ZIP_DEFLATED)

@@ -2,64 +2,33 @@
 {% load crispy_forms_tags %}
 {% block title %}Mass Function Calculator | Plots {% endblock %}
 
-{% block script %} 
-	<script src='https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js' type='text/javascript'></script>
-    <script src='http://hmfstatic.appspot.com/js/HideShowRules.js' type='text/javascript'></script>
-{% endblock %}
+{% block allcontent %}
 
-{% block style %}
+	<div class="container">
+	<div class="row">
+ 	{% crispy form %}
+ 	
 
-
-
-{% endblock %}
-
-{% block subheading %}{% endblock %}
-{% block content %}
-
-	<div class="span4">
-	<form class='form-horizontal'>
-		<div class="control-group">
-			<label class="control-label" for="inputEmail">{{ form.plot_choice.label_tag }}</label>
-			<div class="controls">
-				{{ form.plot_choice }}
-			</div>
+	{% if warnings %}
+	<div id='warnings' class='row-fluid'>
+		<div class='col-md-12'>
+			
+			<ul>
+			{% for warning in warnings %}
+				<li class="text-warning"> {{ warning }} </li>
+			{% endfor %}
+			</ul>
+			
 		</div>
-	</form>
 	</div>
-	<div class="span4">
-	<form class='form-horizontal'>
-		<div class="control-group">
-			<label class="control-label" for="inputEmail">{{ form.download_choice.label_tag }}</label>
-			<div class="controls">
-				{{ form.download_choice }}
-			</div>
-		</div>
-	</form>
-	</div>
-
-	<div class='span9'>
-		{% if warnings %}
-		<div id='warnings' class='row-fluid'>
-			<div class='span12'>
-				
-				<ul>
-				{% for warning in warnings %}
-					<li class="text-warning"> {{ warning }} </li>
-				{% endfor %}
-				</ul>
-				
-			</div>
-		</div>
-		{% endif %}
+	{% endif %}
 		
-		<div class = 'row-fluid' style="align:centre;">
-			<div class='span12' align='centre;'>
-				<img src="../dndm.png" id='the_image' align="middle">	
-			</div>
-			<br><br>
-		</div>
-		<br><br>
+
+	<div class='col-md-12' align='centre;'>
+		<img src="../dndm.png" id='the_image' align="middle">	
 	</div>
+	<br><br>
+
 	<!-- 
 	<div class="span9"><p class='text-warning'> Note: to get unit information for all quantities, download the
 	"Unit Information" from the Download drop-down menu.</p>
@@ -96,6 +65,6 @@
 		</div>
 	</div>
  -->
-
-
+</div>
+</div>
 {% endblock %}

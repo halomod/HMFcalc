@@ -10,8 +10,8 @@ import numpy as np
 # import floppyforms as forms
 from django import forms
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, Div
-from crispy_forms.bootstrap  import TabHolder, Tab, InlineCheckboxes, FormActions
+from crispy_forms.layout import Layout, Submit, Div, HTML
+from crispy_forms.bootstrap  import TabHolder, Tab, FormActions
 #--------- Custom Form Field for Comma-Separated Input -----
 class FloatListField(forms.CharField):
     """
@@ -54,50 +54,77 @@ class HMFInput(forms.Form):
         self.add = add
         self.minm = minm
         self.maxm = maxm
-#        self.hmfform = hmfform
         super (HMFInput, self).__init__(*args, **kwargs)
 
         if add == 'create':
             # Then we wnat to display min_M and max_M
                 # Which values of the radius to use?
-            self.fields['Mmin'] = forms.FloatField(label="Minimum Mass",
+            self.fields['Mmin'] = forms.FloatField(label="",
                                                     initial=10.0,
                                                     help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"),
                                                     min_value=3.0,
                                                     max_value=18.0)
-            self.fields['Mmax'] = forms.FloatField(label="Maximum Mass",
+            self.fields['Mmax'] = forms.FloatField(label="",
                                                     initial=15.0,
-                                                    help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"),
+                                                    help_text="",
                                                     min_value=3.0,
                                                     max_value=18.0)
-            self.fields['dlog10m'] = forms.FloatField(label="Mass Bin Width",
+            self.fields['dlog10m'] = forms.FloatField(label="",
                                                      initial=0.05,
-                                                     help_text="Logarithmic Bins",
+                                                     help_text="",
                                                      min_value=0.00001,
                                                      max_value=15.0)
-#             hmf_form_choices = [("dndlnm", "dn/dln(M)"),
-#                                 ("dndlog10m", "dn/dlog10(M)"),
-#                                 ("dndm", "dn/dM")]
-#
-#             self.fields['hmf_form'] = forms.ChoiceField(label="Form of HMF",
-#                                                         initial='dndlnm',
-#                                                         choices=hmf_form_choices)
 
         self.helper = FormHelper()
         self.helper.form_id = 'input_form'
         self.helper.form_class = 'form-horizontal'
         self.helper.form_method = 'post'
-        self.helper.form_action = ''
+
         self.helper.help_text_inline = True
+        self.helper.label_class = "col-md-3 control-label"
+        self.helper.field_class = "col-md-8"
 
-
+        k_html = HTML(mark_safe("""
+<div class="form-group">
+    <label for="id_lnk_min" class="col-md-3 control-label">Min|Max|&#916 (lnk)</label>
+    <div class="col-md-9">
+        <div class="form-group row">
+            <div class="col-md-4">
+                <input class="form-control" id="id_lnk_min" name="lnk_min" type="text" value="-15" />
+                
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" id="id_lnk_max" name="lnk_max" type="text" value="15" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" id="id_dlnk" name="dlnk" type="text" value="0.05" />
+            </div>
+        </div>
+    </div>    
+</div>
+"""))
+        m_html = HTML(mark_safe("""
+<div class="form-group">
+    <label for="id_lnk_min" class="col-md-3 control-label">Min|Max|&#916 (log<sub>10</sub>M<sub>&#9737</sub>)</label>
+    <div class="col-md-9">
+        <div class="form-group row">
+            <div class="col-md-4">
+                <input class="form-control" id="id_Mmin" name="Mmin" type="text" value="10" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" id="id_Mmax" name="Mmax" type="text" value="15" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" id="id_dlog10m" name="dlog10m" type="text" value="0.05" />
+            </div>
+        </div>
+    </div>    
+</div>
+"""))
         if add == 'create':
-            d = Div('wdm_mass', 'lnk_min', 'lnk_max', 'dlnk', 'cut_fit', 'Mmin', 'Mmax',
-                    'dlog10m', css_class='span4')
-            # self.helper.add_input(Submit('submit', 'Calculate!'))
-
+            d = Div('wdm_mass', k_html, m_html, 'cut_fit', css_class='col-md-6')
         else:
-            d = Div('wdm_mass', 'lnk_min', 'lnk_max', 'dlnk', 'cut_fit', css_class='span4')
+            d = Div('wdm_mass', k_html, 'cut_fit', css_class='col-md-6')
 
         self.helper.layout = Layout(TabHolder(
                                               Tab('Run Parameters',
@@ -106,38 +133,32 @@ class HMFInput(forms.Form):
                                                               'delta_h',
                                                               'delta_wrt',
                                                               'mf_fit',
-                                                              css_class='span4'
+                                                              css_class='col-md-6'
                                                               ),
                                                            d)
-#                                                       Div(
-#                                                           Fieldset('Optional Extra Plots',
-#                                                                    InlineCheckboxes('extra_plots'),
-#                                                                    ),
-#                                                           css_class='span12'
-#
-#                                                           )
                                                       ),
-                                                  Tab('Cosmological Parameters',
+                                              Tab('Cosmological Parameters',
                                                       Div(
                                                           Div('transfer_file',
                                                               'transfer_file_upload',
                                                               'transfer_fit',
                                                               'delta_c',
                                                               'n',
-                                                              css_class='span4'
+                                                              css_class='col-md-6'
                                                               ),
                                                           Div('sigma_8',
                                                               'H0',
                                                               'omegab',
                                                               'omegac',
                                                               'omegav',
-                                                              css_class='span4'
+                                                              css_class='col-md-6'
                                                               )
                                                           )
                                                       )
                                                   ),
-                                        FormActions(Submit('submit', 'Calculate!', css_class='btn btn-primary btn-large'))
+                                        FormActions(Submit('submit', 'Calculate!', css_class='btn-large'))
                                         )
+        self.helper.form_action = ''
     ###########################################################
     # MAIN RUN PARAMETERS
     ###########################################################
@@ -195,35 +216,7 @@ class HMFInput(forms.Form):
     mf_fit = forms.MultipleChoiceField(label="Fitting Function",
                                        choices=approach_choices,
                                        initial=['SMT'],
-                                       required=False)
-
-#     alternate_model = forms.CharField(label=mark_safe('Custom Fitting Function'),
-#                                        help_text=mark_safe('Type a fitting function form (<a href="http://docs.scipy.org/doc/numpy/reference/routines.math.html">Python syntax</a>) in terms of mass variance (denoted by x). Eg. for Jenkins: 0.315*exp(-abs(log(1.0/x)+0.61)**3.8)'),
-#                                        required=False,
-#                                        widget=forms.Textarea(attrs={'cols':'40', 'rows':'3'}))
-
-#     def clean_alternate_model(self):
-#         """
-#         Performs some simple parsing to check that the alternate model is not rubbish
-#         """
-#         # TODO: actually make this (clean_alternate_model) catch all exceptions
-#         numbers = "0123456789"
-#         operators = ["+", "-", "*", "/", "**"]
-#         functions = ['sin', 'cos', 'tan', 'abs', 'arctan', 'arccos', 'arcsin', 'exp', "log", "(", ")", "."]
-#         values = 'x'
-#
-#         operators_compressed = "".join(operators)
-#         functions_compressed = "".join(functions)
-#
-#         am = self.cleaned_data.get("alternate_model")
-#
-#         if am is not None:
-#             for i, character in enumerate(am):
-#                 if character not in numbers + operators_compressed + functions_compressed + values + " ":
-#                     raise forms.ValidationError("The character " + character + " is not recognized")
-#                 if character in "+-/" and (am[i - 1] in "+-/" or am[i + 1] in "+-/"):
-#                     raise forms.ValidationError("The character " + character + " cannot be next to ", am[i - 1], " and ", am[i + 1])
-
+                                       required=True)
 
 
     transfer_choices = [('transfers/PLANCK_transfer.dat', 'PLANCK'),
@@ -265,7 +258,6 @@ class HMFInput(forms.Form):
 #    RUN PARAMETERS
 #===================================================================
     # Extrapolation parameters.
-    # extrapolate = forms.BooleanField(label='Extrapolate bounds of k?', initial=True, required=False)
     cut_fit = forms.BooleanField(label="Restrict mass range to fitted range?", initial=True, required=False)
     lnk_max = FloatListField(label="Maximum ln(k)",
                              initial=15.0,
@@ -284,20 +276,6 @@ class HMFInput(forms.Form):
                           max_val=15,
                           min_val=0.00001)
 
-#===================================================================
-#    OPTIONAL PLOTS
-#===================================================================
-#     optional_plots = [("get_ngtm", "N(>M)"),
-#                         ("get_mgtm", "M(>M)"),
-#                         ("get_nltm", "N(<M)"),
-#                         ("get_mltm", "M(<M)"),
-#                         ("get_L", 'Box Size for One Halo'),
-#                         ]
-#
-#     extra_plots = forms.MultipleChoiceField(label="Optional Extra Plots",
-#                                             choices=optional_plots,
-#                                             initial=['get_ngtm'],
-#                                             required=False)
 
 #===================================================================
 #   COSMOLOGICAL PARAMETERS
@@ -370,13 +348,6 @@ class HMFInput(forms.Form):
         """
         cleaned_data = super(HMFInput, self).clean()
 
-        #========= Check At Least One Approach Is Chosen ======#
-#         approach = cleaned_data.get("approach")
-#         alternate_model = cleaned_data.get("alternate_model")
-#
-#         if not approach and not alternate_model:
-#             raise forms.ValidationError("You must either choose an approach or enter a custom fitting function")
-
         #========= Check That There are Enough Labels =========#
 #         labels = cleaned_data.get("cp_label")
 #         try:
@@ -394,9 +365,6 @@ class HMFInput(forms.Form):
 #         except:
 #             pass
         #========== Check That k limits are right ==============#
-#         extrapolate = cleaned_data.get("extrapolate")
-#         try:
-#             if extrapolate:
         min_k = cleaned_data.get("lnk_min")
         max_k = cleaned_data.get("lnk_max")
         dlnk = cleaned_data.get("dlnk")
@@ -454,6 +422,7 @@ class HMFInput(forms.Form):
 
 
 
+
 class PlotChoice(forms.Form):
 
     def __init__(self, request, *args, **kwargs):
@@ -484,9 +453,10 @@ class PlotChoice(forms.Form):
             plot_choices += [("comparison_dndm", "Comparison of Mass Functions"),
                             ("comparison_fsigma", "Comparison of Fitting Functions")]
 
-        self.fields["plot_choice"] = forms.ChoiceField(label="View plot of",
+        self.fields["plot_choice"] = forms.ChoiceField(label="Plot: ",
                                                        choices=plot_choices,
-                                                       initial='dndm')
+                                                       initial='dndm',
+                                                       required=False)
 
         self.helper = FormHelper()
         self.helper.form_id = 'plotchoiceform'
@@ -494,8 +464,9 @@ class PlotChoice(forms.Form):
         self.helper.form_method = 'post'
         self.helper.form_action = ''
         self.helper.help_text_inline = True
-
-        self.helper.layout = Layout(Div('plot_choice', 'download_choice', css_class="span3"))
+        self.helper.label_class = "col-md-3 control-label"
+        self.helper.field_class = "col-md-8"
+        self.helper.layout = Layout(Div('plot_choice', 'download_choice', css_class="col-md-6"))
 
     download_choices = [("pdf-current", "PDF of Current Plot"),
                         # ("pdf-all", "PDF's of All Plots"),
@@ -504,7 +475,8 @@ class PlotChoice(forms.Form):
 
     download_choice = forms.ChoiceField(label=mark_safe('<a href="../dndm.pdf" id="plot_download">Download </a>'),
                                 choices=download_choices,
-                                initial='pdf-current')
+                                initial='pdf-current',
+                                required=False)
 
 
 

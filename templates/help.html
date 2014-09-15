@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "text_base.html" %}
 
 {% block title %}HMFcalc | Help {% endblock %}
 {% block subheading %} 
@@ -295,73 +295,4 @@ To help weigh these considerations, we here provide the list of references for a
 
 For a concise summary of the functional forms and respective properties of each fit, download <a href="/downloads/fitting_functions.pdf">this table</a>, 
 which will remain a standalone, updated version of Table 3 in the article describing HMF<em>calc</em>.
-<!-- 
-<p>The parameters used to calculate the halo mass
-function with this application can be split into
-three parts:
-<ol>
- <li>Parameters only involved with the production of the transfer function, from which the
-mass function is derived. </li>
- <li>Parameters that are involved only with the calculation of the mass function from the
-transfer function. </li>
-<li> Parameters which affect both of the above explicitly. </li>
-</ol>
-The following table summarises the parameters with respect to this categorization.
-<div class='row'>
-<div class='span7'>
-<table id="params_cat" class='table table-bordered table-condensed table-hover table-striped' summary="Categorized Parameters">
-    <thead>
-    	<tr>
-        	<th scope="col">Transfer Function Only</th>
-            <th scope="col">Mass Function Only</th>
-            <th scope="col">Both</th>
-        </tr>
-    </thead>
-    <tbody>
-    	<tr>
-    		<td>k-bounds</td>
-            <td>Redshift</td>
-            <td>&#937<sub>b</sub></td>
-        </tr>
-        <tr>
-        	<td>H<sub>0</sub></td>
-            <td>Virial Overdensity, &#916<sub>vir</sub></td>
-            <td>&#937<sub>c</sub></td>
-        </tr>
-        <tr>
-        	<td></td>
-            <td>WDM Mass</td>
-            <td>&#937<sub>&#923</sub></td>
-        </tr>
-        <tr>
-        	<td></td>
-            <td>Fitting Function</td>
-            <td>&#937<sub>v</sub></td>
-        </tr>
-        <tr>
-        	<td></td>
-            <td>Mass Limits</td>
-            <td></td>
-        </tr>
-        <tr>
-        	<td></td>
-            <td>Critical Overdensity for Collapse, &#948<sub>c</sub></td>
-            <td></td>
-        </tr>
-        <tr>
-        	<td></td>
-            <td>Spectral Index, n<sub>s</sub></td>
-            <td></td>
-        </tr>
-        <tr>
-        	<td></td>
-            <td>&#963<sub>8</sub></td>
-            <td></td>
-        </tr>
-    </tbody>
-</table>
-</div>
-</div>
-
- -->
 {% endblock %}
