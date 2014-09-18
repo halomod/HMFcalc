@@ -117,68 +117,6 @@ class HMFInputBase(FormView):
 
     # Define what to do if the form is valid.
     def form_valid(self, form):
-        # log = logging.getLogger(__name__)
-
-        ###############################################################
-        # FORM DATA MANIPULATION
-        ###############################################################
-        #==================== Now save and merge the cosmology ===============================================================
-       # cosmo_quantities = [key for key in form.cleaned_data.keys() if key.startswith('cp_')]
-       # n_cosmologies = len(form.cleaned_data['cp_label'])
-
-
-#         cosmology_list = []
-#         for i in range(n_cosmologies):
-#             cosmology_list = cosmology_list + [{}]
-#             for quantity in cosmo_quantities:
-#                 index = min(len(form.cleaned_data[quantity]) - 1, i)
-#                 cosmology_list[i][quantity[3:]] = form.cleaned_data[quantity][index]
-
-        #==================== We make sure the cosmologies are all unique (across adds) =================================
-#         if self.request.path.endswith('create/'):
-#             # If we are creating for the first time, just save the labels to the session
-#             #self.request.session["cosmo_labels"] = form.cleaned_data["cp_label"]  # A compressed list of all unique labels
-#             #self.request.session["cosmologies"] = cosmology_list  # A compressed list of dicts of unique parameters.
-#             pass
-#
-#         elif self.request.path.endswith('add/'):
-#             # Go through each new label/cosmology added to check uniqueness
-#             for i, label in enumerate(form.cleaned_data["cp_label"]):
-#                 counter = 0
-#
-#                 # If the label is not unique across adds
-#                 if label in self.request.session['cosmo_labels']:
-#                     # Extract the cosmological parameters associated with this label from the previous add
-#                     cosmology = self.request.session['cosmologies'][self.request.session['cosmo_labels'].index(label)]
-#
-#                     same = True
-#                     # Check if all the parameters from the old add are the same as the new add. If not, same = False.
-#                     for key in cosmology_list[i].keys():
-#                         same = same and cosmology_list[i][key] == cosmology[key]
-#
-#                     # If the cosmologies aren't the same, then we modify the label to be unique by suffixing a unique integer
-#                     while label in self.request.session['cosmo_labels'] and not same:
-#                         counter = counter + 1
-#
-#                         if counter == 1:
-#                             # Add a number to the end to make it unique
-#                             label = label + '(' + str(counter) + ')'
-#                         else:
-#                             label = label[:-3] + '(' + str(counter) + ')'
-#
-#                     # If the cosmologies are unique, the labels are now also unique, so save the new cosmology/label to session.
-#                     if not same:
-#                         self.request.session["cosmo_labels"].append(label)
-#                         self.request.session['cosmologies'].append(cosmology_list[i])
-#
-#                 else:
-#                     # The label is already unique so just append it to session
-#                     self.request.session["cosmo_labels"].append(label)
-#                     self.request.session['cosmologies'].append(cosmology_list[i])
-#
-#                 # Change the label in the form
-#                 form.cleaned_data["cp_label"][i] = label
-
         if self.request.path.endswith('add/'):
             form.cleaned_data['Mmin'] = self.request.session['Mmin']
             form.cleaned_data['Mmax'] = self.request.session['Mmax']
@@ -201,7 +139,7 @@ class HMFInputBase(FormView):
         objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
 #         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
-        print "LABEL IN VIEWS: ", label
+
         if self.request.path.endswith('add/'):
             self.request.session["objects"].extend(objects)
             self.request.session["labels"].extend(labels)
@@ -221,7 +159,61 @@ class HMFInputBase(FormView):
         print self.request.session["base_labels"]
         return super(HMFInputBase, self).form_valid(form)
 
+def calc_page(request):
+    if request.method == "POST":
+        form = forms.HMFInput(request.POST)
 
+        if form.is_valid():
+            #=========== Set the Transfer Function File correctly ===== #
+            transfer_file = form.cleaned_data.pop("transfer_file")
+            transfer_options = {}
+            transfer_fit = form.cleaned_data.pop("transfer_fit")
+            tfile = form.cleaned_data.pop('transfer_file_upload')
+            if transfer_file == 'custom':
+                if transfer_fit == "FromFile":
+                    transfer_options = {"fname":tfile}
+            else:
+                transfer_fit = "FromFile"
+                transfer_options = {"fname":transfer_file}
+
+            label = form.cleaned_data.pop('label')
+            # Calculate all objects
+            objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
+
+            try:
+                request.session['objects'] += objects
+                request.session['labels'] += labels
+                request.session['warnings'] += warnings
+            except:
+                request.session['models'] = objects
+                request.session['labels'] = labels
+                request.session['warnings'] += warnings
+
+            print "SESSION MODELS: ", request.session['models']
+
+            # we could possible do funky stuff but lets just do simplicity for now
+            outstring = "M,"
+            for model in request.session['models']:
+                outstring += "z=%s," % model.transfer.z
+            outstring = outstring[:-1] + "\n"
+
+            outarray = np.zeros((len(request.session['models']) + 1, len(request.session['models'][0].r)))
+            for i, model in enumerate(request.session['models']):
+                outarray[i + 1, :] = model.corr_gal
+
+            outarray[0, :] = np.log10(request.session['models'][0].r)
+
+            for i in range(len(outarray[0])):
+                for val in outarray[:, i]:
+                    outstring += str(val) + ","
+                outstring = outstring[:-1] + "\n"
+
+            print outstring
+            return HttpResponse(outstring)
+
+    return render_to_response('calculator.html',
+                              {'form':forms.DumbInputForm()},
+                              context_instance=RequestContext(request))
 class HMFInputParent(BaseTab):
     _is_tab = True
     tab_id = 'form-parent'
