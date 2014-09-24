@@ -490,13 +490,12 @@ def data_output(request):
         s.write("# [7] dn/dlnm:      [h^3/Mpc^3] \n")
         s.write("# [8] dn/dlog10m:   [h^3/Mpc^3] \n")
         s.write("# [9] n(>m):        [h^3/Mpc^3] \n")
-        s.write("# [10] n(<m):       [h^3/Mpc^3] \n")
-        s.write("# [11] m(>m):       [M_sun*h^2/Mpc^3] \n")
-        s.write("# [11] m(<m):       [M_sun*h^2/Mpc^3] \n")
+        s.write("# [11] rho(>m):     [M_sun*h^2/Mpc^3] \n")
+        s.write("# [11] rho(<m):     [M_sun*h^2/Mpc^3] \n")
         s.write("# [12] Lbox(N=1):   [Mpc/h]\n")
 
         out = np.array([o.M, o.sigma, o.lnsigma, o.n_eff, o.fsigma, o.dndm, o.dndlnm,
-                        o.dndlog10m, o.ngtm, o.nltm, o.mgtm, o.mltm, o.how_big]).T
+                        o.dndlog10m, o.ngtm, o.rho_gtm, o.rho_ltm, o.how_big]).T
         np.savetxt(s, out)
 
         archive.writestr('mVector_%s.txt' % labels[i], s.getvalue())
