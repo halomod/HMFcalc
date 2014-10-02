@@ -1,0 +1,7 @@
+{% load crispy_forms_tags %}
+
+<div class="row">
+	<form class="form-horizontal"  action="{% url 'input' mode=view.kwargs.mode id=view.kwargs.id %}" method="post">
+        {% crispy form %}
+    </form>
+</div>

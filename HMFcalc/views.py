@@ -7,6 +7,8 @@ import utils
 import forms
 from django.views.generic.edit import FormView
 from django.views.generic.base import TemplateView
+from django.core.urlresolvers import reverse_lazy
+from django.shortcuts import render_to_response
 # from django.core.files.base import ContentFile
 # from django.core.files.storage import default_storage
 # import numpy as np
@@ -24,7 +26,10 @@ from django.conf import settings
 from . import version as calc_version
 import django
 from django.core.mail.backends.smtp import EmailBackend
+from django.template import RequestContext
 import numpy as np
+import json
+import pickle
 # TODO: figure out why some pages don't display the navbar menu
 
 # def index(request):
@@ -57,7 +62,8 @@ class InfoChild(BaseTab):
     """Base class for all child navigation tabs."""
     # tab_parent = InfoParent
     pass
-class parameters(InfoChild):
+
+class Parameters(InfoChild):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
@@ -67,7 +73,7 @@ class parameters(InfoChild):
     template_name = 'help.html'
     top = False
 
-class contact(BaseTab):
+class Contact(BaseTab):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
@@ -77,7 +83,7 @@ class contact(BaseTab):
     template_name = 'contact_info.html'
     top = True
 
-class resources(InfoChild):
+class Resources(InfoChild):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
@@ -87,7 +93,7 @@ class resources(InfoChild):
     template_name = 'resources.html'
     top = False
 
-class acknowledgments(InfoChild):
+class Acknowledgments(InfoChild):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
@@ -104,25 +110,61 @@ class acknowledgments(InfoChild):
 #    template_name = 'parameter_discuss.html'
 #    top = False
 
+class Calculator(TemplateView):
+    template_name = 'calculator.html'
 
-class HMFInputBase(FormView):
-    """
-    The form for input. 
-    """
+    def render_to_response(self, context, **response_kwargs):
+        """
+        Here we instantiate the objects properly so that there is something
+        drawn straight away.
+        """
+        if "objects" not in self.request.session:
+            self.request.session = initialise(self.request.session)
 
-    # Define the needed variables for FormView class
+        return super(Calculator, self).render_to_response(context, **response_kwargs)
+
+def initialise(session):
+    with open(os.path.join(settings.ROOT_DIR, "HMFcalc/static/initialdata/initialmodel.pickle"), 'r') as f:
+        x = pickle.load(f)
+
+    session['objects'] = [x]
+    session['labels'] = ["Default"]
+    session['warnings'] = []
+
+    f = forms.HMFInput()
+    fparams = utils.save_form_object([x], ["Default"], f, **{"transfer_file":"transfers/PLANCK_transfer.dat",
+                                              "transfer_fit":"FromFile"})
+
+    session['form_params'] = fparams
+    session['axes'] = ("M", "dndm")
+    return session
+
+def redraw_plot(request):
+    """
+    Re-draws everything from the session. Called on page-reload
+    """
+    objects = request.session['objects']
+    labels = request.session['labels']
+    warnings = request.session['warnings']
+    x, y = request.session["axes"]
+
+    out = utils.make_json_data(x, y, objects, labels, labels, 0)
+
+    return HttpResponse(out, content_type='application/json')
+
+class Input(FormView):
+    template_name = 'input.html'
     form_class = forms.HMFInput
-    success_url = '../../hmf_image_page/'
-    template_name = 'hmfform.html'
+    success_url = reverse_lazy('hmf-calculator')
+    # success_message = "Way to go!"
 
-    # Define what to do if the form is valid.
+#     def __init__(self, **kwargs):
+#         super(Input, self).__init__(**kwargs)
+#         self.mode = self.kwargs["mode"]
+#         self.id = int(self.kwargs["id"])
+
     def form_valid(self, form):
-        if self.request.path.endswith('add/'):
-            form.cleaned_data['Mmin'] = self.request.session['Mmin']
-            form.cleaned_data['Mmax'] = self.request.session['Mmax']
-            form.cleaned_data['dlog10m'] = self.request.session['dlog10m']
-
-        #=========== Set the Transfer Function File correctly ===== #
+        #========= Set the Transfer Function File correctly ===== #
         transfer_file = form.cleaned_data.pop("transfer_file")
         transfer_options = {}
         transfer_fit = form.cleaned_data.pop("transfer_fit")
@@ -135,196 +177,299 @@ class HMFInputBase(FormView):
             transfer_options = {"fname":transfer_file}
 
         label = form.cleaned_data.pop('label')
+
         # Calculate all objects
         objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
-#         distances = utils.cosmography(cosmology_list, form.cleaned_data['cp_label'], form.cleaned_data['z'], growth)
 
+        # Save the model
+        fparams = utils.save_form_object(objects, labels, form, transfer_file=transfer_file,
+                                         transfer_fit=transfer_fit, transfer_file_upload=tfile)
 
-        if self.request.path.endswith('add/'):
-            self.request.session["objects"].extend(objects)
-            self.request.session["labels"].extend(labels)
-#             self.request.session['distances'] = self.request.session['distances'] + [distances]
-            self.request.session['warnings'].extend(warnings)
-            self.request.session['base_labels'] += [label]
-
-        elif self.request.path.endswith('create/'):
-            self.request.session["objects"] = objects
-            self.request.session["labels"] = labels
-            self.request.session['Mmin'] = form.cleaned_data['Mmin']
-            self.request.session['Mmax'] = form.cleaned_data['Mmax']
-            self.request.session['dlog10m'] = form.cleaned_data['dlog10m']
-            self.request.session['warnings'] = warnings
-            self.request.session["base_labels"] = [label]
-
-        print self.request.session["base_labels"]
-        return super(HMFInputBase, self).form_valid(form)
-
-def calc_page(request):
-    if request.method == "POST":
-        form = forms.HMFInput(request.POST)
-
-        if form.is_valid():
-            #=========== Set the Transfer Function File correctly ===== #
-            transfer_file = form.cleaned_data.pop("transfer_file")
-            transfer_options = {}
-            transfer_fit = form.cleaned_data.pop("transfer_fit")
-            tfile = form.cleaned_data.pop('transfer_file_upload')
-            if transfer_file == 'custom':
-                if transfer_fit == "FromFile":
-                    transfer_options = {"fname":tfile}
-            else:
-                transfer_fit = "FromFile"
-                transfer_options = {"fname":transfer_file}
-
-            label = form.cleaned_data.pop('label')
-            # Calculate all objects
-            objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
-
-            try:
-                request.session['objects'] += objects
-                request.session['labels'] += labels
-                request.session['warnings'] += warnings
-            except:
-                request.session['models'] = objects
-                request.session['labels'] = labels
-                request.session['warnings'] += warnings
-
-            print "SESSION MODELS: ", request.session['models']
-
-            # we could possible do funky stuff but lets just do simplicity for now
-            outstring = "M,"
-            for model in request.session['models']:
-                outstring += "z=%s," % model.transfer.z
-            outstring = outstring[:-1] + "\n"
-
-            outarray = np.zeros((len(request.session['models']) + 1, len(request.session['models'][0].r)))
-            for i, model in enumerate(request.session['models']):
-                outarray[i + 1, :] = model.corr_gal
-
-            outarray[0, :] = np.log10(request.session['models'][0].r)
-
-            for i in range(len(outarray[0])):
-                for val in outarray[:, i]:
-                    outstring += str(val) + ","
-                outstring = outstring[:-1] + "\n"
-
-            print outstring
-            return HttpResponse(outstring)
-
-    return render_to_response('calculator.html',
-                              {'form':forms.DumbInputForm()},
-                              context_instance=RequestContext(request))
-class HMFInputParent(BaseTab):
-    _is_tab = True
-    tab_id = 'form-parent'
-    tab_label = 'Calculate'
-    template_name = 'also_doesnt_exist.html'
-    my_children = ['/hmf_finder/form/create/', '/hmf_finder/form/add/']
-
-
-class HMFInputChild(BaseTab):
-    """Base class for all child navigation tabs."""
-    # tab_parent = HMFInputParent
-    pass
-
-class HMFInputCreate(HMFInputBase, HMFInputChild):
-
-    # This defines whether to add the M-bounds fields to the form (here we do)
-    def get_form_kwargs(self):
-        kwargs = super(HMFInputBase, self).get_form_kwargs()
-        kwargs.update({
-            'add' : 'create'
-        })
-        return kwargs
-
-    # We must define 'get' as TabView is based on TemplateView which has a different form for get (form variable lost).
-    def get(self, request, *args, **kwargs):
-        """
-        Handles GET requests and instantiates a blank version of the form.
-        """
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        return self.render_to_response(self.get_context_data(form=form))
-
-    # TabView-specific things
-    _is_tab = True
-    tab_id = '/hmf_finder/form/create/'
-    tab_label = 'Begin New'
-    top = False
-
-
-
-class HMFInputAdd(HMFInputBase, HMFInputChild):
-
-    def get_form_kwargs(self):
-        kwargs = super(HMFInputBase, self).get_form_kwargs()
-        kwargs.update({
-             'add' : 'add',
-             'minm' : self.request.session['Mmin'],
-             'maxm' : self.request.session['Mmax'],
-             'labels': self.request.session['base_labels']
-        })
-        return kwargs
-
-    def get(self, request, *args, **kwargs):
-        """
-        Handles GET requests and instantiates a blank version of the form.
-        """
-        if 'Mmin' not in self.request.session:
-            return HttpResponseRedirect('/hmf_finder/form/create/')
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        return self.render_to_response(self.get_context_data(form=form))
-
-    _is_tab = True
-    tab_id = '/hmf_finder/form/add/'
-    top = False
-    tab_label = "Add Extra Plots"
-
-    @property
-    def tab_visible(self):
-        return "Mmin" in self.current_tab.request.session and "Mmax" in self.current_tab.request.session
-
-
-class ViewPlots(BaseTab):
-
-#     def collect_dist(self, distances):
-#         final_d = []
-#         collected_cosmos = []
-#         collected_z = []
-#         for dist in distances:  # dist is one matrix of distances
-#             for d in dist:  # d is one vector (different calculations - a row of final table)
-#                 if d[0] in collected_cosmos and d[1] in collected_z:
-#                     b = [item for item in range(len(collected_cosmos)) if collected_cosmos[item] == d[0]]
-#                     if d[1] in b:
-#                         break
-#                     else:
-#                         collected_cosmos = collected_cosmos + [d[0]]
-#                         collected_z = collected_z + [d[1]]
-#                 collected_cosmos = collected_cosmos + [d[0]]
-#                 collected_z = collected_z + [d[1]]
-#                 final_d = final_d + [d]
-#         return final_d
-
-    def get(self, request, *args, **kwargs):
-        if 'objects' in request.session:
-            self.form = forms.PlotChoice(request)
+        ind = int(self.kwargs['id'])
+        num_old_models = len(self.request.session['objects'])
+        if self.kwargs['mode'] == "add":
+            self.request.session['objects'] += objects
+            self.request.session['labels'] += labels
+            self.request.session['warnings'] += warnings
+            self.request.session['form_params'] += fparams
+        elif self.kwargs['mode'] == "edit":
+            self.request.session['objects'][ind] = objects[0]
+            self.request.session['labels'][ind] = labels[0]
+            self.request.session['warnings'] = warnings  # #obviously wrong
+            self.request.session['form_params'][ind] = fparams[0]
         else:
-            return HttpResponseRedirect('/hmf_finder/form/create/')
-#         distances = request.session['distances']
-        self.warnings = request.session['warnings']
-#         self.final_dist = self.collect_dist(distances)
-        return self.render_to_response(self.get_context_data(form=self.form, warnings=self.warnings))
+            raise ValueError("Mode should be add or edit, got" + self.kwargs['mode'])
 
-    template_name = 'hmf_image_page.html'
-    _is_tab = True
-    tab_id = '/hmf_finder/hmf_image_page/'
-    tab_label = 'View Plots'
-    top = True
+        labels_new = labels
+        objects = self.request.session['objects']
+        labels = self.request.session['labels']
+        warnings = self.request.session['warnings']
 
-    @property
-    def tab_visible(self):
-        return "objects" in self.current_tab.request.session
+        # # Get what to plot
+        x, y = self.request.session["axes"]
+
+        if self.kwargs['mode'] == "add":
+            out = utils.make_json_data(x, y, objects, labels, labels_new, num_old_models)
+        else:
+            out = utils.make_json_data(x, y, objects, labels, labels_new, ind)
+
+        return HttpResponse(out, content_type='application/json')
+
+    def get_initial(self):
+        """
+        Optionally add dynamic initial data to the form based on "edited" model
+        """
+        initial = self.request.session['form_params'][int(self.kwargs['id'])]
+        if self.kwargs['mode'] == "add":
+            initial['label'] = "new-" + initial['label']
+        return initial
+
+    def get_form_kwargs(self):
+        kwargs = super(Input, self).get_form_kwargs()
+        kwargs['labels'] = self.request.session['labels']
+        if self.kwargs['mode'] == "add":
+            kwargs['add'] = True
+        else:
+            kwargs['add'] = False
+        return kwargs
+
+class Axes(FormView):
+    template_name = 'axes.html'
+    form_class = forms.Axes
+    success_url = reverse_lazy('hmf-calculator')
+
+    def form_valid(self, form):
+        print "GOT INTO FORM VALID"
+        x = form.cleaned_data['x']
+        y = form.cleaned_data['y']
+        print "x and y axes: ", x, y
+        self.request.session['axes'] = x, y
+
+        try:
+            objects = self.request.session['objects']
+            labels = self.request.session['labels']
+            warnings = self.request.session['warnings']
+        except:
+            return HttpResponse("")
+
+        out = utils.make_json_data(x, y, objects, labels, "", None)
+        return HttpResponse(out, content_type='application/json')
+
+def y_selector(request):
+    xval = request.POST['xval']
+
+    mchoices = [a[0] for a in forms.Axes.m_choices]
+
+    if xval in mchoices:
+        thevars = forms.Axes.m_choices
+    else:
+        thevars = forms.Axes.k_choices
+
+    print xval, thevars, forms.Axes.m_choices, forms.Axes.k_choices
+    response = ""
+    for var, label in thevars:
+        if var != xval:
+            response += '<option value="%s">%s</option>\n' % (var, label)
+
+    return HttpResponse(response)
+
+def remove_single_entry(request):
+    ind = int(request.POST['id'])
+    try:
+        models = request.session["objects"]
+        labels = request.session["labels"]
+ #       warnings = request.session["warnings"]
+
+        del models[ind]
+        del labels[ind]
+#        del warnings[ind]
+
+        request.session['objects'] = models
+        request.session['labels'] = labels
+#        request.session['warnings'] = warnings
+
+    except:
+        pass
+
+    out = utils.make_json_data(request.session['axes'][0],
+                               request.session['axes'][1],
+                               request.session['objects'],
+                               request.session['labels'], "", None)
+    return HttpResponse(out, content_type='application/json')
+
+def clear_all(request):
+    request.session = initialise(request.session)
+    return redraw_plot(request)
+
+# def calc_page(request):
+#     if request.method == "POST":
+#         form = forms.HMFInput(request.POST)
+#
+#         # # If form is valid, process data and return JSON
+#         if form.is_valid():
+#
+#             #=========== Set the Transfer Function File correctly ===== #
+#             transfer_file = form.cleaned_data.pop("transfer_file")
+#             transfer_options = {}
+#             transfer_fit = form.cleaned_data.pop("transfer_fit")
+#             tfile = form.cleaned_data.pop('transfer_file_upload')
+#             if transfer_file == 'custom':
+#                 if transfer_fit == "FromFile":
+#                     transfer_options = {"fname":tfile}
+#             else:
+#                 transfer_fit = "FromFile"
+#                 transfer_options = {"fname":transfer_file}
+#
+#             label = form.cleaned_data.pop('label')
+#
+#             # Calculate all objects
+#             objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
+#
+#             # # Save the model
+#             try:
+#                 request.session['objects'] += objects
+#                 request.session['labels'] += labels
+#                 request.session['warnings'] += warnings
+#             except:
+#                 request.session['models'] = objects
+#                 request.session['labels'] = labels
+#                 request.session['warnings'] += warnings
+#
+#             # Create JSON/CSV-file
+#             outstring = "M,"
+#             for model in request.session['models']:
+#                 outstring += "z=%s," % model.transfer.z
+#             outstring = outstring[:-1] + "\n"
+#
+#             outarray = np.zeros((len(request.session['models']) + 1, len(request.session['models'][0].r)))
+#             for i, model in enumerate(request.session['models']):
+#                 outarray[i + 1, :] = model.corr_gal
+#
+#             outarray[0, :] = np.log10(request.session['models'][0].r)
+#
+#             for i in range(len(outarray[0])):
+#                 for val in outarray[:, i]:
+#                     outstring += str(val) + ","
+#                 outstring = outstring[:-1] + "\n"
+#
+#             print outstring
+#             return HttpResponse(outstring)
+#
+#     # # Else render the base template
+#     return render_to_response("input.html",
+#                               {'form':forms.HMFInput(request.session.get('labels', []))},
+#                               context_instance=RequestContext(request))
+# class HMFInputParent(BaseTab):
+#     _is_tab = True
+#     tab_id = 'form-parent'
+#     tab_label = 'Calculate'
+#     template_name = 'also_doesnt_exist.html'
+#     my_children = ['/hmf_finder/form/create/', '/hmf_finder/form/add/']
+#
+#
+# class HMFInputChild(BaseTab):
+#     """Base class for all child navigation tabs."""
+#     # tab_parent = HMFInputParent
+#     pass
+#
+# class HMFInputCreate(HMFInputBase, HMFInputChild):
+#
+#     # This defines whether to add the M-bounds fields to the form (here we do)
+#     def get_form_kwargs(self):
+#         kwargs = super(HMFInputBase, self).get_form_kwargs()
+#         kwargs.update({
+#             'add' : 'create'
+#         })
+#         return kwargs
+#
+#     # We must define 'get' as TabView is based on TemplateView which has a different form for get (form variable lost).
+#     def get(self, request, *args, **kwargs):
+#         """
+#         Handles GET requests and instantiates a blank version of the form.
+#         """
+#         form_class = self.get_form_class()
+#         form = self.get_form(form_class)
+#         return self.render_to_response(self.get_context_data(form=form))
+#
+#     # TabView-specific things
+#     _is_tab = True
+#     tab_id = '/hmf_finder/form/create/'
+#     tab_label = 'Begin New'
+#     top = False
+#
+#
+#
+# class HMFInputAdd(HMFInputBase, HMFInputChild):
+#
+#     def get_form_kwargs(self):
+#         kwargs = super(HMFInputBase, self).get_form_kwargs()
+#         kwargs.update({
+#              'add' : 'add',
+#              'minm' : self.request.session['Mmin'],
+#              'maxm' : self.request.session['Mmax'],
+#              'labels': self.request.session['base_labels']
+#         })
+#         return kwargs
+#
+#     def get(self, request, *args, **kwargs):
+#         """
+#         Handles GET requests and instantiates a blank version of the form.
+#         """
+#         if 'Mmin' not in self.request.session:
+#             return HttpResponseRedirect('/hmf_finder/form/create/')
+#         form_class = self.get_form_class()
+#         form = self.get_form(form_class)
+#         return self.render_to_response(self.get_context_data(form=form))
+#
+#     _is_tab = True
+#     tab_id = '/hmf_finder/form/add/'
+#     top = False
+#     tab_label = "Add Extra Plots"
+#
+#     @property
+#     def tab_visible(self):
+#         return "Mmin" in self.current_tab.request.session and "Mmax" in self.current_tab.request.session
+
+#
+# class ViewPlots(BaseTab):
+#
+# #     def collect_dist(self, distances):
+# #         final_d = []
+# #         collected_cosmos = []
+# #         collected_z = []
+# #         for dist in distances:  # dist is one matrix of distances
+# #             for d in dist:  # d is one vector (different calculations - a row of final table)
+# #                 if d[0] in collected_cosmos and d[1] in collected_z:
+# #                     b = [item for item in range(len(collected_cosmos)) if collected_cosmos[item] == d[0]]
+# #                     if d[1] in b:
+# #                         break
+# #                     else:
+# #                         collected_cosmos = collected_cosmos + [d[0]]
+# #                         collected_z = collected_z + [d[1]]
+# #                 collected_cosmos = collected_cosmos + [d[0]]
+# #                 collected_z = collected_z + [d[1]]
+# #                 final_d = final_d + [d]
+# #         return final_d
+#
+#     def get(self, request, *args, **kwargs):
+#         if 'objects' in request.session:
+#             self.form = forms.PlotChoice(request)
+#         else:
+#             return HttpResponseRedirect('/hmf_finder/form/create/')
+# #         distances = request.session['distances']
+#         self.warnings = request.session['warnings']
+# #         self.final_dist = self.collect_dist(distances)
+#         return self.render_to_response(self.get_context_data(form=self.form, warnings=self.warnings))
+#
+#     template_name = 'hmf_image_page.html'
+#     _is_tab = True
+#     tab_id = '/hmf_finder/hmf_image_page/'
+#     tab_label = 'View Plots'
+#     top = True
+#
+#     @property
+#     def tab_visible(self):
+#         return "objects" in self.current_tab.request.session
 
 def plots(request, filetype, plottype):
     """

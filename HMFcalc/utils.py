@@ -4,18 +4,98 @@ Created on Jun 15, 2012
 @author: Steven
 '''
 from hmf.tools import get_hmf
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
+# from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+# from matplotlib.figure import Figure
 import numpy as np
 import logging
-import cosmolopy.distance as cd
+# import cosmolopy.distance as cd
 # import pandas
 import os
-import matplotlib.ticker as tick
+# import matplotlib.ticker as tick
 import StringIO
 import copy
-# TODO: labels across adds are allllll wrong.
+import json
+from scipy.interpolate import InterpolatedUnivariateSpline as spline
+from django.forms import MultipleChoiceField
 # TODO: cosmography doesn't do all redshifts if added at once on an add??
+
+# labels = {"M":'Mass \((M_{\odot}h^{-1})/)',
+#           "dndm":r'Mass Function \(\left( \frac{dn}{dM} \right) h^4 Mpc^{-3}\)',
+#           "dndlnm":r'Mass Function \(\left( \frac{dn}{d\ln M} \right) h^3 Mpc^{-3}\)',
+#           "dndlog10m":r'Mass Function \(\left( \frac{dn}{d\log_{10}M} \right) h^3 Mpc^{-3}\)',
+#           "fsigma":r'\(f(\sigma) = \nu f(\nu)\)',
+#           "ngtm":r'\(n(>M) h^3 Mpc^{-3}\)',
+#           "rho_gtm":r'\(\rho(>M)$, $M_{\odot}h^{2}Mpc^{-3}\)',
+#           "rho_ltm":r'\(\rho(<M)$, $M_{\odot}h^{2}Mpc^{-3}\)',
+#           "how_big":r'Box Size, \(L\) Mpc\(h^{-1}\)',
+#           "sigma":'Mass Variance, \(\sigma\)',
+#           "lnsigma":r'\(\ln(\sigma^{-1})\)',
+#           "n_eff":r'Effective Spectral Index, \(n_{eff}\)',
+#           "power":r'\(\ln(P(k))\), [Mpc\(^3 h^{-3}\)]',
+#           "lnk":r"Wavenumber, \(k\) [\(h\)/Mpc]",
+#           "transfer":r'\(\ln(T(k))\), [Mpc\(^3 h^{-3}\)]',
+#           "delta_k":r'\(\ln(\Delta(k))\)'}
+#
+# log_labels = {"M":'Mass \((\log_{10}M_{\odot}h^{-1})\)',
+#           "dndm":r'Mass Function \(\left( \log_{10}\frac{dn}{dM} \right) h^4 Mpc^{-3}\)',
+#           "dndlnm":r'Mass Function \(\left( \log_{10}\frac{dn}{d\ln M} \right) h^3 Mpc^{-3}\)',
+#           "dndlog10m":r'Mass Function \(\left( \log_{10}\frac{dn}{d\log_{10}M} \right) h^3 Mpc^{-3}\)',
+#           "fsigma":r'\(\log_{10}f(\sigma) = \log_{10}(\nu f(\nu))\)',
+#           "ngtm":r'\(\log_{10}n(>M) h^3 Mpc^{-3}\)',
+#           "rho_gtm":r'\(\log_{10}\rho(>M)\), \(M_{\odot}h^{2}Mpc^{-3}\)',
+#           "rho_ltm":r'\(\log_{10}\rho(<M)\), \(M_{\odot}h^{2}Mpc^{-3}\)',
+#           "how_big":r'Box Size, \(\log_{10}L\) Mpc\(h^{-1}\)',
+#           "sigma":'Mass Variance, \(\log_{10}\sigma\)',
+#           "lnsigma":r'\(\ln(\sigma^{-1})\)',
+#           "n_eff":r'Effective Spectral Index, \(\log_{10}n_{eff}\)',
+#           "power":r'\(\ln(P(k))\), [Mpc\(^3 h^{-3}\)]',
+#           "lnk":r"Wavenumber, \(\log_{10}k\) [\(h\)/Mpc]",
+#           "transfer":r'\(\ln(T(k))$, [Mpc$^3 h^{-3}\)]',
+#           "delta_k":r'\(\ln(\Delta(k))\)'}
+
+# For now at least, the axis labels must be in non-latex format.
+labels = {"M":'Mass [log<sub>10</sub>M<sub>&#x2299</sub>/h])',
+          "dndm":r'Mass Function, dn/dm [h<sup>4</sup>Mpc<sup>-3</sup>]',
+          "dndlnm":r'Mass Function, dn/dln(m) [h<sup>3</sup>Mpc<sup>-3</sup>]',
+          "dndlog10m":r'Mass Function, dn/dlog<sub>10</sub>(m) [h<sup>3</sup>Mpc<sup>-3</sup>]',
+          "fsigma":r'Fitting Function, f(&#963)',
+          "ngtm":r'Cumulative Mass Function, n(>m) [h<sup>3</sup>Mpc<sup>-3</sup>]',
+          "rho_gtm":r'Cumulative Density, &#961(>m) [h<sup>2</sup>Mpc<sup>-3</sup>]',
+          "rho_ltm":r'Cumulative Density, &#961(<m) [h<sup>2</sup>Mpc<sup>-3</sup>]',
+          "how_big":r'Box Size, [Mpc h<sup>-1</sup>]',
+          "sigma":'Mass Variance, &#963',
+          "lnsigma":r'ln(1/&#963)',
+          "n_eff":r'Effective Spectral Index, n<sub>eff</sub>',
+          "power":r'Power Spectrum, ln(P(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
+          "lnk":r"Wavenumber, ln(k) [h/Mpc]",
+          "transfer":r'Transfer Function, ln(T(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
+          "delta_k":r'Dimensionless Power, ln(&#916(k))'}
+
+log_labels = {"M":'Mass [log<sub>10</sub>M<sub>&#x2299</sub>/h]',
+          "dndm":r'Mass Function, log<sub>10</sub>(dn/dm) [h<sup>4</sup>Mpc<sup>-3</sup>]',
+          "dndlnm":r'Mass Function, log<sub>10</sub>(dn/dln(m)) [h<sup>3</sup>Mpc<sup>-3</sup>]',
+          "dndlog10m":r'Mass Function, log<sub>10</sub>(dn/dlog<sub>10</sub>(m)) [h<sup>3</sup>Mpc<sup>-3</sup>]',
+          "fsigma":r'Fitting Function, log<sub>10</sub>(f(&#963))',
+          "ngtm":r'Cumulative Mass Function, log<sub>10</sub>(n(>m)) [h<sup>3</sup>Mpc<sup>-3</sup>]',
+          "rho_gtm":r'Cumulative Density, log<sub>10</sub>(&#961(>m)) [h<sup>2</sup>Mpc<sup>-3</sup>]',
+          "rho_ltm":r'Cumulative Density, log<sub>10</sub>(&#961(<m)) [h<sup>2</sup>Mpc<sup>-3</sup>]',
+          "how_big":r'Box Size, log<sub>10</sub>(L) [Mpc h<sup>-1</sup>]',
+          "sigma":'Mass Variance, log<sub>10</sub>(&#963)',
+          "lnsigma":r'ln(1/&#963)',
+          "n_eff":r'Effective Spectral Index, log<sub>10</sub>(n<sub>eff</sub>)',
+          "power":r'Power Spectrum, ln(P(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
+          "lnk":r"Wavenumber, ln(k) [h/Mpc]",
+          "transfer":r'Transfer Function, ln(T(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
+          "delta_k":r'Dimensionless Power, ln(&#916(k))'}
+
+#           "comparison_dndm":r'Ratio of Mass Functions $ \left(\frac{dn}{dM}\right) / \left( \frac{dn}{dM} \right)_{%s} $' % labels[0],
+#                       "yscale":'log',
+#                       "basey":2},
+#               "comparison_fsigma":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
+#                       "ylab":r'Ratio of Fitting Functions $f(\sigma)/ f(\sigma)_{%s}$' % labels[0],
+#                       "yscale":'log',
+#                       "basey":2}
+#               }
 
 def hmf_driver(label, transfer_fit,
                transfer_options,
@@ -38,91 +118,109 @@ def hmf_driver(label, transfer_fit,
     for res in get_hmf('dndm', get_label=True, transfer_fit=transfer_fit,
                        transfer_options=transfer_options, **kwargs):
         objects += [copy.deepcopy(res[1])]
-        labels += [label + " " + res[2]]
-
-    # Loop through all the different cosmologies
-#     for cosmo_i, cosmo_dict in enumerate(cosmology_list):
-
-
-#         growths.append([])
-#         # Save the cosmo_label to the column label
-#         if len(cosmology_list) > 1 or max(len(cosmology_list), len(k_bounds), len(z_list), len(approaches), len(overdensities)) == 1:
-#             labels['cosmo'] = cosmo_labels[cosmo_i]
-#         labels["cosmo_fallback"] = cosmo_labels[cosmo_i]
-#
-#         # Loop through all WDM models (CDM first)
-#         for k_bound in k_bounds:
-#             # Save the k_bounds to the label
-#             lnk = np.linspace(np.log(k_bound[0]), np.log(k_bound[1]), 250)
-#             if len(k_bounds) > 1:
-#                 labels['k'] = 'k{' + str(k_bound[0]) + ',' + str(k_bound[1]) + '}'
-#             for wdm in [None] + WDM_list:
-#                 # Add WDM label
-#                 if len(WDM_list) > 0:
-#                     if wdm is None:
-#                         labels['wdm'] = 'CDM'
-#                     else:
-#                         labels['wdm'] = 'WDM=' + str(wdm)
-#                 # Loop over all redshifts
-#                 for z in z_list:
-#                     # Define a column-name extension for the table
-#                     if len(z_list) > 1 or z > 0:
-#                         labels['z'] = 'z=' + str(z)
-#
-#                     # Update pert object optimally with new variables
-#                     pert.update(lnk=lnk, wdm_mass=wdm, z=z, **cosmo_dict)
-#
-#                     growths[cosmo_i].append(pert.transfer.growth)
-#                     # Save k-based data
-#                     excludes = ['deltahalo', 'fsig', "cosmo_fallback"]
-#                     k_data["ln(k)_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.transfer.lnk
-#                     k_data["ln(P(k))_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.transfer.power
-#
-#                     # Save Mass-Based data
-#                     mass_data["sigma_" + (getname(labels, excl=excludes) or getname(labels, excl=excludes[:-1]))] = pert.sigma
-#                     mass_data["lnsigma_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.lnsigma
-#                     mass_data["neff_" + (getname(labels, excl=excludes)or getname(labels, excl=excludes[:-1]))] = pert.n_eff
-#
-#                     # Loop over fitting functions
-#                     for approach in approaches:
-#                         if len(approaches) > 1:
-#                             labels['fsig'] = approach
-#                         for overdensity in overdensities:
-#                             if len(overdensities) > 1:
-#                                 labels['deltahalo'] = 'Delta_h=' + str(overdensity)
-#
-#                             # Save the data
-#                             pert.update(mf_fit=approach, delta_h=overdensity, delta_c=cosmo_dict['delta_c'])
-#                             mass_data["f(sig)_" + getname(labels, excl="cosmo_fallback")] = pert.fsigma
-#
-#                             # ----- Mass Functions -----
-#                             if hmf_form == 'dndlnm':
-#                                 mass_data["dndlnm_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlnm
-#                                 mass_data["M*dndlnm_" + getname(labels, excl="cosmo_fallback")] = pert.dndlnm * pert.M
-#                             elif hmf_form == 'dndlog10m':
-#                                 mass_data["dndlog10m_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndlog10m
-#                                 mass_data["M*dndlog10m_" + getname(labels, excl="cosmo_fallback")] = pert.dndlog10m * pert.M
-#                             elif hmf_form == 'dndm':
-#                                 mass_data["dndm_" + getname(labels, excl=['cosmo_fallback'])] = pert.dndm
-#                                 mass_data["M*dndm_" + getname(labels, excl="cosmo_fallback")] = pert.dndm * pert.M
-#
-#                             # Extra Plots: Easily add more when you need to
-#                             if 'get_ngtm' in extra_plots:
-#                                 mass_data["ngtm_" + getname(labels, excl="cosmo_fallback")] = pert.ngtm
-#                             if 'get_mgtm' in extra_plots:
-#                                 mass_data["mgtm_" + getname(labels, excl="cosmo_fallback")] = pert.mgtm
-#                             if 'get_nltm' in extra_plots:
-#                                 mass_data["nltm_" + getname(labels, excl="cosmo_fallback")] = pert.nltm
-#                             if 'get_mltm' in extra_plots:
-#                                 mass_data["mltm_" + getname(labels, excl="cosmo_fallback")] = pert.mltm
-#                             if 'get_L' in extra_plots:
-#                                 mass_data["L(N=1)_" + getname(labels, excl="cosmo_fallback")] = pert.how_big
-
-    # print stream.getvalue()
+        labels += [(label + " " + res[2]).strip()]
 
     warnings = stream.buflist
     warnings = list(set(warnings))
     return objects, labels, warnings
+
+
+def make_json_data(x, y, objects, alabels, new_labels, num_old_labels):
+    """
+    Creates a JSON object containing javascript Arrays for the data and labels
+    
+    All quantities are interpolated onto the same grid, so that they may be
+    simply compared. 
+    """
+    # Make the new labels into appropriate HTML
+    extra_labels = ""
+    for i, lab in enumerate(new_labels):
+        extra_labels += """
+<div class="col-md-12 modelbar" id="%s">
+    %s 
+    <div class="btn-group">
+        <button type="button" class="btn btn-default edit">
+            <span class="glyphicon glyphicon-pencil"></span>
+        </button>
+        <button type="button" class="btn btn-default visibility">
+            <span class="glyphicon glyphicon-eye-open"></span>
+        </button>
+        <button type="button" class="btn btn-default add">
+            <span class="glyphicon glyphicon-plus"></span>
+        </button>
+        <button type="button" class="btn btn-default delete">
+            <span class="glyphicon glyphicon-remove"></span>
+        </button>
+    </div>
+</div>""" % (num_old_labels + i, lab)
+
+    # First determine xmin and xmax
+    xmins = np.array([getattr(o, x).min() for o in objects])
+    xmaxs = np.array([getattr(o, x).max() for o in objects])
+
+    xmin = np.min(xmins)
+    xmax = np.max(xmaxs)
+
+    # Deduce whether to log by dynamic range??
+    # (ONLY SINCE THERE'S NO LOG-X FUNCTIONALITY IN DYGRAPHS)
+    outarray = np.empty((len(objects) + 1, 500), dtype="object")
+    outarray[:, :] = np.nan
+
+    if xmax / xmin > 1e4:
+        xvec = np.exp(np.linspace(np.log(xmin), np.log(xmax), 500))
+        outarray[0] = np.log10(xvec)
+        xlabel = log_labels[x]
+    else:
+        xvec = np.linspace(xmin, xmax, 500)
+        outarray[0] = xvec
+        xlabel = labels[x]
+
+    ylabel = labels[y]
+    # Get yvec for each model
+    for i, o in enumerate(objects):
+        inds = np.logical_and(xvec >= xmins[i], xvec <= xmaxs[i])
+        xvals = getattr(o, x)
+        sort = np.argsort(xvals)
+        xvals = xvals[sort]
+        yvals = getattr(o, y)[sort]
+        if yvals.max() / yvals.min() > 1e4:
+            s = spline(xvals, np.log(yvals))
+            outarray[i + 1][inds] = np.exp(s(xvec))[inds]
+        else:
+            s = spline(xvals, yvals)
+            outarray[i + 1][inds] = s(xvec)[inds]
+
+    # Set nan's to None
+    data = [[None if np.isnan(xx) else xx for xx in a] for a in outarray.T.tolist()]
+    print alabels
+    out = json.dumps({'csv': data, "labels":[x] + alabels, "xlabel":xlabel,
+                      "ylabel":ylabel, "new_labels":extra_labels})
+
+    return out
+
+def save_form_object(objects, labels, form, **weird_ones):
+    form_params = []
+    for i, o in enumerate(objects):
+        form_params.append({})
+        for field in form.fields:
+            try:
+                form_params[i][field] = str(getattr(o, field))
+
+                # Some special cases
+                if form_params[i][field] == "None":
+                    form_params[i][field] = ""
+                if type(form.fields[field]) == MultipleChoiceField:
+                    form_params[i][field] = [form_params[i][field]]
+
+            except AttributeError:
+                if field == "label":
+                    print "YAY IN LABEL"
+                    form_params[i][field] = labels[i]
+
+
+
+        form_params[i].update(weird_ones)
+    return form_params
 
 #
 # def cosmography(objects, labels):
@@ -161,107 +259,63 @@ def hmf_driver(label, transfer_fit,
 #
 #
 #     return distances
-
-def create_canvas(objects, labels, q, d):
-    # TODO: make log scaling automatic
-    fig = Figure(figsize=(11, 6), edgecolor='white', facecolor='white', dpi=100)
-    ax = fig.add_subplot(111)
-#     ax.set_title(title)
-    ax.grid(True)
-    ax.set_xlabel(d["xlab"])
-    ax.set_ylabel(d["ylab"])
-
-    linecolours = ('b', 'g', 'r', 'c', 'm', 'y', 'k')
-    lines = ["-", "--", "-.", ":"]
-
-    if q.startswith("comparison"):
-        compare = True
-        q = q[11:]
-    else:
-        compare = False
-
-    if len(objects[0].M) == len(getattr(objects[0], q)):
-        x = "M"
-    else:
-        x = "lnk"
-
-    if not compare:
-        for i, o in enumerate(objects):
-            y = getattr(o, q)
-            ax.plot(getattr(o, x), y,
-                    color=linecolours[(i / 4) % 7],
-                    linestyle=lines[i % 4],
-                    label=labels[i]
-                    )
-    else:
-        for i, o in enumerate(objects[1:]):
-            y = getattr(o, q) / getattr(objects[0], q)
-            ax.plot(getattr(o, x) , y,
-                    color=linecolours[((i + 1) / 4) % 7],
-                    linestyle=lines[(i + 1) % 4],
-                    label=labels[i + 1]
-                    )
-
-    # Shrink current axis by 30%
-    if x != 'lnk':
-        ax.set_xscale('log')
-
-    ax.set_yscale(d["yscale"], basey=d.get("basey", 10))
-    if d['yscale'] == 'log':
-        if d.get("basey", 10) == 2:
-            ax.yaxis.set_major_formatter(tick.ScalarFormatter())
-
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.6, box.height])
-
-    # Put a legend to the right of the current axis
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    # fig.tight_layout()
-
-    canvas = FigureCanvas(fig)
-    return canvas
-
 #
-# def create_k_canvas(k_data, k_keys, p_keys, title, xlab, ylab):
-#     fig = Figure(figsize=(12, 6.7), edgecolor='white', facecolor='white')
+# def create_canvas(objects, labels, q, d):
+#     # TODO: make log scaling automatic
+#     fig = Figure(figsize=(11, 6), edgecolor='white', facecolor='white', dpi=100)
 #     ax = fig.add_subplot(111)
-#
-#     ax.set_title(title)
+# #     ax.set_title(title)
 #     ax.grid(True)
-#     ax.set_xlabel(xlab)
-#     ax.set_ylabel(ylab)
+#     ax.set_xlabel(d["xlab"])
+#     ax.set_ylabel(d["ylab"])
 #
 #     linecolours = ('b', 'g', 'r', 'c', 'm', 'y', 'k')
 #     lines = ["-", "--", "-.", ":"]
 #
-#     counter = 0
-#     for j, k_key in enumerate(k_keys):
-#         ax.plot(np.exp(k_data[k_key]), np.exp(k_data[p_keys[j]]),
-#                     color=linecolours[counter / 4],
-#                     linestyle=lines[counter % 4],
-#                     label=k_key.split("_", 1)[1].replace("_", ", "))
-#         counter = counter + 1
+#     if q.startswith("comparison"):
+#         compare = True
+#         q = q[11:]
+#     else:
+#         compare = False
 #
-#     # Make the axes logarithmic
-#     ax.set_yscale('log')
-#     ax.set_xscale('log')
-#     # Shrink current axis by 20%
+#     if len(objects[0].M) == len(getattr(objects[0], q)):
+#         x = "M"
+#     else:
+#         x = "lnk"
+#
+#     if not compare:
+#         for i, o in enumerate(objects):
+#             y = getattr(o, q)
+#             ax.plot(getattr(o, x), y,
+#                     color=linecolours[(i / 4) % 7],
+#                     linestyle=lines[i % 4],
+#                     label=labels[i]
+#                     )
+#     else:
+#         for i, o in enumerate(objects[1:]):
+#             y = getattr(o, q) / getattr(objects[0], q)
+#             ax.plot(getattr(o, x) , y,
+#                     color=linecolours[((i + 1) / 4) % 7],
+#                     linestyle=lines[(i + 1) % 4],
+#                     label=labels[i + 1]
+#                     )
+#
+#     # Shrink current axis by 30%
+#     if x != 'lnk':
+#         ax.set_xscale('log')
+#
+#     ax.set_yscale(d["yscale"], basey=d.get("basey", 10))
+#     if d['yscale'] == 'log':
+#         if d.get("basey", 10) == 2:
+#             ax.yaxis.set_major_formatter(tick.ScalarFormatter())
+#
 #     box = ax.get_position()
 #     ax.set_position([box.x0, box.y0, box.width * 0.6, box.height])
+#
 #     # Put a legend to the right of the current axis
 #     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+#     # fig.tight_layout()
+#
 #     canvas = FigureCanvas(fig)
 #     return canvas
-#
-# def getname(names, excl=[]):
-#     """
-#     Compiles the individual labels from a dictionary to a string label
-#     """
-#     label = ''
-#     for key, val in names.iteritems():
-#         if key not in excl:
-#             label = label + val + '_'
-#
-#     label = label[:-1]
-#
-#     return label
+

@@ -50,46 +50,40 @@ class HMFInput(forms.Form):
     Input parameters to the halo mass function finder.
     """
     #------ Init Method for Dynamic Form -------------
-    def __init__(self, add, minm=None, maxm=None, labels=None, *args, **kwargs):
-        self.add = add
-        self.minm = minm
-        self.maxm = maxm
+    def __init__(self, labels=None, add=True, *args, **kwargs):
         self.old_labels = labels
+        self.add = add
         super (HMFInput, self).__init__(*args, **kwargs)
 
-        if self.old_labels:
-            self.fields['label'] = forms.CharField(label="Label",
-                                    initial="new-" + self.old_labels[-1],
-                                    help_text="A base label for this calculation",
-                                    max_length=25)
-        else:
-            self.fields['label'] = forms.CharField(label="Label",
-                                    initial="PLANCK-SMT",
-                                    help_text="A base label for this calculation",
-                                    max_length=25)
-        if add == 'create':
-            # Then we wnat to display min_M and max_M
-            self.fields['Mmin'] = forms.FloatField(label="",
-                                                    initial=10.0,
-                                                    help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"),
-                                                    min_value=3.0,
-                                                    max_value=18.0)
-            self.fields['Mmax'] = forms.FloatField(label="",
-                                                    initial=15.0,
-                                                    help_text="",
-                                                    min_value=3.0,
-                                                    max_value=18.0)
-            self.fields['dlog10m'] = forms.FloatField(label="",
-                                                     initial=0.05,
-                                                     help_text="",
-                                                     min_value=0.00001,
-                                                     max_value=15.0)
+        self.fields['label'] = forms.CharField(label="Label",
+                                initial="PLANCK-SMT",
+                                help_text="A base label for this calculation",
+                                max_length=25)
+
+#         if add == 'create':
+#             # Then we wnat to display min_M and max_M
+#             self.fields['Mmin'] = forms.FloatField(label="",
+#                                                     initial=10.0,
+#                                                     help_text=mark_safe("Units of log<sub>10</sub>(M<sub>&#9737</sub>)"),
+#                                                     min_value=3.0,
+#                                                     max_value=18.0)
+#             self.fields['Mmax'] = forms.FloatField(label="",
+#                                                     initial=15.0,
+#                                                     help_text="",
+#                                                     min_value=3.0,
+#                                                     max_value=18.0)
+#             self.fields['dlog10m'] = forms.FloatField(label="",
+#                                                      initial=0.05,
+#                                                      help_text="",
+#                                                      min_value=0.00001,
+#                                                      max_value=15.0)
 
         self.helper = FormHelper()
-        self.helper.form_id = 'input_form'
+        # self.helper.form_id = 'input_form'
         self.helper.form_class = 'form-horizontal'
-        self.helper.form_method = 'post'
 
+        self.helper.form_tag = False  # don't render form DOM element
+#         self.helper.render_unmentioned_fields = True  # render all fields
         self.helper.help_text_inline = True
         self.helper.label_class = "col-md-3 control-label"
         self.helper.field_class = "col-md-8"
@@ -131,10 +125,10 @@ class HMFInput(forms.Form):
     </div>    
 </div>
 """))
-        if add == 'create':
-            d = Div('wdm_mass', k_html, m_html, 'cut_fit', css_class='col-md-6')
-        else:
-            d = Div('wdm_mass', k_html, 'cut_fit', css_class='col-md-6')
+#         if add == 'create':
+#             d = Div('wdm_mass', k_html, m_html, 'cut_fit', css_class='col-md-6')
+#         else:
+        d = Div('wdm_mass', k_html, 'cut_fit', css_class='col-md-6')
 
         self.helper.layout = Layout("label",
                                     TabHolder(
@@ -169,19 +163,17 @@ class HMFInput(forms.Form):
                                                   ),
                                         FormActions(Submit('submit', 'Calculate!', css_class='btn-large'))
                                         )
-        self.helper.form_action = ''
+#         self.helper.form_action = ''
     ###########################################################
     # MAIN RUN PARAMETERS
     ###########################################################
-
-
-
     def clean_label(self):
         label = self.cleaned_data['label']
         label = label.replace("_", "-")
-        if self.old_labels:
-            if label in self.old_labels:
-                raise forms.ValidationError("Label must be unique")
+        if self.add:
+            if self.old_labels:
+                if label in self.old_labels:
+                    raise forms.ValidationError("Label must be unique")
         return label
 
     # Redshift at which to calculate the mass variance.
@@ -395,17 +387,17 @@ class HMFInput(forms.Form):
         if dlnk > np.min(max_k) - np.max(min_k):
             raise forms.ValidationError("Wavenumber step-size must be less than the k-range.")
         #=========== Check that Mass limits are right ==========#
-        try:
-            if not self.minm:
-                minm = cleaned_data.get("M_min")
-                maxm = cleaned_data.get("M_max")
-                mstep = cleaned_data.get("dlog10m")
-                if maxm < minm:
-                    raise forms.ValidationError("min(M) must be less than max(M)")
-                if mstep > maxm - minm:
-                    raise forms.ValidationError("Mass bin width must be less than the range of Mass")
-        except:
-            pass
+#         try:
+#             if not self.minm:
+#                 minm = cleaned_data.get("M_min")
+#                 maxm = cleaned_data.get("M_max")
+#                 mstep = cleaned_data.get("dlog10m")
+#                 if maxm < minm:
+#                     raise forms.ValidationError("min(M) must be less than max(M)")
+#                 if mstep > maxm - minm:
+#                     raise forms.ValidationError("Mass bin width must be less than the range of Mass")
+#         except:
+#             pass
 
         #=========== Here we check roughly how long we expect calculations to take and make the user adjust if too long
         #        For 50 M's:
@@ -441,6 +433,50 @@ class HMFInput(forms.Form):
         return cleaned_data
 
 
+class Axes(forms.Form):
+
+    m_choices = [("M", "log(M)"),
+                 ("sigma", mark_safe("&#963 (mass variance)")),
+                 ("_dlnsdlnm", mark_safe("dln(&#963)/dln(M)")),
+                 ("nu", mark_safe("Peak height, &#957")),
+                 ("lnsigma", mark_safe("ln(1/&#963)")),
+                 ("n_eff", "Effective Spectral Index"),
+                 ("fsigma", mark_safe("f(&#963)")),
+                 ("dndm", "dn/dm"),
+                 ("dndlnm", "dn/dln(m)"),
+                 ("dndlog10m", "dn/dlog10(m)"),
+                 ("ngtm", "n(>m)"),
+                 ("rho_ltm", mark_safe("&#961(&#60m)")),
+                 ("rho_gtm", mark_safe("&#961(>m)")),
+                 ("how_big", "L(n=1)")]
+
+    k_choices = [("lnk", "ln(k)"),
+                 ("transfer", "T(k)"),
+                 ("power", "P(k)"),
+                 ("delta_k", mark_safe("&#916(k)"))]
+
+    choices = m_choices + k_choices
+
+    def __init__(self, *args, **kwargs):
+        super(Axes, self).__init__(*args, **kwargs)
+        self.fields["x"] = forms.ChoiceField(label="x axis",
+                                             choices=self.choices,
+                                             initial="M")
+
+        self.fields["y"] = forms.ChoiceField(label="y axis",
+                                             choices=self.choices,
+                                             initial="dndm")
+
+    @property
+    def helper(self):
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.help_text_inline = True
+        helper.label_class = "col-md-3 control-label"
+        helper.field_class = "col-md-8"
+        helper.layout = Layout('x', 'y',
+                               FormActions(Submit('submit', 'Submit', css_class='btn-large')))
+        return helper
 
 
 class PlotChoice(forms.Form):
