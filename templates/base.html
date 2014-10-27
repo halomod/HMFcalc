@@ -93,54 +93,22 @@
         <!-- <div class="navbar-inner"> -->
           <div class="container">
           <div class="navbar-header">
-          <!-- 
-            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button> -->
-            <a class="navbar-brand" href="/">HMF<i>calc</i></a>
-            </div>
+	          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
+	            <span class="sr-only">Toggle navigation</span>
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	            <span class="icon-bar"></span>
+	          </button>
+              <a class="navbar-brand" href="/">HMF<i>calc</i></a>
+          </div>
             
-            <div class="collapse navbar-collapse" id="navcollapse1">
+          <div class="collapse navbar-collapse" id="navcollapse1">
               <ul class="nav navbar-nav">
-
-        {% for tab in tabs %}
-        	{% if tab.top %}
-        		{% if tab.my_children %}
-        			<li class="dropdown">
-                  		<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ tab.tab_label }} <b class="caret"></b></a>
-                  		<ul class="dropdown-menu">
-                  			{% for alltabs in tabs %}
-                  				{% if alltabs.tab_id in tab.my_children %}
-                    				<li class="{% if alltabs.tab_id == current_tab_id %} active{% endif %}">
-                					<a href="{{ alltabs.tab_id }}">
-                					{{ alltabs.tab_label }}
-                					</a>
-           					 		</li>
-                  				{% endif %}
-                  			{% endfor %}
-                  		</ul>
-                	</li>
-                
-        		{% endif %}
-        		
-        		{% if not tab.my_children %}
-        		<li class="{% if tab.tab_id == current_tab_id %} active{% endif %}">
-                					<a href="{{ tab.tab_id }}">
-                					{{ tab.tab_label }}
-                					</a>
-           					 		</li>
-        		
-        		{% endif %}
-        	{% endif %}
-            
-        {% endfor %}
+				{% include "tabs.html" %}
               </ul>
               <ul class="nav navbar-nav navbar-right">
 		        <p class="navbar-text navbar-right">Using hmf v{% current_version %}</p>
 		      </ul>
-          
           </div>
         </div>
       </nav>

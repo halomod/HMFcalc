@@ -10,17 +10,46 @@
 {% block content %}
 <p class="lead muted">
 This page outlines the common usage of HMF<em>calc</em>, along with information concerning the various parameters and options included. Much of this
-information is a modified rendition of <a href=http://arxiv.org/abs/1306.6721>this article</a>, which accompanied the publishing of HMF<em>calc</em>.
+information is a modified rendition of <a href="http://adsabs.harvard.edu/abs/2013A%26C.....3...23M">this article</a>, which accompanied the publishing of HMF<em>calc</em>.
 Read on for information about common usage, the transfer function used, the cosmological parameters and the fitting functions.
 </p>
 
 <h3>Common Usage</h3>
 <p>
 HMF<em>calc</em> is built to be easy to use. In the simplest example, the only action required on your part is to navigate to the 
-<a href="/hmf_finder/form/create/">calculator</a> and click "Calculate!". All required options and parameters are filled with 
-sensible defaults and ready to go. Nevertheless, most users will want to fiddle with the parameters to tune them to their 
-particular needs -- be it a survey, simulation or investigation.
+<a href="/hmf-calculator/">calculator</a>. A default mass function is already displayed, and its parameters are quite standard.
+Using HMF<em>calc</em> involves only a few tasks: adding/editing models, changing the plot type, and downloading data.
+
+The plots are displayed dynamically using a JavaScript plotting library, which enables zooming and panning the graphs, as well
+as detailed information when the cursor is hovered over the lines. To edit an existing model (beginning with the default model),
+click on the pencil button next to any model's name. This gives the ability to change any of the parameters of the model, including
+the model's label. It also gives a view into the exact parameters of the model.
+
+To add new models, click the + button next to any model (preferably the model closest in parameters to the desired new model).
+Doing so will create a new model without overwriting the old. The label for the new model must be different, and will automatically
+be made different to begin with by prefixing "new-" to the previous label. The initial parameters of the new model will be 
+identical to the parameters of the model that it derives from. 
+
+Note that most parameter fields accept comma-separated inputs. In this case, several new models are created, with automatic naming 
+based on the input label. This way one can define several closely related models quickly.
+
+To delete a model, click the cross button next to it. To clear all models and begin afresh, click the "Restart" button on the main 
+toolbar. Refreshing the page <em>will not</em> remove your models. 
+
+Also on the main toolbar are some global functions. Firstly, the LogScale button will toggle whether the y-axis is log-scaled. The 
+Download button opens a simple modal where various quantities may be selected for inclusion in a zipped download. 
+
+Finally, you may specify quite generally the quantities which form the x- and y-axes, by clicking the "Change Axes" button. The menu
+here offers a choice for each axis which is automatically filtered when the x-axis is chosen. Do note that some combinations may
+appear quite bizarre. A tip here may be warranted: the way the backend works, derived models will only need to be recalculated insofar
+as they are different from their parent. This speeds up calculation, and is enhanced if two things are done by the user: first, derive a 
+new model from the closest available model, and second, set the axes to the desired plot before creating new models if possible. In this
+way, unnecessary calculations are not performed.
+
+And that's it. It should all be quite simple to use. The only difficulty remaining is understanding the various parameters of the
+calculation.
 </p>
+
 <p>
 The options and parameters in HMF<em>calc</em> were chosen to give as much flexibility as possible without making things overly
 complicated. They are split over two tabs in the calculator, one for general run parameters and options and the other for 
@@ -31,24 +60,6 @@ Several of the input fields indicate that they require a comma-separated list. F
 specify as many input values as you wish, and <em>all possible combinations of all parameters</em> will be calculated. This 
 can multiply very quickly, and so we have placed an overall maximum on the number of calculations to ensure our server can 
 handle it. 
-</p>
-<p>
-The exceptions to this rule are the cosmological parameters. These are treated as 'sets', in which the first entry for each
-parameter is taken as a set, and labeled with the first given label. If there is a second entry for any parameter, then all 
-second entries are taken, along with the first entries of any parameters that only have one, and the second entry for the label. 
-This carries on, with the number of labels equivalent to the largest number of entries for any parameter.
-</p>
-<p>
-One more flexible field is the Custom Fitting Function. It takes a string representing an equation in python syntax, in terms 
-of a variable <em>x</em>. The equation forms a desired fitting function, with <em>x</em> taking the role of the mass variance. 
-No other explicit dependence may be included (such as redshift or overdensity), nor may the equation be multi-lined. It must be 
-a single equation in terms of the single variable <em>x</em>. Future versions may include a generalisation of this feature if 
-sufficient interest is shown.
-</p>
-<p>
-There is a row of options titled "Optional Extra Plots" on the main tab. These are calculations that are not inherently 
-performed along with the differential mass function calculation, but which many users may find useful. This is especially 
-true of the cumulative mass function, <em>N(>M)</em>, which is checked by default. 
 </p>
 <p>
 The primary focus of the cosmological parameters tab is the production of the transfer function, which we discuss in the next section.
@@ -72,8 +83,7 @@ the relevant paper, but which do not affect the transfer function, are set by de
 </p>
 <p>
 This option does not allow the automatic generation of HMF's for several cosmologies, except for in the transfer-independent parameters,
-as only one default may be chosen at a time. However, you may use the "Add Extra Plots" feature after generating a HMF to add different
-default cosmologies.
+as only one default may be chosen at a time.
 </p>
 <p>
 As mentioned, each of the default cosmologies is a high-resolution transfer function from CAMB. In each case, all parameters of the run
@@ -203,7 +213,7 @@ Parameters that do not affect the transfer function whatsoever are intentionally
  <tr><td> helium_fraction</td><td>0.24</td><td> vector_mode</td><td>0</td><td> l_accuracy_boost</td><td>1</td>
  <tr><td> massless_neutrinos</td><td>3.04</td><td> COBE_normalize</td><td>FALSE</td><td> l_sample_boost</td><td>2.725</td>
  <tr><td> massive_neutrinos</td><td>0</td><td> CMB_outputscale</td><td>1</td><td> massive_nu_approx</td><td>1</td>
- <tr><td> nu_mass_eigenstates</td><td>1</td><td> transfer_high_precision</td><td>TRUE</td><td> Lensing Method</td><td>Curved Correlation Funtion</td>
+ <tr><td> nu_mass_eigenstates</td><td>1</td><td> transfer_high_precision</td><td>TRUE</td><td> Lensing Method</td><td>Curved Correlation Function</td>
  <tr><td> nu_mass_degeneracies</td><td>0</td><td> Transfer_kmax</td><td>2000</td><td> accurate_polarization</td><td>TRUE</td>
  <tr><td> nu_mass_fractions</td><td>1</td><td> transfer_k_per_logint</td><td>100</td><td> accurate_BB</td><td>FALSE</td>
  <tr><td> scalar_amp</td><td>1</td><td>accuracy_boost</td><td>1</td>
@@ -218,26 +228,29 @@ Parameters that do not affect the transfer function whatsoever are intentionally
 
 <h5>User-Uploaded Transfer</h5>
 <p>
-To select this option, choose "Custom Transfer" from the "Transfer Function" drop-down list and then upload a file using the "Upload Transfer Function"
-tool. The user must be careful using this option. There is no way for HMF<em>calc</em> to know what cosmology the uploaded transfer function was 
+To select this option, choose "Custom Transfer" from the "Transfer Function" drop-down list, then "Upload Function" from the "Transfer Calculator" drop-down, 
+and then upload a file using the "Upload Transfer Function" tool. The user must be careful using this option. 
+There is no way for HMF<em>calc</em> to know what cosmology the uploaded transfer function was 
 calculated with. The user must therefore be careful to set the correct corresponding parameters. Note that only parameters that affect both transfer 
 and the mass function explicitly (see cosmological parameter table) need to be set accurately. Parameters affecting only the transfer function will not 
 be used within HMF<em>calc</em>, and parameters used only in HMF<em>calc</em> will not be at odds with the transfer function. However, for later reference
 it is still better to set every parameter properly, as the parameters are written to file which may later be read.  
 
-The file uploaded in this manner should be in the same format as a transfer function produced by CAMB. That is, it should consist of one column of <em>k/h</em>
-values, followed by 6 columns of transfer function values. The last column should be the total transfer function.
+The file uploaded in this manner should be in the same format as a transfer function produced by CAMB or in two-column format. 
+That is, it should consist of one column of <em>k/h</em>
+values, followed either by 6 columns of transfer function values where the last column is the total transfer function, or by just
+the total transfer function. 
 </p>
 
 <h5>On-The-Fly Transfer</h5>
 <p>This option is selected if a custom transfer function is chosen, but
-no file is uploaded. In this case the user may choose a calculator to use. 
-Currently only two options are available - CAMB and the Eisenstein-Hu transfer function (which is
-calculated using the cosmolopy package).
+"Upload Function" option is not selected. In this case the user may choose a calculator to use. 
+Four options are available (in descending order of accuracy) - CAMB, Eisenstein-Hu (
+calculated using the cosmolopy package), Bond-Efstathiou and BBKS.
 </p>
 <p>
 If CAMB is chosen as the calculator, HMF<em>calc</em> only offers the cosmological parameters
-as input parameters to CAMB. All other parameters are taken as the defaults from the backend hmf package (listed in the camb parameters table). 
+as input parameters to CAMB. All other parameters are taken as the defaults from the backend hmf package (listed in the CAMB parameters table). 
 This is both to save computation time (the defaults are the most efficient to achieve requisite accuracy at high mass, see the linked article),
 and to avoid unnecessary clutter in the options.
 </p>
@@ -293,6 +306,6 @@ To help weigh these considerations, we here provide the list of references for a
 </ul>
 </p>
 
-For a concise summary of the functional forms and respective properties of each fit, download <a href="/downloads/fitting_functions.pdf">this table</a>, 
+For a concise summary of the functional forms and respective properties of each fit, download <a href="/downloads/fitting_function_table/fitting_functions.pdf">this table</a>, 
 which will remain a standalone, updated version of Table 3 in the article describing HMF<em>calc</em>.
 {% endblock %}

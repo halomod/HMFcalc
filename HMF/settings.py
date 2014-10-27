@@ -22,7 +22,7 @@ from secret_settings import *
 # THE PROJECT DIRECTORY
 #===============================================================================
 # The directory above the one this very file is in (top-level HMFcalc)
-ROOT_DIR = os.path.split(os.path.dirname(__file__))[0]
+ROOT_DIR = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 
 
 #===============================================================================
@@ -40,10 +40,6 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': ROOT_DIR + '/db',  # Or path to database file if using sqlite3.
-        'USER': '',  # Not used with sqlite3.
-        'PASSWORD': '',  # Not used with sqlite3.
-        'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.
-        'PORT': '',  # Set to empty string for default. Not used with sqlite3.
     }
 }
 
@@ -60,6 +56,7 @@ INSTALLED_APPS = (
     'analytical',
     'crispy_forms',
     'HMFcalc',
+    "active_menu",
     # Uncomment the next line to enable the admin:
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
@@ -141,7 +138,7 @@ USE_TZ = True
 #===============================================================================
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ROOT_DIR + '/media/'
+MEDIA_ROOT = os.path.join(ROOT_DIR , 'media')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -210,6 +207,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'HMF.urls'
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'HMF.wsgi.application'
 

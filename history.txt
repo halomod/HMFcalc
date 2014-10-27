@@ -1,4 +1,8 @@
 HISTORY OF HMFcalc
+2.0.0 - 07 October 2014
+		New single-page format
+		So many things have changed!
+		
 1.0.5 - 17 June 2013
 		Many bugfixes
 		Added automatic deploy with fabric

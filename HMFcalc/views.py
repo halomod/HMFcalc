@@ -18,8 +18,7 @@ import StringIO
 import zipfile
 # import time
 import os
-# import atpy
-import pandas
+
 from tabination.views import TabView
 from hmf.hmf import version
 from django.conf import settings
@@ -30,78 +29,79 @@ from django.template import RequestContext
 import numpy as np
 import json
 import pickle
+import copy
 # TODO: figure out why some pages don't display the navbar menu
 
 # def index(request):
 #   return HttpResponseRedirect('/admin/')
 
-class BaseTab(TabView):
-    """Base class for all main navigation tabs."""
-    tab_group = 'main'
-    top = True
+# class BaseTab(TabView):
+#     """Base class for all main navigation tabs."""
+#     tab_group = 'main'
+#     top = True
 
-class home(BaseTab):
+class Home(TemplateView):
     """
     The home-page. Should just be simple html with links to what to do.
     """
 
-    _is_tab = False
+#     _is_tab = False
 #    tab_id = '/'
 #    tab_label = 'Home'
     template_name = 'home.html'
 
 
-class InfoParent(BaseTab):
-    _is_tab = True
-    tab_id = 'info'
-    tab_label = 'Info'
+class InfoParent(TemplateView):
+#     _is_tab = True
+#     tab_id = 'info'
+#     tab_label = 'Info'
     template_name = 'doesnt_exist.html'
-    my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/']
+#     my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/']
 
-class InfoChild(BaseTab):
-    """Base class for all child navigation tabs."""
-    # tab_parent = InfoParent
-    pass
+# class InfoChild(BaseTab):
+#     """Base class for all child navigation tabs."""
+#     # tab_parent = InfoParent
+#     pass
 
-class Parameters(InfoChild):
+class Help(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-    _is_tab = True
-    tab_id = '/hmf_parameters/'
-    tab_label = 'How To Use HMFcalc'
+#     _is_tab = True
+#     tab_id = '/hmf_parameters/'
+#     tab_label = 'How To Use HMFcalc'
     template_name = 'help.html'
-    top = False
+#     top = False
 
-class Contact(BaseTab):
+class Contact(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-    _is_tab = True
-    tab_id = '/contact_info/'
-    tab_label = 'Contact Us'
+#     _is_tab = True
+#     tab_id = '/contact_info/'
+#     tab_label = 'Contact Us'
     template_name = 'contact_info.html'
-    top = True
+#     top = True
 
-class Resources(InfoChild):
+class Resources(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-    _is_tab = True
-    tab_id = '/hmf_resources/'
-    tab_label = 'Extra Resources'
+#     _is_tab = True
+#     tab_id = '/hmf_resources/'
+#     tab_label = 'Extra Resources'
     template_name = 'resources.html'
-    top = False
+#     top = False
 
-class Acknowledgments(InfoChild):
+class Acknowledgments(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-    _is_tab = True
-    tab_id = '/hmf_acknowledgments/'
-    tab_label = 'Acknowledgments'
+#     _is_tab = True
+#     tab_id = '/hmf_acknowledgments/'
+#     tab_label = 'Acknowledgments'
     template_name = 'acknowledgments.html'
-    top = False
+#     top = False
 
 # class param_discuss(InfoChild):
 #    _is_tab = True
@@ -118,7 +118,7 @@ class Calculator(TemplateView):
         Here we instantiate the objects properly so that there is something
         drawn straight away.
         """
-        if "objects" not in self.request.session:
+        if "models" not in self.request.session:
             self.request.session = initialise(self.request.session)
 
         return super(Calculator, self).render_to_response(context, **response_kwargs)
@@ -127,15 +127,13 @@ def initialise(session):
     with open(os.path.join(settings.ROOT_DIR, "HMFcalc/static/initialdata/initialmodel.pickle"), 'r') as f:
         x = pickle.load(f)
 
-    session['objects'] = [x]
-    session['labels'] = ["Default"]
-    session['warnings'] = []
+    session['models'] = {"Default":{"data":x, "warnings":[]}}
 
     f = forms.HMFInput()
-    fparams = utils.save_form_object([x], ["Default"], f, **{"transfer_file":"transfers/PLANCK_transfer.dat",
-                                              "transfer_fit":"FromFile"})
+    fparams = utils.save_form_object([x], ["Default"], f, **{"transfer_file":os.path.join(settings.ROOT_DIR, "HMFcalc/transfers/PLANCK_transfer.dat"),
+                                            "transfer_fit":"FromFile"})
 
-    session['form_params'] = fparams
+    session['models']["Default"]["form"] = fparams[0]
     session['axes'] = ("M", "dndm")
     return session
 
@@ -143,12 +141,10 @@ def redraw_plot(request):
     """
     Re-draws everything from the session. Called on page-reload
     """
-    objects = request.session['objects']
-    labels = request.session['labels']
-    warnings = request.session['warnings']
     x, y = request.session["axes"]
 
-    out = utils.make_json_data(x, y, objects, labels, labels, 0)
+    out = utils.make_json_data(x, y, request.session['models'],
+                               [l for l in request.session['models']])
 
     return HttpResponse(out, content_type='application/json')
 
@@ -156,12 +152,6 @@ class Input(FormView):
     template_name = 'input.html'
     form_class = forms.HMFInput
     success_url = reverse_lazy('hmf-calculator')
-    # success_message = "Way to go!"
-
-#     def __init__(self, **kwargs):
-#         super(Input, self).__init__(**kwargs)
-#         self.mode = self.kwargs["mode"]
-#         self.id = int(self.kwargs["id"])
 
     def form_valid(self, form):
         #========= Set the Transfer Function File correctly ===== #
@@ -185,33 +175,34 @@ class Input(FormView):
         fparams = utils.save_form_object(objects, labels, form, transfer_file=transfer_file,
                                          transfer_fit=transfer_fit, transfer_file_upload=tfile)
 
-        ind = int(self.kwargs['id'])
-        num_old_models = len(self.request.session['objects'])
-        if self.kwargs['mode'] == "add":
-            self.request.session['objects'] += objects
-            self.request.session['labels'] += labels
-            self.request.session['warnings'] += warnings
-            self.request.session['form_params'] += fparams
-        elif self.kwargs['mode'] == "edit":
-            self.request.session['objects'][ind] = objects[0]
-            self.request.session['labels'][ind] = labels[0]
-            self.request.session['warnings'] = warnings  # #obviously wrong
-            self.request.session['form_params'][ind] = fparams[0]
-        else:
-            raise ValueError("Mode should be add or edit, got" + self.kwargs['mode'])
+        new = {labels[i]:{"data":objects[i], "form":fparams[i]} for i in range(len(objects))}  # No warnings as yet
 
-        labels_new = labels
-        objects = self.request.session['objects']
-        labels = self.request.session['labels']
-        warnings = self.request.session['warnings']
+#         if self.kwargs['mode'] == "add":
+#             self.request.session['objects'] += objects
+#             self.request.session['labels'] += labels
+#             self.request.session['warnings'] += warnings
+#             self.request.session['form_params'] += fparams
+#         elif self.kwargs['mode'] == "edit":
+#             self.request.session['objects'][ind] = objects[0]
+#             self.request.session['labels'][ind] = labels[0]
+#             self.request.session['warnings'] = warnings  # #obviously wrong
+#             self.request.session['form_params'][ind] = fparams[0]
+#         else:
+#             raise ValueError("Mode should be add or edit, got" + self.kwargs['mode'])
 
         # # Get what to plot
         x, y = self.request.session["axes"]
 
         if self.kwargs['mode'] == "add":
-            out = utils.make_json_data(x, y, objects, labels, labels_new, num_old_models)
+            self.request.session["models"].update(new)
+            out = utils.make_json_data(x, y, self.request.session["models"], labels)
+        elif self.kwargs['mode'] == "edit":
+            del self.request.session['models'][self.kwargs['label']]
+            self.request.session["models"].update(new)
+            # Don't add new modelbar elements
+            out = utils.make_json_data(x, y, self.request.session["models"], labels[0])
         else:
-            out = utils.make_json_data(x, y, objects, labels, labels_new, ind)
+            raise ValueError("Mode should be add or edit, got" + self.kwargs['mode'])
 
         return HttpResponse(out, content_type='application/json')
 
@@ -219,14 +210,19 @@ class Input(FormView):
         """
         Optionally add dynamic initial data to the form based on "edited" model
         """
-        initial = self.request.session['form_params'][int(self.kwargs['id'])]
+        try:
+            # apparently need to copy it or it alters the session!
+            initial = copy.copy(self.request.session['models'][self.kwargs['label']]['form'])
+        except KeyError:
+            raise
+
         if self.kwargs['mode'] == "add":
             initial['label'] = "new-" + initial['label']
         return initial
 
     def get_form_kwargs(self):
         kwargs = super(Input, self).get_form_kwargs()
-        kwargs['labels'] = self.request.session['labels']
+        kwargs['labels'] = [l for l in self.request.session['models']]
         if self.kwargs['mode'] == "add":
             kwargs['add'] = True
         else:
@@ -239,21 +235,61 @@ class Axes(FormView):
     success_url = reverse_lazy('hmf-calculator')
 
     def form_valid(self, form):
-        print "GOT INTO FORM VALID"
         x = form.cleaned_data['x']
         y = form.cleaned_data['y']
-        print "x and y axes: ", x, y
-        self.request.session['axes'] = x, y
+        self.request.session['axes'] = (x, y)
 
-        try:
-            objects = self.request.session['objects']
-            labels = self.request.session['labels']
-            warnings = self.request.session['warnings']
-        except:
-            return HttpResponse("")
-
-        out = utils.make_json_data(x, y, objects, labels, "", None)
+        out = utils.make_json_data(x, y, self.request.session['models'])
         return HttpResponse(out, content_type='application/json')
+
+class Download(FormView):
+    template_name = 'download.html'
+    form_class = forms.Download
+    success_url = reverse_lazy('hmf-calculator')
+
+    def form_valid(self, form):
+        self.request.session['data-download'] = {"m":form.cleaned_data['m'],
+                                                 "k":form.cleaned_data['k']}
+        return HttpResponse("")
+
+def downloader(request):
+    # Open up file-like objects for response
+    response = HttpResponse(content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=HMFcalc_data.zip'
+    buff = StringIO.StringIO()
+    archive = zipfile.ZipFile(buff, 'w', zipfile.ZIP_DEFLATED)
+
+    # Write out mass-based and k-based data files
+    for k, v in request.session['models'].iteritems():
+        s = StringIO.StringIO()
+
+        # MASS BASED
+        for i, q in enumerate(request.session['data-download']['m']):
+            s.write("# [%s] %s\n" % (i, utils.labels_txt[q]))
+
+        o = v['data']
+        out = np.array([getattr(o, q) for q in request.session['data-download']['m']]).T
+        np.savetxt(s, out)
+
+        archive.writestr('mVector_%s.txt' % k, s.getvalue())
+
+        s.close()
+        s = StringIO.StringIO()
+
+        # K BASED
+        for i, q in enumerate(request.session['data-download']['k']):
+            s.write("# [%s] %s\n" % (i, utils.labels_txt[q]))
+
+        out = np.array([getattr(o, q) for q in request.session['data-download']['k']]).T
+        np.savetxt(s, out)
+        archive.writestr('kVector_%s.txt' % k, s.getvalue())
+
+    archive.close()
+    buff.flush()
+    ret_zip = buff.getvalue()
+    buff.close()
+    response.write(ret_zip)
+    return response
 
 def y_selector(request):
     xval = request.POST['xval']
@@ -265,7 +301,6 @@ def y_selector(request):
     else:
         thevars = forms.Axes.k_choices
 
-    print xval, thevars, forms.Axes.m_choices, forms.Axes.k_choices
     response = ""
     for var, label in thevars:
         if var != xval:
@@ -274,91 +309,23 @@ def y_selector(request):
     return HttpResponse(response)
 
 def remove_single_entry(request):
-    ind = int(request.POST['id'])
+    key = request.POST['label']
     try:
-        models = request.session["objects"]
-        labels = request.session["labels"]
- #       warnings = request.session["warnings"]
-
-        del models[ind]
-        del labels[ind]
-#        del warnings[ind]
-
-        request.session['objects'] = models
-        request.session['labels'] = labels
-#        request.session['warnings'] = warnings
-
+        del request.session['models'][key]
     except:
         pass
 
     out = utils.make_json_data(request.session['axes'][0],
                                request.session['axes'][1],
-                               request.session['objects'],
-                               request.session['labels'], "", None)
+                               request.session['models'])
+
     return HttpResponse(out, content_type='application/json')
 
 def clear_all(request):
     request.session = initialise(request.session)
     return redraw_plot(request)
 
-# def calc_page(request):
-#     if request.method == "POST":
-#         form = forms.HMFInput(request.POST)
-#
-#         # # If form is valid, process data and return JSON
-#         if form.is_valid():
-#
-#             #=========== Set the Transfer Function File correctly ===== #
-#             transfer_file = form.cleaned_data.pop("transfer_file")
-#             transfer_options = {}
-#             transfer_fit = form.cleaned_data.pop("transfer_fit")
-#             tfile = form.cleaned_data.pop('transfer_file_upload')
-#             if transfer_file == 'custom':
-#                 if transfer_fit == "FromFile":
-#                     transfer_options = {"fname":tfile}
-#             else:
-#                 transfer_fit = "FromFile"
-#                 transfer_options = {"fname":transfer_file}
-#
-#             label = form.cleaned_data.pop('label')
-#
-#             # Calculate all objects
-#             objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
-#
-#             # # Save the model
-#             try:
-#                 request.session['objects'] += objects
-#                 request.session['labels'] += labels
-#                 request.session['warnings'] += warnings
-#             except:
-#                 request.session['models'] = objects
-#                 request.session['labels'] = labels
-#                 request.session['warnings'] += warnings
-#
-#             # Create JSON/CSV-file
-#             outstring = "M,"
-#             for model in request.session['models']:
-#                 outstring += "z=%s," % model.transfer.z
-#             outstring = outstring[:-1] + "\n"
-#
-#             outarray = np.zeros((len(request.session['models']) + 1, len(request.session['models'][0].r)))
-#             for i, model in enumerate(request.session['models']):
-#                 outarray[i + 1, :] = model.corr_gal
-#
-#             outarray[0, :] = np.log10(request.session['models'][0].r)
-#
-#             for i in range(len(outarray[0])):
-#                 for val in outarray[:, i]:
-#                     outstring += str(val) + ","
-#                 outstring = outstring[:-1] + "\n"
-#
-#             print outstring
-#             return HttpResponse(outstring)
-#
-#     # # Else render the base template
-#     return render_to_response("input.html",
-#                               {'form':forms.HMFInput(request.session.get('labels', []))},
-#                               context_instance=RequestContext(request))
+
 # class HMFInputParent(BaseTab):
 #     _is_tab = True
 #     tab_id = 'form-parent'
@@ -573,7 +540,6 @@ def header_txt(request):
         response.write('=====================================================\n')
         response.write("   %s\n" % (labels[i]))
         response.write('=====================================================\n')
-        print "KEYS: ", o._Cache__recalc_par_prop.keys()
         for k in o._Cache__recalc_par_prop.keys():
             response.write("%s: %s \n" % (k, getattr(o, k)))
         response.write("\n")
@@ -738,7 +704,8 @@ class EmailSuccess(TemplateView):
 #===============================================================================
 def get_code(request, name):
     suffix = name.split('.')[-1]
-
+    file = os.path.join(settings.ROOT_DIR, "static")
+    file = os.path.join(file, name)
     with open(name, 'r') as f:
         if suffix == 'pdf':
             response = HttpResponse(f.read(), content_type="application/pdf")

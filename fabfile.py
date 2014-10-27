@@ -6,19 +6,20 @@ Created on Jun 14, 2013
 
 from fabric.api import env, settings, local, run, abort, cd, put, sudo
 from fabric.contrib.console import confirm
-
+from os.path import join
 
 username = "hmf"
-home_dir = '/home/' + username + '/'
+home_dir = join('/home', username)
 env.hosts = [username + '@icrar-nix-023.icrar.org']
 app_name = 'HMFcalc'
-code_dir = home_dir + app_name + '/'
-
+proj_name = "HMF"  # where the settings file is
+code_dir = join(home_dir, app_name)
+projdir = join(code_dir, proj_name)  # where the settings file is
 def collect():
     local("python manage.py collectstatic --noinput")
 def test():
     with settings(warn_only=True):
-        result = local('./manage.py test hmf_finder', capture=True)
+        result = local('./manage.py test {0}'.format(app_name), capture=True)
     if result.failed and not confirm("Tests failed. Continue anyway?"):
         abort("Aborting at user request.")
 
@@ -39,20 +40,25 @@ def deploy():
         if run("test -d %s" % code_dir).failed:
             run("git clone https://github.com/steven-murray/HMFcalc.git %s" % code_dir)
 
-    put("HMF/secret_settings.py", code_dir + "HMF/")
+    put(join(proj_name, "secret_settings.py"), projdir)
+
     with cd(code_dir):
         run("git fetch --all")
         run("git reset --hard origin/master")
-        run("%shmfenv/bin/python change_prod_settings.py" % (home_dir))
-        run("touch HMF/wsgi.py")
+        run("python change_prod_settings.py")
+        run("touch {0}".format(join(projdir, "wsgi.py")))
 
     # Update hmf from git repo
-    with cd(home_dir + "hmf"):
+    with cd(join(home_dir, "hmf")):
         run("git fetch --all")
         run("git reset --hard origin/master")
         run("python setup.py install")
 
-    sudo("chmod 777 %s -R" % (home_dir))
+    # Update default model
+    with cd(join(code_dir, "static/initialdata")):
+        run("python make_initial.py")
+
+    sudo("chmod 777 {0} -R".format(home_dir))
 
 def pd():
     prepare_deploy()
@@ -71,14 +77,14 @@ def yum_installs():
     sudo("yum install --assumeyes libpng-devel.x86_64")
     sudo("yum install --assumeyes glibc-devel")
     sudo("yum install --assumeyes gcc-c++")
-    # sudo("yum install --assumeyes python27 python27-devel")
 
 def python_install():
     with cd(home_dir):
         run("wget https://www.python.org/ftp/python/2.7.8/Python-2.7.8.tgz")
         run("tar xf Python-2.7.8.tgz")
         run("rm Python-2.7.8.tgz")
-    with cd(home_dir + "/Python-2.7.8"):
+
+    with cd(join(home_dir, "Python-2.7.8")):
         sudo("mkdir -p /opt/python2.7/lib")
         sudo("./configure --prefix=/opt/python2.7 --with-threads --enable-shared LDFLAGS='-Wl,-rpath /opt/python2.7/lib'")
 
@@ -96,37 +102,40 @@ def python_dist_tools():
 
     with cd(home_dir + "distribute-0.6.39"):
         sudo("/opt/python2.7/bin/python2.7 setup.py install")
-        # sudo("python2.7 setup.py install")
 
     with cd(home_dir):
         sudo("/opt/python2.7/bin/easy_install pip")
         sudo("/opt/python2.7/bin/pip install virtualenv")
-        # sudo("easy_install-2.7 pip")
-        # run("easy_install-2.7 virtualenv")
         run("/opt/python2.7/bin/virtualenv --distribute hmfenv")
         run("source hmfenv/bin/activate")
         run("echo 'source $HOME/hmfenv/bin/activate'>>$HOME/.bashrc")
 
 def python_packages():
     with cd(home_dir):
-        hmfenvpip = home_dir + 'hmfenv/bin/pip'
+        hmfenvpip = join(home_dir, 'hmfenv/bin/pip')
         run(hmfenvpip + " install numpy==1.8.0")
         run(hmfenvpip + " install scipy")
         run(hmfenvpip + " install matplotlib==1.3.1")
         run(hmfenvpip + " install pandas")
         run(hmfenvpip + " install cosmolopy")
         run(hmfenvpip + " install django==1.6")
-        run(hmfenvpip + " install django-tabination")
+#         run(hmfenvpip + " install django-tabination")
         run(hmfenvpip + " install django-crispy-forms==1.4.0")
         run(hmfenvpip + " install django-analytical")
-        run(hmfenvpip + " install django-floppyforms")
+#         run(hmfenvpip + " install django-floppyforms")
 
         try:
             run("git clone https://github.com/steven-murray/pycamb.git")
         except:
             pass
-    with cd(home_dir + 'pycamb'):
-        run(home_dir + "hmfenv/bin/python setup.py install --get=http://camb.info/CAMB_Mar13.tar.gz")
+
+        try:
+            run("git clone https://github.com/steven-murray/django-active-menu.git")
+        except:
+            pass
+
+    with cd(join(home_dir, 'pycamb')):
+        run("{0} setup.py install --get=http://camb.info/CAMB_Mar13.tar.gz".format(join(home_dir, "hmfenv/bin/python")))
 
     with cd(home_dir):
         try:
@@ -134,15 +143,18 @@ def python_packages():
         except:
             pass
 
-    with cd(home_dir + "hmf"):
-        run(home_dir + "hmfenv/bin/python setup.py install")
+    with cd(join(home_dir, "django-active-menu")):
+        run("{0} setup.py install".format(join(home_dir, "hmfenv/bin/python")))
+
+    with cd(join(home_dir, "hmf")):
+        run("{0} setup.py install".format(join(home_dir, "hmfenv/bin/python")))
 
 def mod_wsgi():
     with cd(home_dir):
         run("wget https://github.com/GrahamDumpleton/mod_wsgi/archive/3.5.tar.gz")
         run("tar zxf 3.5.tar.gz")
 
-    with cd(home_dir + "/mod_wsgi-3.5"):
+    with cd(join(home_dir, "/mod_wsgi-3.5")):
         run("./configure")
         run("make")
         sudo("make install")
@@ -153,19 +165,19 @@ def configure_apache():
 """    
 NameVirtualHost *:80
 WSGISocketPrefix /var/run/wsgi
-WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
+WSGIPythonPath {0}:{1}
 
 <VirtualHost *:80>
-    WSGIScriptAlias / %sHMF/wsgi.py
+    WSGIScriptAlias / {2}
     
-    WSGIDaemonProcess hmf-test.icrar.org python-path=%s:%shmfenv/lib/python2.7/site-packages
+    WSGIDaemonProcess hmf.icrar.org python-path={0}:{1}
 
-    WSGIProcessGroup hmf-test.icrar.org
+    WSGIProcessGroup hmf.icrar.org
 
     WSGIApplicationGroup %%{GLOBAL}
 
-    Alias /static/ %sstatic/
-    <Directory %sHMF>
+    Alias /static/ {3}
+    <Directory {4}>
 
         Order deny,allow
 
@@ -173,16 +185,13 @@ WSGIPythonPath %s:%shmfenv/lib/python2.7/site-packages
 
     </Directory>
 </VirtualHost>
-""" % (code_dir, home_dir, code_dir, code_dir, home_dir, code_dir, code_dir)
+""".format(code_dir, join(home_dir, "hmfenv/lib/python2.7/site-packages"),
+           join(projdir, "wsgi.py"), join(code_dir, "static/"), projdir)
 
-    sudo('echo "%s" > /etc/httpd/conf.d/hmf.conf' % (config_file))
-    # with open("/etc/httpd/conf.d/hmf.conf") as f:
-    #    f.write(config_file)
+    sudo('echo "{0}" > /etc/httpd/conf.d/hmf.conf'.format(config_file))
 
     # Now need to add "LoadModule wsgi_module modules/mod_wsgi.so" to httpd.conf
     sudo('echo "LoadModule wsgi_module modules/mod_wsgi.so">/etc/httpd/conf.d/wsgi.conf')
-    # with open("/etc/httpd/conf.d/wsgi.conf") as f:
-    #    f.write("LoadModule wsgi_module modules/mod_wsgi.so")
 
     # Then restart the server
     sudo("service httpd restart")
@@ -202,9 +211,11 @@ def configure_mpl():
 def setup_cron():
 
     sudo('''echo "# This is to do a heartbeat check of the webapp
-0-59/5 * * * * %shmfenv/bin/python %scheck_alive.py">/var/spool/cron/%s''' % (home_dir, code_dir, username))
+0-59/5 * * * * {0} {1}">/var/spool/cron/{2}'''.format(join(home_dir, "hmfenv/bin/python"),
+                                                     join(code_dir, "check_alive.py"), username))
     sudo('''echo "# This is to clear the session every day
-0 0 * * * %shmfenv/bin/python %smanage.py clearsessions">/var/spool/cron/%s''' % (home_dir, code_dir, username))
+0 0 * * * {0} {1} clearsessions">/var/spool/cron/{2}''' .format(join(home_dir, "hmfenv/bin/python"),
+                                                                join(code_dir, "manage.py"), username))
 
 def change_bashrc():
     run('echo "export MY_DJANGO_ENV=production">>$HOME/.bashrc')

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% block title %}TheHaloMod | Calculator {% endblock %}
+{% block title %}HMFcalc | Calculator{% endblock %}
 
 {% block allcontent %}
 <div class="container-fluid">
@@ -10,7 +10,7 @@
     		<button id="axes-button" class="btn btn-large">Change Axes</button>
     		<button id="clear-button" class="btn btn-large">Restart</button>
     		<button id="log-button" class="btn btn-large">LogScale</button>
-    		<button id="data-button" class="btn btn-large">Download Data</button>
+    		<button id="download-button" class="btn btn-large">Download Data</button>
     	</div>
 	
 		<div class="col-md-7" id="image-div" style="height:500px;width:700px;"></div>
@@ -59,14 +59,14 @@
 </div><!-- /.modal --> 
 
 <!-- DATA FORM -->
-<div id="data-modal" class="modal fade">
-    <div class="modal-dialog modal-sm">
+<div id="download-modal" class="modal fade">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
                 <h4 class="modal-title">Data Download</h4>
             </div>
-            <div id="data-modal-body" class="modal-body">
+            <div id="download-modal-body" class="modal-body">
                 <p>One fine body&hellip;</p>
             </div>
             <div class="modal-footer">

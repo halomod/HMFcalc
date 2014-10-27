@@ -45,6 +45,9 @@ $('#clear-button').click(function() {
 			$(".modelbar").remove()
 			$("#model-div").append(xhr.new_labels);
 			
+		},
+		error: function(xhr, ajaxOptions, thrownError){
+			window.location.replace("/500.html");
 		}
 	});
 });
@@ -69,6 +72,9 @@ $("body").on('change',"#id_x",function(){
 		success: function(returned_html){
 			console.log(returned_html);
 			$("#id_y").html(returned_html);
+		},
+		error: function(xhr, ajaxOptions, thrownError){
+			window.location.replace("/500.html");
 		}
 	});
 });	
@@ -76,8 +82,9 @@ $("body").on('change',"#id_x",function(){
 /* ============================================================================
  * Visibility buttons
  * ===========================================================================*/
+/*
 $("body").on('click',".visibility",function(){
-	var id = Number($(this).closest(".modelbar").attr("id"));
+	var label = $(this).closest(".modelbar").attr("id");
 	if ($(this).html().indexOf("glyphicon-eye-open") >= 0){
 		$(this).html("<span class='glyphicon glyphicon-eye-close'></span>");
 		var val = false;
@@ -85,43 +92,34 @@ $("body").on('click',".visibility",function(){
 		$(this).html("<span class='glyphicon glyphicon-eye-open'></span>");
 		var val = true;
 	}
-	
-	myplot.setVisibility(id,val)
-});
+	var id = myplot.getLabels().indexOf(label);
 
+	
+	myplot.setVisibility(id-1,val)
+});
+*/
 /* ============================================================================
  * Deletion buttons
  * ===========================================================================*/
 $("body").on('click',".delete",function(){
-	var id = Number($(this).closest(".modelbar").attr("id"));
-	console.log("Box id");
-	console.log(id);
+	var label = $(this).closest(".modelbar").attr("id");
+	console.log("Box id: "+label);
 	$.ajax({
 		type: "POST",
 		url: "del/",
-		data: {"id":id},
+		data: {"label":label},
 		success: function(j){
 			myplot.updateOptions({"file":j.csv,
 				"labels":j.labels});
-			// All models before this one stay the same
-			// This model is deleted
-			// Any models after it have updated ID's
-			$(".modelbar").each(function(i){
-				console.log("Loop i");
-				console.log(i);
-				if (i==id){
-					$(this).remove();
-					console.log("Removing...");
-					console.log(i);
-				}
-				if (i>id){
-					var thisid = Number($(this).attr("id"));
-					$(this).attr("id",(i-1).toString());
-					console.log("Set"+thisid.toString() +"to"+(i-1).toString());
-					
-				}
-			});
+			
+			// Remove the modelbar
+			$(jq(label)).remove();
+			
+		},
+		error: function(xhr, ajaxOptions, thrownError){
+			window.location.replace("/500.html");
 		}
+		
 	});
 });
 /* ============================================================================
@@ -130,18 +128,15 @@ $("body").on('click',".delete",function(){
 var formAjaxSubmit = function(form, modal,id) {
     $(form).submit(function (e) {
         e.preventDefault();
-        console.log("yeah here I am");
         $.ajax({
             type: $(this).attr('method'),
             url: $(this).attr('action'),
             data: $(this).serialize(),
             success: function (xhr, ajaxOptions, thrownError) {
             	if ( $(xhr).find('.has-error').length > 0 ) {
-            		console.log("weird error");
             		$(modal).find('.modal-body').html(xhr);
-            		formAjaxSubmit(form, modal);
+            		formAjaxSubmit(form, modal,id);
             	} else {
-            		console.log("success");
 	            	// First close the modal
 	                $(modal).modal('toggle');
 	                
@@ -155,21 +150,14 @@ var formAjaxSubmit = function(form, modal,id) {
 	                if (id==null){
 		                $("#model-div").append(xhr.new_labels);
 	                }else{
-	                	$(".modelbar").each(function(i){
-	                		if (i==id){
-	                			$(this).html(xhr.new_labels);
-	                		}
-	                	});
-	                }
-
-            	}
-            	return false;
+	                	$(jq(id)).find(".model-label").html(xhr.new_labels);
+	                	$(jq(id)).attr("id",xhr.new_labels);
+	                };
+            	};
             },
             error: function (xhr, ajaxOptions, thrownError) {
              	//probably actually want to redirect to 500 page here	
-            	console.log("Main Error");
-            	console.log(xhr);
-            	console.log(thrownError);
+            	window.location.replace("/500.html");
           	}
     	});
 	});
@@ -194,7 +182,7 @@ $("body").on('click',".edit",function(){
 	$('#form-modal-body').load('edit/'+id+"/", function () {
         $('#form-modal').modal('toggle');
         formLoaded();
-        formAjaxSubmit('#form-modal-body form', '#form-modal',Number(id));
+        formAjaxSubmit('#form-modal-body form', '#form-modal',id);
     });
 });
 
@@ -221,11 +209,23 @@ $(document).ready(function(){
 			myplot = new Dygraph(document.getElementById("image-div"), 
 					xhr.csv,
 					{
-					labels:xhr.labels,
 					legend: 'false',
 					logscale: true,
+					yAxisLabelWidth:80,
 					});
+			myplot.updateOptions({
+				"xlabel":xhr.xlabel,
+				"ylabel":xhr.ylabel,
+			});
+			console.log(xhr.labels);
 			$("#model-div").append(xhr.new_labels);
 		},
+		error: function(xhr, ajaxOptions, thrownError){
+			window.location.replace("/500.html");
+		}
 	});
 });
+
+function jq( myid ) {
+	return "#" + myid.replace( /(:|\.|\[|\])/g, "\\$1" );
+}

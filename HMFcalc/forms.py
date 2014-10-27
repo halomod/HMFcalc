@@ -12,6 +12,8 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Div, HTML
 from crispy_forms.bootstrap  import TabHolder, Tab, FormActions
+import os
+from django.conf import settings
 #--------- Custom Form Field for Comma-Separated Input -----
 class FloatListField(forms.CharField):
     """
@@ -231,14 +233,14 @@ class HMFInput(forms.Form):
                                        required=True)
 
 
-    transfer_choices = [('transfers/PLANCK_transfer.dat', 'PLANCK'),
-                        ('transfers/WMAP9_transfer.dat', 'WMAP9'),
-                        ("transfers/WMAP7_transfer.dat", "WMAP7"),
-                        ("transfers/WMAP5_transfer.dat", "WMAP5"),
-                        ('transfers/WMAP3_transfer.dat', 'WMAP3'),
-                        ('transfers/WMAP1_transfer.dat', 'WMAP1'),
-                        ("transfers/Millennium_transfer.dat", "Millennium (and WALLABY)"),
-                        ("transfers/GiggleZ_transfer.dat", "GiggleZ"),
+    transfer_choices = [(os.path.join(settings.ROOT_DIR, 'HMFcalc/transfers/PLANCK_transfer.dat'), 'PLANCK'),
+                        (os.path.join(settings.ROOT_DIR, 'HMFcalc/transfers/WMAP9_transfer.dat'), 'WMAP9'),
+                        (os.path.join(settings.ROOT_DIR, "HMFcalc/transfers/WMAP7_transfer.dat"), "WMAP7"),
+                        (os.path.join(settings.ROOT_DIR, "HMFcalc/transfers/WMAP5_transfer.dat"), "WMAP5"),
+                        (os.path.join(settings.ROOT_DIR, 'HMFcalc/transfers/WMAP3_transfer.dat'), 'WMAP3'),
+                        (os.path.join(settings.ROOT_DIR, 'HMFcalc/transfers/WMAP1_transfer.dat'), 'WMAP1'),
+                        (os.path.join(settings.ROOT_DIR, "HMFcalc/transfers/Millennium_transfer.dat"), "Millennium (and WALLABY)"),
+                        (os.path.join(settings.ROOT_DIR, "HMFcalc/transfers/GiggleZ_transfer.dat"), "GiggleZ"),
                         ("custom", "Custom")]
 
     transfer_fit_choices = [('CAMB', 'CAMB'),
@@ -479,62 +481,31 @@ class Axes(forms.Form):
         return helper
 
 
-class PlotChoice(forms.Form):
+class Download(forms.Form):
 
-    def __init__(self, request, *args, **kwargs):
-        super (PlotChoice, self).__init__(*args, **kwargs)
-        # Add in extra plot choices if they are required by the form in the session.
-        # There have been a lot of errors coming through here -- not really sure why,
-        # probably something to do with a session dying or something. I'm just wrapping
-        # it in a try-except block for now so that people don't get errors at least.
+    def __init__(self, *args, **kwargs):
+        super(Download, self).__init__(*args, **kwargs)
 
-        objects = request.session["objects"]
+        self.fields['m'] = forms.MultipleChoiceField(label="mass vector quantities",
+                                                     choices=Axes.m_choices,
+                                                     widget=forms.CheckboxSelectMultiple,
+                                                     initial=["M", "dndm"])
 
-        plot_choices = [("dndm", "dn/dm"),
-                        ("dndlnm", "dn/dln(m)"),
-                        ("dndlog10m", "dn/dlog10(m)"),
-                        ("fsigma", mark_safe("f(&#963)")),
-                        ("sigma", mark_safe("&#963 (mass variance)")),
-                        ("lnsigma", mark_safe("ln(1/&#963)")),
-                        ("n_eff", "Effective Spectral Index"),
-                        ("ngtm", "n(>m)"),
-                        ("rho_ltm", mark_safe("&#961(&#60m)")),
-                        ("rho_gtm", mark_safe("&#961(>m)")),
-                        ("transfer", "Transfer Function"),
-                        ("power", "Power Spectrum"),
-                        ("delta_k", "Dimensionless Power Spectrum") ]
+        self.fields['k'] = forms.MultipleChoiceField(label="k vector quantities",
+                                                     choices=Axes.k_choices,
+                                                     widget=forms.CheckboxSelectMultiple,
+                                                     initial=["lnk", "power"])
 
-        if len(objects) > 1:
-            plot_choices += [("comparison_dndm", "Comparison of Mass Functions"),
-                            ("comparison_fsigma", "Comparison of Fitting Functions")]
-
-        self.fields["plot_choice"] = forms.ChoiceField(label="Plot: ",
-                                                       choices=plot_choices,
-                                                       initial='dndm',
-                                                       required=False)
-
-        self.helper = FormHelper()
-        self.helper.form_id = 'plotchoiceform'
-        self.helper.form_class = 'form-horizontal'
-        self.helper.form_method = 'post'
-        self.helper.form_action = ''
-        self.helper.help_text_inline = True
-        self.helper.label_class = "col-md-3 control-label"
-        self.helper.field_class = "col-md-8"
-        self.helper.layout = Layout(Div('plot_choice', 'download_choice', css_class="col-md-6"))
-
-    download_choices = [("pdf-current", "PDF of Current Plot"),
-                        # ("pdf-all", "PDF's of All Plots"),
-                        ("ASCII", "All ASCII data"),
-                        ("parameters", "List of parameter values")]
-
-    download_choice = forms.ChoiceField(label=mark_safe('<a href="../dndm.pdf" id="plot_download">Download </a>'),
-                                choices=download_choices,
-                                initial='pdf-current',
-                                required=False)
-
-
-
+    @property
+    def helper(self):
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.help_text_inline = True
+        helper.label_class = "col-md-3 control-label"
+        helper.field_class = "col-md-8"
+        helper.layout = Layout(Div('m', css_class="col-md-6"), Div('k', css_class="col-md-6"),
+                               FormActions(Submit('submit', 'Download', css_class='btn-large')))
+        return helper
 
 class ContactForm(forms.Form):
 

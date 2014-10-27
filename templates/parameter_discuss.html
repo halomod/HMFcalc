@@ -1,5 +1,11 @@
 {% extends "text_base.html" %}
 
+{% load tabs %}
+{% block navigation %}
+{% activetab "help" %}
+{{ block.super }}
+{% endblock %}
+
 {% block title %}HMFcalc | Discussion of Parameters {% endblock %}
 
 {% block subheading %}

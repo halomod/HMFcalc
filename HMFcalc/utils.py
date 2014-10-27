@@ -3,7 +3,7 @@ Created on Jun 15, 2012
 
 @author: Steven
 '''
-from hmf.tools import get_hmf
+from hmf.functional import get_hmf
 # from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 # from matplotlib.figure import Figure
 import numpy as np
@@ -54,6 +54,24 @@ from django.forms import MultipleChoiceField
 #           "delta_k":r'\(\ln(\Delta(k))\)'}
 
 # For now at least, the axis labels must be in non-latex format.
+labels_txt = {"M":'Mass [log10 M_sun/h])',
+              "dndm":r'Mass Function, dn/dm [h^4 Mpc^-3]',
+              "dndlnm":r'Mass Function, dn/dln(m) [h^3 Mpc^-3]',
+              "dndlog10m":r'Mass Function, dn/dlog10(m) [h^3 Mpc^-3]',
+              "fsigma":r'Fitting Function, f(sigma)',
+              "ngtm":r'Cumulative Mass Function, n(>m) [h^3 Mpc^-3]',
+              "rho_gtm":r'Cumulative Density, rho(>m) [h^2 Mpc^-3]',
+              "rho_ltm":r'Cumulative Density, rho(<m) [h^2 Mpc^-3]',
+              "how_big":r'Box Size, [Mpc h^-1]',
+              "sigma":'Mass Variance, sigma',
+              "nu": "Peak height, nu = (d_c/sigma)^2",
+              "lnsigma":r'ln(1/sigma)',
+              "n_eff":r'Effective Spectral Index, n_eff',
+              "power":r'Power Spectrum, ln(P(k)) [Mpc^3 h^-3]',
+              "lnk":r"Wavenumber, ln(k) [h/Mpc]",
+              "transfer":r'Transfer Function, ln(T(k)) [Mpc^3 h^-3]',
+              "delta_k":r'Dimensionless Power, ln(Delta(k))'}
+
 labels = {"M":'Mass [log<sub>10</sub>M<sub>&#x2299</sub>/h])',
           "dndm":r'Mass Function, dn/dm [h<sup>4</sup>Mpc<sup>-3</sup>]',
           "dndlnm":r'Mass Function, dn/dln(m) [h<sup>3</sup>Mpc<sup>-3</sup>]',
@@ -64,6 +82,7 @@ labels = {"M":'Mass [log<sub>10</sub>M<sub>&#x2299</sub>/h])',
           "rho_ltm":r'Cumulative Density, &#961(<m) [h<sup>2</sup>Mpc<sup>-3</sup>]',
           "how_big":r'Box Size, [Mpc h<sup>-1</sup>]',
           "sigma":'Mass Variance, &#963',
+          "nu":"Peak height, &#957 = (&#948<sub>c</sub>/&#963)<sup>2</sup>",
           "lnsigma":r'ln(1/&#963)',
           "n_eff":r'Effective Spectral Index, n<sub>eff</sub>',
           "power":r'Power Spectrum, ln(P(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
@@ -81,6 +100,7 @@ log_labels = {"M":'Mass [log<sub>10</sub>M<sub>&#x2299</sub>/h]',
           "rho_ltm":r'Cumulative Density, log<sub>10</sub>(&#961(<m)) [h<sup>2</sup>Mpc<sup>-3</sup>]',
           "how_big":r'Box Size, log<sub>10</sub>(L) [Mpc h<sup>-1</sup>]',
           "sigma":'Mass Variance, log<sub>10</sub>(&#963)',
+          "nu":"Peak height, log<sub>10</sub>&#957 = log<sub>10</sub>(&#948<sub>c</sub>/&#963)<sup>2</sup>",
           "lnsigma":r'ln(1/&#963)',
           "n_eff":r'Effective Spectral Index, log<sub>10</sub>(n<sub>eff</sub>)',
           "power":r'Power Spectrum, ln(P(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
@@ -118,14 +138,23 @@ def hmf_driver(label, transfer_fit,
     for res in get_hmf('dndm', get_label=True, transfer_fit=transfer_fit,
                        transfer_options=transfer_options, **kwargs):
         objects += [copy.deepcopy(res[1])]
-        labels += [(label + " " + res[2]).strip()]
+        l = (label + " " + res[2])
+
+        labels += [sanitise_label(l)]
 
     warnings = stream.buflist
     warnings = list(set(warnings))
     return objects, labels, warnings
 
+def sanitise_label(l):
+        # Sanitise label, which needs to be used as html id, html text, and url,
+        # as well as plot annotations.
+        # Because of this, use only alphnumeric characters (no underscore), with
+        # hyphens for spaces and : for associations, plus . for decimals
+        l = l.strip().replace(": ", ":").replace(" ", "-")
+        return l
 
-def make_json_data(x, y, objects, alabels, new_labels, num_old_labels):
+def make_json_data(x, y, models, new_models=[]):
     """
     Creates a JSON object containing javascript Arrays for the data and labels
     
@@ -134,25 +163,31 @@ def make_json_data(x, y, objects, alabels, new_labels, num_old_labels):
     """
     # Make the new labels into appropriate HTML
     extra_labels = ""
-    for i, lab in enumerate(new_labels):
-        extra_labels += """
-<div class="col-md-12 modelbar" id="%s">
-    %s 
-    <div class="btn-group">
-        <button type="button" class="btn btn-default edit">
-            <span class="glyphicon glyphicon-pencil"></span>
-        </button>
-        <button type="button" class="btn btn-default visibility">
-            <span class="glyphicon glyphicon-eye-open"></span>
-        </button>
-        <button type="button" class="btn btn-default add">
-            <span class="glyphicon glyphicon-plus"></span>
-        </button>
-        <button type="button" class="btn btn-default delete">
-            <span class="glyphicon glyphicon-remove"></span>
-        </button>
-    </div>
-</div>""" % (num_old_labels + i, lab)
+    if isinstance(new_models, basestring):
+        extra_labels = new_models
+    else:
+        for lab in new_models:
+            extra_labels += """
+    <div class="col-md-12 modelbar" id="%s">
+        <div class="col-md-6 model-label">%s</div> 
+        <div class="btn-group">
+            <button type="button" class="btn btn-default edit">
+                <span class="glyphicon glyphicon-pencil"></span>
+            </button>
+            <button type="button" class="btn btn-default add">
+                <span class="glyphicon glyphicon-plus"></span>
+            </button>
+            <button type="button" class="btn btn-default delete">
+                <span class="glyphicon glyphicon-remove"></span>
+            </button>
+        </div>
+    </div>""" % (lab, lab)
+    # TODO: do visibility buttons properly
+#             <button type="button" class="btn btn-default visibility">
+#                 <span class="glyphicon glyphicon-eye-open"></span>
+#             </button>
+    objects = [models[l]['data'] for l in models]
+    alabels = models.keys()
 
     # First determine xmin and xmax
     xmins = np.array([getattr(o, x).min() for o in objects])
@@ -192,7 +227,7 @@ def make_json_data(x, y, objects, alabels, new_labels, num_old_labels):
 
     # Set nan's to None
     data = [[None if np.isnan(xx) else xx for xx in a] for a in outarray.T.tolist()]
-    print alabels
+
     out = json.dumps({'csv': data, "labels":[x] + alabels, "xlabel":xlabel,
                       "ylabel":ylabel, "new_labels":extra_labels})
 
@@ -214,7 +249,6 @@ def save_form_object(objects, labels, form, **weird_ones):
 
             except AttributeError:
                 if field == "label":
-                    print "YAY IN LABEL"
                     form_params[i][field] = labels[i]
 
 
