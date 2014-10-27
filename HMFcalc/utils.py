@@ -3,7 +3,7 @@ Created on Jun 15, 2012
 
 @author: Steven
 '''
-from hmf.tools import get_hmf
+from hmf.functional import get_hmf
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
