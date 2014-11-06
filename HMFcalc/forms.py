@@ -196,7 +196,8 @@ class HMFInput(forms.Form):
                                  help_text="Comma-separated list",
                                  max_length=50,
                                  initial=200.0,
-                                 min_val=10)
+                                 min_val=10,
+                                 max_val=10000.0)
 
     delta_wrt = forms.ChoiceField(label=mark_safe("&#916<sub>halo</sub> with respect to"),
                                   choices=[("mean", "Mean Density"),
