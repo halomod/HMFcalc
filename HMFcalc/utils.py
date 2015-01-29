@@ -67,6 +67,7 @@ labels_txt = {"M":'Mass [log10 M_sun/h])',
               "nu": "Peak height, nu = (d_c/sigma)^2",
               "lnsigma":r'ln(1/sigma)',
               "n_eff":r'Effective Spectral Index, n_eff',
+              "_dlnsdlnm":r"dln(sigma)/dln(m)",
               "power":r'Power Spectrum, ln(P(k)) [Mpc^3 h^-3]',
               "lnk":r"Wavenumber, ln(k) [h/Mpc]",
               "transfer":r'Transfer Function, ln(T(k)) [Mpc^3 h^-3]',
@@ -85,6 +86,7 @@ labels = {"M":'Mass [log<sub>10</sub>M<sub>&#x2299</sub>/h])',
           "nu":"Peak height, &#957 = (&#948<sub>c</sub>/&#963)<sup>2</sup>",
           "lnsigma":r'ln(1/&#963)',
           "n_eff":r'Effective Spectral Index, n<sub>eff</sub>',
+          "_dlnsdlnm":r"dln(&#963)/dln(m)",
           "power":r'Power Spectrum, ln(P(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
           "lnk":r"Wavenumber, ln(k) [h/Mpc]",
           "transfer":r'Transfer Function, ln(T(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
@@ -103,6 +105,7 @@ log_labels = {"M":'Mass [log<sub>10</sub>M<sub>&#x2299</sub>/h]',
           "nu":"Peak height, log<sub>10</sub>&#957 = log<sub>10</sub>(&#948<sub>c</sub>/&#963)<sup>2</sup>",
           "lnsigma":r'ln(1/&#963)',
           "n_eff":r'Effective Spectral Index, log<sub>10</sub>(n<sub>eff</sub>)',
+          "_dlnsdlnm":r"log<sub>10</sub>(dln(&#963)/dln(m))",
           "power":r'Power Spectrum, ln(P(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
           "lnk":r"Wavenumber, ln(k) [h/Mpc]",
           "transfer":r'Transfer Function, ln(T(k)) [Mpc<sup>3</sup>h<sup>-3</sup>]',
@@ -154,7 +157,7 @@ def sanitise_label(l):
         l = l.strip().replace(": ", ":").replace(" ", "-")
         return l
 
-def make_json_data(x, y, models, new_models=[]):
+def make_json_data(x, y, models, compare, new_models=[]):
     """
     Creates a JSON object containing javascript Arrays for the data and labels
     
@@ -166,6 +169,7 @@ def make_json_data(x, y, models, new_models=[]):
     if isinstance(new_models, basestring):
         extra_labels = new_models
     else:
+        primary_lab = "-empty" if (len(models) > 1) else " "
         for lab in new_models:
             extra_labels += """
     <div class="col-md-12 modelbar" id="%s">
@@ -180,13 +184,16 @@ def make_json_data(x, y, models, new_models=[]):
             <button type="button" class="btn btn-default delete">
                 <span class="glyphicon glyphicon-remove"></span>
             </button>
+            <button type="button" class="btn btn-default primary">
+                <span class="glyphicon glyphicon-star%s"></span>
+            </button>
         </div>
-    </div>""" % (lab, lab)
+    </div>""" % (lab, lab, primary_lab)
     # TODO: do visibility buttons properly
 #             <button type="button" class="btn btn-default visibility">
 #                 <span class="glyphicon glyphicon-eye-open"></span>
 #             </button>
-    objects = [models[l]['data'] for l in models]
+    objects = [models[l]['data'] for l in models.keys()]
     alabels = models.keys()
 
     # First determine xmin and xmax
@@ -224,6 +231,11 @@ def make_json_data(x, y, models, new_models=[]):
         else:
             s = spline(xvals, yvals)
             outarray[i + 1][inds] = s(xvec)[inds]
+
+    if compare is not None:
+        ref = outarray[alabels.index(compare) + 1].copy()
+        for i in range(len(objects)):
+            outarray[i + 1] /= ref
 
     # Set nan's to None
     data = [[None if np.isnan(xx) else xx for xx in a] for a in outarray.T.tolist()]

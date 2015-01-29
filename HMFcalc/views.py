@@ -44,71 +44,35 @@ class Home(TemplateView):
     """
     The home-page. Should just be simple html with links to what to do.
     """
-
-#     _is_tab = False
-#    tab_id = '/'
-#    tab_label = 'Home'
     template_name = 'home.html'
 
 
 class InfoParent(TemplateView):
-#     _is_tab = True
-#     tab_id = 'info'
-#     tab_label = 'Info'
     template_name = 'doesnt_exist.html'
-#     my_children = ['/hmf_parameters/', '/hmf_resources/', '/hmf_acknowledgments/']
-
-# class InfoChild(BaseTab):
-#     """Base class for all child navigation tabs."""
-#     # tab_parent = InfoParent
-#     pass
 
 class Help(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-#     _is_tab = True
-#     tab_id = '/hmf_parameters/'
-#     tab_label = 'How To Use HMFcalc'
     template_name = 'help.html'
-#     top = False
 
 class Contact(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-#     _is_tab = True
-#     tab_id = '/contact_info/'
-#     tab_label = 'Contact Us'
     template_name = 'contact_info.html'
-#     top = True
 
 class Resources(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-#     _is_tab = True
-#     tab_id = '/hmf_resources/'
-#     tab_label = 'Extra Resources'
     template_name = 'resources.html'
-#     top = False
 
 class Acknowledgments(TemplateView):
     """
     A simple html 'end-page' which shows information about parameters used.
     """
-#     _is_tab = True
-#     tab_id = '/hmf_acknowledgments/'
-#     tab_label = 'Acknowledgments'
     template_name = 'acknowledgments.html'
-#     top = False
-
-# class param_discuss(InfoChild):
-#    _is_tab = True
-#    tab_id = '/hmf_parameter_discussion/'
-#    tab_label = 'Parameter Info'
-#    template_name = 'parameter_discuss.html'
-#    top = False
 
 class Calculator(TemplateView):
     template_name = 'calculator.html'
@@ -118,8 +82,8 @@ class Calculator(TemplateView):
         Here we instantiate the objects properly so that there is something
         drawn straight away.
         """
-        if "models" not in self.request.session:
-            self.request.session = initialise(self.request.session)
+#         if "models" not in self.request.session:
+        self.request.session = initialise(self.request.session)
 
         return super(Calculator, self).render_to_response(context, **response_kwargs)
 
@@ -135,6 +99,8 @@ def initialise(session):
 
     session['models']["Default"]["form"] = fparams[0]
     session['axes'] = ("M", "dndm")
+    session['compare_mod'] = "Default"
+    session['compare'] = False
     return session
 
 def redraw_plot(request):
@@ -144,9 +110,24 @@ def redraw_plot(request):
     x, y = request.session["axes"]
 
     out = utils.make_json_data(x, y, request.session['models'],
+                               request.session['compare_mod'] if request.session['compare'] else None,
                                [l for l in request.session['models']])
 
     return HttpResponse(out, content_type='application/json')
+
+def set_compare_model(request):
+    """
+    Sets clicked model as model which is compared to.
+    """
+    model = request.POST['label']
+    request.session['compare_mod'] = model
+    response = redraw_plot(request)
+    return response
+
+def switch_compare(request):
+    request.session["compare"] = not request.session['compare']
+    response = redraw_plot(request)
+    return response
 
 class Input(FormView):
     template_name = 'input.html'
@@ -195,12 +176,20 @@ class Input(FormView):
 
         if self.kwargs['mode'] == "add":
             self.request.session["models"].update(new)
-            out = utils.make_json_data(x, y, self.request.session["models"], labels)
+            out = utils.make_json_data(x, y, self.request.session["models"],
+                                       self.request.session['compare_mod'] if self.request.session['compare'] else None,
+                                       labels)
         elif self.kwargs['mode'] == "edit":
             del self.request.session['models'][self.kwargs['label']]
             self.request.session["models"].update(new)
             # Don't add new modelbar elements
-            out = utils.make_json_data(x, y, self.request.session["models"], labels[0])
+            out = utils.make_json_data(x, y, self.request.session["models"],
+                                       self.request.session['compare_mod'] if self.request.session['compare'] else None, labels[0])
+            # Need to re-set primary if this is it
+            print "KWARGS< COMPARE< LABELS: ", self.kwargs['label'], self.request.session['compare_mod'], labels[0]
+            if self.request.session['compare_mod'] == self.kwargs['label']:
+                self.request.session['compare_mod'] = labels[0]
+
         else:
             raise ValueError("Mode should be add or edit, got" + self.kwargs['mode'])
 
@@ -239,7 +228,8 @@ class Axes(FormView):
         y = form.cleaned_data['y']
         self.request.session['axes'] = (x, y)
 
-        out = utils.make_json_data(x, y, self.request.session['models'])
+        out = utils.make_json_data(x, y, self.request.session['models'],
+                                   self.request.session['compare_mod'] if self.request.session['compare'] else None)
         return HttpResponse(out, content_type='application/json')
 
 class Download(FormView):
@@ -262,27 +252,28 @@ def downloader(request):
     # Write out mass-based and k-based data files
     for k, v in request.session['models'].iteritems():
         s = StringIO.StringIO()
+        o = v['data']
 
         # MASS BASED
-        for i, q in enumerate(request.session['data-download']['m']):
-            s.write("# [%s] %s\n" % (i, utils.labels_txt[q]))
+        if len(request.session['data-download']['m']) > 0:
+            for i, q in enumerate(request.session['data-download']['m']):
+                s.write("# [%s] %s\n" % (i, utils.labels_txt[q]))
 
-        o = v['data']
-        out = np.array([getattr(o, q) for q in request.session['data-download']['m']]).T
-        np.savetxt(s, out)
+            out = np.array([getattr(o, q) for q in request.session['data-download']['m']]).T
+            np.savetxt(s, out)
+            archive.writestr('mVector_%s.txt' % k, s.getvalue())
+            s.close()
 
-        archive.writestr('mVector_%s.txt' % k, s.getvalue())
-
-        s.close()
         s = StringIO.StringIO()
 
         # K BASED
-        for i, q in enumerate(request.session['data-download']['k']):
-            s.write("# [%s] %s\n" % (i, utils.labels_txt[q]))
+        if len(request.session['data-download']['k']) > 0:
+            for i, q in enumerate(request.session['data-download']['k']):
+                s.write("# [%s] %s\n" % (i, utils.labels_txt[q]))
 
-        out = np.array([getattr(o, q) for q in request.session['data-download']['k']]).T
-        np.savetxt(s, out)
-        archive.writestr('kVector_%s.txt' % k, s.getvalue())
+            out = np.array([getattr(o, q) for q in request.session['data-download']['k']]).T
+            np.savetxt(s, out)
+            archive.writestr('kVector_%s.txt' % k, s.getvalue())
 
     archive.close()
     buff.flush()
@@ -317,7 +308,9 @@ def remove_single_entry(request):
 
     out = utils.make_json_data(request.session['axes'][0],
                                request.session['axes'][1],
-                               request.session['models'])
+                               request.session['models'],
+                               request.session['compare_mod'] if request.session['compare'] else None
+                               )
 
     return HttpResponse(out, content_type='application/json')
 

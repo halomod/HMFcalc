@@ -56,10 +56,34 @@ $('#clear-button').click(function() {
  * Log-scale button
  * ===========================================================================*/
 $('#log-button').click(function() {
-	var islog = myplot.getOption("logscale");
+	$(this).button("toggle");
+	islog = $(this).hasClass("active");
 	myplot.updateOptions({"logscale":!islog})
 });
+
+/* ============================================================================
+ * Compare button
+ * ===========================================================================*/
+$('#compare-button').click(function() {
+	$(this).button("toggle");
+	iscompare = $(this).hasClass("active");
+	console.log("This button is active:"+iscompare);
+	
+	//Now re-draw
+	$.ajax({
+		type: "POST",
+		url: "switch_compare/",
+		//data: {"label":label},
+		success: function(xhr){
+			myplot.updateOptions({"file":xhr.csv,
+					"labels":xhr.labels});
+		},
+		error: function(xhr, ajaxOptions, thrownError){
+			window.location.replace("/500.html");
+		}
 		
+	});
+});
 /* ============================================================================
  * y-axis selection options
  * ===========================================================================*/
@@ -99,28 +123,67 @@ $("body").on('click',".visibility",function(){
 });
 */
 /* ============================================================================
- * Deletion buttons
+ * Primary buttons
  * ===========================================================================*/
-$("body").on('click',".delete",function(){
+$("body").on('click',".primary",function(){
 	var label = $(this).closest(".modelbar").attr("id");
-	console.log("Box id: "+label);
+	
+	//Find the previous primary button and make it not primary
+	$(".modelbar").each(function(index){
+		if ($(this).find(".primary").html().indexOf("glyphicon-star ") >= 0){
+			$(this).find(".primary").html("<span class='glyphicon glyphicon-star-empty'></span>");
+		}
+	});
+	
+	//Make this button primary
+	if ($(this).html().indexOf("glyphicon-star-empty") >= 0){
+		$(this).html("<span class='glyphicon glyphicon-star '></span>");
+	}
+	
+	
+	//Now re-draw
 	$.ajax({
 		type: "POST",
-		url: "del/",
+		url: "compare_to/",
 		data: {"label":label},
-		success: function(j){
-			myplot.updateOptions({"file":j.csv,
-				"labels":j.labels});
-			
-			// Remove the modelbar
-			$(jq(label)).remove();
-			
+		success: function(xhr){
+			myplot.updateOptions({"file":xhr.csv,
+					"labels":xhr.labels});
 		},
 		error: function(xhr, ajaxOptions, thrownError){
 			window.location.replace("/500.html");
 		}
 		
 	});
+});
+
+/* ============================================================================
+ * Deletion buttons
+ * ===========================================================================*/
+$("body").on('click',".delete",function(){
+	//Make sure this isn't the primary one
+	if ($(this).closest(".modelbar").find(".primary").html().indexOf("glyphicon-star ") >= 0){
+		bootstrap_alert("#form_errors"," Cannot remove primary model",1500);
+	}else{
+		var label = $(this).closest(".modelbar").attr("id");
+		$.ajax({
+			type: "POST",
+			url: "del/",
+			data: {"label":label},
+			success: function(j){
+				myplot.updateOptions({"file":j.csv,
+					"labels":j.labels});
+				
+				// Remove the modelbar
+				$(jq(label)).remove();
+				
+			},
+			error: function(xhr, ajaxOptions, thrownError){
+				window.location.replace("/500.html");
+			}
+			
+		});
+	}
 });
 /* ============================================================================
  * Modal submission event
@@ -212,6 +275,7 @@ $(document).ready(function(){
 					legend: 'false',
 					logscale: true,
 					yAxisLabelWidth:80,
+					//title: "<h3>Plot</h3>",
 					});
 			myplot.updateOptions({
 				"xlabel":xhr.xlabel,
@@ -229,3 +293,19 @@ $(document).ready(function(){
 function jq( myid ) {
 	return "#" + myid.replace( /(:|\.|\[|\])/g, "\\$1" );
 }
+
+/* ============================================================================
+ * Alert message
+ * ===========================================================================*/
+function bootstrap_alert(elem, message, timeout) {
+	console.log(elem);
+	console.log(message);
+  $(elem).show().html('<div class="alert"><span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span><button type="button" class="close" onclick="$(\'.alert\').hide()" aria-hidden="true">&times;</button><span>'+message+'</span></div>');
+
+  if (timeout || timeout === 0) {
+    setTimeout(function() { 
+      $(elem).alert().hide();
+    }, timeout);    
+  }
+};
+

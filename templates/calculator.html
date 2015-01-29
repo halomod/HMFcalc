@@ -6,20 +6,45 @@
 {% block allcontent %}
 <div class="container-fluid">
     <div class="row">
-    	<div class="col-md-3">
-    		<button id="axes-button" class="btn btn-large">Change Axes</button>
-    		<button id="clear-button" class="btn btn-large">Restart</button>
-    		<button id="log-button" class="btn btn-large">LogScale</button>
-    		<button id="download-button" class="btn btn-large">Download Data</button>
+    	<div class="col-md-2">
+    		<h3>Plot Tools</h3>
+    		<button id="clear-button" class="btn btn-default btn-large btn-block">Restart</button>
+    		<button id="axes-button" type="button" class="btn btn-default btn-large btn-block">Change Axes</button>
+    		<button id="log-button" class="btn btn-default btn-large btn-block">LogScale Y-Axis</button>
+    		<button id="compare-button" class="btn btn-default btn-large btn-block">
+    			Plot Ratios
+    		</button>
+    		<button id="download-button" class="btn btn-default btn-large btn-block">
+    			Download Data
+    		</button>
     	</div>
 	
-		<div class="col-md-7" id="image-div" style="height:500px;width:700px;"></div>
-		<div class="col-md-2" id="model-div">
+		<div class="col-md-6" id="full-image-div">
+			<h3>Plots</h3>
+			<div class="col-md-12" id="image-div" style="height:500px;width:700px;"></div>
+		</div>
+		<div class="col-md-3" id="model-div">
 			<!-- Add Model Elements here -->
 			<h3>Current Models</h3>
+			<div id="form_errors" class="alert alert-danger fade in" style="display:none">
+			</div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="col-md-2"></div>
+		<div class='col-md-7'>
+			<h3>
+				Table of Scalar Values
+				<button type="button" class="btn btn-default edit-table">
+                	<span class="glyphicon glyphicon-pencil"></span>
+            	</button>
+			</h3>
+			
 		</div>
 	</div>
 </div>
+
 
 <!-- INPUT FORM -->
 <div id="form-modal" class="modal fade">
