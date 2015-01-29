@@ -486,14 +486,16 @@ class Download(forms.Form):
     def __init__(self, *args, **kwargs):
         super(Download, self).__init__(*args, **kwargs)
 
-        self.fields['m'] = forms.MultipleChoiceField(label="mass vector quantities",
+        self.fields['m'] = forms.MultipleChoiceField(label="Mass vector quantities",
                                                      choices=Axes.m_choices,
                                                      widget=forms.CheckboxSelectMultiple,
+                                                     required=False,
                                                      initial=["M", "dndm"])
 
         self.fields['k'] = forms.MultipleChoiceField(label="k vector quantities",
                                                      choices=Axes.k_choices,
                                                      widget=forms.CheckboxSelectMultiple,
+                                                     required=False,
                                                      initial=["lnk", "power"])
 
     @property
