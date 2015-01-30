@@ -1,0 +1,8 @@
+{% load crispy_forms_tags %}
+
+<div class="row">
+	<button type="button" id="checkall-table" class="btn btn-primary">Check All/None</button>
+	<form class="form-horizontal"  action="{% url 'tabedit' %}" method="post">
+        {% crispy form %}
+    </form>
+</div>

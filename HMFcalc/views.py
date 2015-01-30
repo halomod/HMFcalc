@@ -82,8 +82,8 @@ class Calculator(TemplateView):
         Here we instantiate the objects properly so that there is something
         drawn straight away.
         """
-#         if "models" not in self.request.session:
-        self.request.session = initialise(self.request.session)
+        if "models" not in self.request.session:
+            self.request.session = initialise(self.request.session)
 
         return super(Calculator, self).render_to_response(context, **response_kwargs)
 
@@ -94,26 +94,51 @@ def initialise(session):
     session['models'] = {"Default":{"data":x, "warnings":[]}}
 
     f = forms.HMFInput()
-    fparams = utils.save_form_object([x], ["Default"], f, **{"transfer_file":os.path.join(settings.ROOT_DIR, "HMFcalc/transfers/PLANCK_transfer.dat"),
-                                            "transfer_fit":"FromFile"})
+    fparams = utils.save_form_object([x], ["Default"], f,
+                                     **{"transfer_file":os.path.join(settings.ROOT_DIR,
+                                                                     "HMFcalc/transfers/PLANCK_transfer.dat"),
+                                        "transfer_fit":"FromFile"})
 
     session['models']["Default"]["form"] = fparams[0]
     session['axes'] = ("M", "dndm")
     session['compare_mod'] = "Default"
     session['compare'] = False
+    session['scalar_columns'] = ['growth', "age", "cdist"]
     return session
 
-def redraw_plot(request):
-    """
-    Re-draws everything from the session. Called on page-reload
-    """
-    x, y = request.session["axes"]
+def refresh(request, new=None):
+    plotdict = get_plot_dict(request.session, new)
+    tabdict = refresh_table_dict(request.session)
+    plotdict.update(tabdict)
+    return HttpResponse(json.dumps(plotdict), content_type='application/json')
 
-    out = utils.make_json_data(x, y, request.session['models'],
-                               request.session['compare_mod'] if request.session['compare'] else None,
-                               [l for l in request.session['models']])
+def redraw_plot(request, new=None):
+    plotdict = get_plot_dict(request.session, new)
+    return HttpResponse(json.dumps(plotdict), content_type='application/json')
 
-    return HttpResponse(out, content_type='application/json')
+def get_plot_dict(session, new=None):
+    """
+    Re-draws everything from the session. Called on page-(re)load
+    """
+    x, y = session["axes"]
+
+    if new is None:
+        new = [l for l in session['models']]
+
+    outdict = utils.make_json_data(x, y, session['models'],
+                                   session['compare_mod'] if session['compare'] else None,
+                                   new)
+    return outdict
+
+def remake_table(request):
+    tabdict = refresh_table_dict(request.session)
+    return HttpResponse(json.dumps(tabdict), content_type='application/json')
+
+def refresh_table_dict(session):
+    columns = session['scalar_columns']
+    outdict = utils.create_table(columns, session['models'])
+    return outdict
+
 
 def set_compare_model(request):
     """
@@ -147,6 +172,10 @@ class Input(FormView):
             transfer_fit = "FromFile"
             transfer_options = {"fname":transfer_file}
 
+        # possibly need to fix this later
+        del form.cleaned_data['wdm_model']
+
+
         label = form.cleaned_data.pop('label')
 
         # Calculate all objects
@@ -157,6 +186,7 @@ class Input(FormView):
                                          transfer_fit=transfer_fit, transfer_file_upload=tfile)
 
         new = {labels[i]:{"data":objects[i], "form":fparams[i]} for i in range(len(objects))}  # No warnings as yet
+
 
 #         if self.kwargs['mode'] == "add":
 #             self.request.session['objects'] += objects
@@ -171,29 +201,27 @@ class Input(FormView):
 #         else:
 #             raise ValueError("Mode should be add or edit, got" + self.kwargs['mode'])
 
-        # # Get what to plot
-        x, y = self.request.session["axes"]
-
         if self.kwargs['mode'] == "add":
             self.request.session["models"].update(new)
-            out = utils.make_json_data(x, y, self.request.session["models"],
-                                       self.request.session['compare_mod'] if self.request.session['compare'] else None,
-                                       labels)
+            response = refresh(self.request, labels)
+#             out = utils.make_json_data(x, y, self.request.session["models"],
+#                                        self.request.session['compare_mod'] if self.request.session['compare'] else None,
+#                                        labels)
         elif self.kwargs['mode'] == "edit":
             del self.request.session['models'][self.kwargs['label']]
             self.request.session["models"].update(new)
             # Don't add new modelbar elements
-            out = utils.make_json_data(x, y, self.request.session["models"],
-                                       self.request.session['compare_mod'] if self.request.session['compare'] else None, labels[0])
+            response = refresh(self.request, labels[0])
+#             out = utils.make_json_data(x, y, self.request.session["models"],
+#                                        self.request.session['compare_mod'] if self.request.session['compare'] else None, labels[0])
             # Need to re-set primary if this is it
-            print "KWARGS< COMPARE< LABELS: ", self.kwargs['label'], self.request.session['compare_mod'], labels[0]
             if self.request.session['compare_mod'] == self.kwargs['label']:
                 self.request.session['compare_mod'] = labels[0]
 
         else:
             raise ValueError("Mode should be add or edit, got" + self.kwargs['mode'])
 
-        return HttpResponse(out, content_type='application/json')
+        return response
 
     def get_initial(self):
         """
@@ -228,9 +256,10 @@ class Axes(FormView):
         y = form.cleaned_data['y']
         self.request.session['axes'] = (x, y)
 
-        out = utils.make_json_data(x, y, self.request.session['models'],
-                                   self.request.session['compare_mod'] if self.request.session['compare'] else None)
-        return HttpResponse(out, content_type='application/json')
+
+#         out = utils.make_json_data(x, y, self.request.session['models'],
+#                                    self.request.session['compare_mod'] if self.request.session['compare'] else None)
+        return redraw_plot(self.request, [])
 
 class Download(FormView):
     template_name = 'download.html'
@@ -241,6 +270,21 @@ class Download(FormView):
         self.request.session['data-download'] = {"m":form.cleaned_data['m'],
                                                  "k":form.cleaned_data['k']}
         return HttpResponse("")
+
+class TabEdit(FormView):
+    template_name = 'table_edit.html'
+    form_class = forms.EditTable
+    success_url = reverse_lazy('hmf-calculator')
+
+    def form_valid(self, form):
+        self.request.session['scalar_columns'] = form.cleaned_data["quantities"]
+        response = remake_table(self.request)
+        return response
+
+    def get_form_kwargs(self):
+        kwargs = super(TabEdit, self).get_form_kwargs()
+        kwargs['current'] = self.request.session['scalar_columns']
+        return kwargs
 
 def downloader(request):
     # Open up file-like objects for response
@@ -306,17 +350,12 @@ def remove_single_entry(request):
     except:
         pass
 
-    out = utils.make_json_data(request.session['axes'][0],
-                               request.session['axes'][1],
-                               request.session['models'],
-                               request.session['compare_mod'] if request.session['compare'] else None
-                               )
-
-    return HttpResponse(out, content_type='application/json')
+    return refresh(request, [])
 
 def clear_all(request):
     request.session = initialise(request.session)
-    return redraw_plot(request)
+    print "CLEARING"
+    return refresh(request)
 
 
 # class HMFInputParent(BaseTab):

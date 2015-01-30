@@ -9,6 +9,7 @@ var formLoaded = function(){
 	}
 	
 	transferFile($('#id_transfer_file').val());
+	
 };
 
 var setParams = function(ov,oc,ob,n,s8,H0){
@@ -91,3 +92,15 @@ $("body").on('change',"#id_transfer_fit",function(){
 		$('#div_id_transfer_file_upload').hide();
 	}
 });
+
+//Actions for when wdm_model is changed
+$("body").on("change","#id_wdm_model",function(){
+	if ($(this).val() == "Schneider13"){
+		$("#id_filter").val("SharpK");	
+	}
+});
+
+
+
+
+

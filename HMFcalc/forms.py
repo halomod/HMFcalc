@@ -127,41 +127,51 @@ class HMFInput(forms.Form):
     </div>    
 </div>
 """))
-#         if add == 'create':
-#             d = Div('wdm_mass', k_html, m_html, 'cut_fit', css_class='col-md-6')
-#         else:
-        d = Div('wdm_mass', k_html, 'cut_fit', css_class='col-md-6')
+
+        d = Div(k_html, m_html, 'cut_fit', "filter", css_class='col-md-6')
 
         self.helper.layout = Layout("label",
                                     TabHolder(
                                               Tab('Run Parameters',
-                                                      Div(
-                                                          Div('z',
-                                                              'delta_h',
-                                                              'delta_wrt',
-                                                              'mf_fit',
-                                                              css_class='col-md-6'
-                                                              ),
-                                                           d)
-                                                      ),
+                                                  Div(
+                                                      Div('z',
+                                                          'mf_fit',
+                                                          'delta_h',
+                                                          'delta_wrt',
+                                                          css_class='col-md-6'
+                                                          ),
+                                                       d)
+                                                  ),
                                               Tab('Cosmological Parameters',
-                                                      Div(
-                                                          Div('transfer_file',
-                                                              'transfer_file_upload',
-                                                              'transfer_fit',
-                                                              'delta_c',
-                                                              'n',
-                                                              css_class='col-md-6'
-                                                              ),
-                                                          Div('sigma_8',
-                                                              'H0',
-                                                              'omegab',
-                                                              'omegac',
-                                                              'omegav',
-                                                              css_class='col-md-6'
-                                                              )
+                                                  Div(
+                                                      Div('transfer_file',
+                                                          'transfer_file_upload',
+                                                          'transfer_fit',
+                                                          'delta_c',
+                                                          'n',
+                                                          css_class='col-md-6'
+                                                          ),
+                                                      Div('sigma_8',
+                                                          'H0',
+                                                          'omegab',
+                                                          'omegac',
+                                                          'omegav',
+                                                          css_class='col-md-6'
                                                           )
                                                       )
+                                                  ),
+                                              Tab("WDM",
+                                                  Div(
+                                                      Div("wdm_mass",
+                                                          "wdm_model",
+                                                          css_class='col-md-6'
+                                                          )
+                                                      ),
+                                                      Div("wdm_transfer",
+                                                          "mu",
+                                                          "g_x",
+                                                          css_class='col-md-6')
+                                                  )
                                                   ),
                                         FormActions(Submit('submit', 'Calculate!', css_class='btn-large'))
                                         )
@@ -198,13 +208,6 @@ class HMFInput(forms.Form):
                                   initial="mean",
                                   required=True,
                                   widget=forms.RadioSelect)
-
-    # WDM particle masses (empty list if none)
-    wdm_mass = FloatListField(label="WDM Masses",
-                              required=False,
-                              help_text="Comma-separated list. In keV (eg. 0.05)",
-                              max_length=50,
-                              min_val=0.0001)
 
 
     # Mass Function fit
@@ -290,23 +293,17 @@ class HMFInput(forms.Form):
                           max_val=15,
                           min_val=0.00001)
 
+    filter = forms.ChoiceField(label="Mass filter",
+                               choices=[("TopHat", "Top-Hat (Real Space)"),
+                                         ("SharpK", "Top-Hat (k-space)"),
+                                         ("SharpKEllipsoid", "Ellipsoidal Top-Hat (k-space)")],
+                               initial="TopHat",
+                               required=True,
+                               widget=forms.RadioSelect)
 
-#===================================================================
-#   COSMOLOGICAL PARAMETERS
-#===================================================================
-#     cp_label = forms.CharField(label="Unique Labels",
-#                                initial='WMAP7',
-#                                help_text="One unique identifier for each cosmology, separated by commas")
-
-#     def clean_cp_label(self):
-#         labels = self.cleaned_data['cp_label']
-#         labels = labels.split(',')
-#         for i, label in enumerate(labels):
-#             lab = label.strip()
-#             lab = lab.replace(" ", "_")
-#             labels[i] = lab
-#         return labels
-
+    #===========================================================================
+    #   COSMOLOGICAL PARAMETERS
+    #===========================================================================
     # Critical Overdensity corresponding to spherical collapse
     delta_c = FloatListField(label=mark_safe("&#948<sub>c</sub>"),
                                   initial='1.686',
@@ -352,6 +349,37 @@ class HMFInput(forms.Form):
 #                                       min_val=0,
 #                                       max_val=0.7)
 
+#===============================================================================
+# WDM parameters
+#===============================================================================
+    # WDM particle masses (empty list if none)
+    wdm_mass = FloatListField(label="WDM Masses",
+                              required=False,
+                              help_text="Comma-separated list. In keV (eg. 0.05)",
+                              max_length=50,
+                              min_val=0.0001)
+
+    wdm_transfer = forms.ChoiceField(label=mark_safe("WDM Transfer Function"),
+                                  choices=[("Viel05", "Viel 2005 (equiv. to Bode 2001)")],
+                                  initial="Viel05",
+                                  required=True,
+                                  widget=forms.RadioSelect)
+
+    wdm_model = forms.ChoiceField(label="Extra Modelling for WDM",
+                                  choices=[("None", "None"),
+                                            ("Schneider13", "Schneider 2013 (change filter to Sharp-k)"),
+                                            # also should have earlier schneider
+                                            ],
+                                  initial=None,
+                                  required=True)
+
+    mu = forms.FloatField(label="mu",
+                          required=True,
+                          initial=1.12)
+
+    g_x = forms.FloatField(label=mark_safe("g<sub>x</sub>"),
+                           required=True,
+                           initial=1.5)
     def clean(self):
         """
         Clean the form for things that need to be cross-referenced between fields.
@@ -507,6 +535,33 @@ class Download(forms.Form):
         helper.field_class = "col-md-8"
         helper.layout = Layout(Div('m', css_class="col-md-6"), Div('k', css_class="col-md-6"),
                                FormActions(Submit('submit', 'Download', css_class='btn-large')))
+        return helper
+
+class EditTable(forms.Form):
+    scalar_choices = [("growth", "Growth Factor"),
+                      ("age", "Age of Universe"),
+                      ("cdist", "Comoving Distance")]
+
+    def __init__(self, *args, **kwargs):
+        current = kwargs.pop("current")
+        super(EditTable, self).__init__(*args, **kwargs)
+
+
+        self.fields['quantities'] = forms.MultipleChoiceField(label="Values to list",
+                                                     choices=EditTable.scalar_choices,
+                                                     widget=forms.CheckboxSelectMultiple,
+                                                     required=False,
+                                                     initial=current)
+
+    @property
+    def helper(self):
+        helper = FormHelper()
+        helper.form_class = 'form-horizontal'
+        helper.help_text_inline = True
+        helper.label_class = "col-md-3 control-label"
+        helper.field_class = "col-md-8"
+        helper.layout = Layout(Div('quantities', css_class="col-md-6"),
+                               FormActions(Submit('submit', 'OK', css_class='btn-large')))
         return helper
 
 class ContactForm(forms.Form):

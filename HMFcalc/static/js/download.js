@@ -10,7 +10,7 @@ var downloadAjaxSubmit = function(form, modal) {
             success: function (xhr, ajaxOptions, thrownError) {
             	if ( $(xhr).find('.has-error').length > 0 ) {
             		$(modal).find('.modal-body').html(xhr);
-            		formAjaxSubmit(form, modal);
+            		downloadAjaxSubmit(form, modal);
             	} else {
 	            	// First close the modal
 	                $(modal).modal('toggle');
@@ -32,7 +32,6 @@ var downloadAjaxSubmit = function(form, modal) {
  * Axes modal click
  * ===========================================================================*/
 $('#download-button').click(function() {
-	console.log("HEY HEY HEY")
     $('#download-modal-body').load('/hmf-calculator/download/', function () {
         $('#download-modal').modal('toggle');
         downloadAjaxSubmit('#download-modal-body form', '#download-modal');

@@ -10,7 +10,7 @@
     		<h3>Plot Tools</h3>
     		<button id="clear-button" class="btn btn-default btn-large btn-block">Restart</button>
     		<button id="axes-button" type="button" class="btn btn-default btn-large btn-block">Change Axes</button>
-    		<button id="log-button" class="btn btn-default btn-large btn-block">LogScale Y-Axis</button>
+    		<button id="log-button" class="btn btn-default btn-large btn-block active">LogScale Y-Axis</button>
     		<button id="compare-button" class="btn btn-default btn-large btn-block">
     			Plot Ratios
     		</button>
@@ -36,11 +36,12 @@
 		<div class='col-md-7'>
 			<h3>
 				Table of Scalar Values
-				<button type="button" class="btn btn-default edit-table">
+				<button type="button" class="btn btn-default edit-table" id="tabedit">
                 	<span class="glyphicon glyphicon-pencil"></span>
             	</button>
 			</h3>
-			
+			<table id="scalar-values" class="table table-striped table-hover table-condensed">
+			</table>
 		</div>
 	</div>
 </div>
@@ -92,6 +93,24 @@
                 <h4 class="modal-title">Data Download</h4>
             </div>
             <div id="download-modal-body" class="modal-body">
+                <p>One fine body&hellip;</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal --> 
+
+<!-- SCALAR VALUES FORM -->
+<div id="tabedit-modal" class="modal fade">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Edit Table</h4>
+            </div>
+            <div id="tabedit-modal-body" class="modal-body">
                 <p>One fine body&hellip;</p>
             </div>
             <div class="modal-footer">

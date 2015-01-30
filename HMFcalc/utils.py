@@ -169,8 +169,9 @@ def make_json_data(x, y, models, compare, new_models=[]):
     if isinstance(new_models, basestring):
         extra_labels = new_models
     else:
-        primary_lab = "-empty" if (len(models) > 1) else " "
         for lab in new_models:
+            primary_lab = "-empty" if (len(models) > 1 and lab != compare) else " "
+
             extra_labels += """
     <div class="col-md-12 modelbar" id="%s">
         <div class="col-md-6 model-label">%s</div> 
@@ -197,12 +198,14 @@ def make_json_data(x, y, models, compare, new_models=[]):
     alabels = models.keys()
 
     # First determine xmin and xmax
-    xmins = np.array([getattr(o, x).min() for o in objects])
-    xmaxs = np.array([getattr(o, x).max() for o in objects])
+    xmins = np.array([getattr(o, x)[np.logical_and(np.logical_not(np.isnan(getattr(o, x))), np.logical_not(np.isnan(getattr(o, y))))].min() for o in objects])
+    xmaxs = np.array([getattr(o, x)[np.logical_and(np.logical_not(np.isnan(getattr(o, x))), np.logical_not(np.isnan(getattr(o, y))))].max() for o in objects])
+
 
     xmin = np.min(xmins)
     xmax = np.max(xmaxs)
 
+    print "xmin, xmax: ", xmins, xmaxs
     # Deduce whether to log by dynamic range??
     # (ONLY SINCE THERE'S NO LOG-X FUNCTIONALITY IN DYGRAPHS)
     outarray = np.empty((len(objects) + 1, 500), dtype="object")
@@ -225,12 +228,20 @@ def make_json_data(x, y, models, compare, new_models=[]):
         sort = np.argsort(xvals)
         xvals = xvals[sort]
         yvals = getattr(o, y)[sort]
-        if yvals.max() / yvals.min() > 1e4:
-            s = spline(xvals, np.log(yvals))
-            outarray[i + 1][inds] = np.exp(s(xvec))[inds]
-        else:
-            s = spline(xvals, yvals)
-            outarray[i + 1][inds] = s(xvec)[inds]
+
+        # weed out nan values
+        nan_inds = np.logical_and(np.logical_not(np.isnan(xvals)), np.logical_not(np.isnan(yvals)))
+#         inds = np.logical_and(inds, nan_inds)
+        xvals = xvals[nan_inds]
+        yvals = yvals[nan_inds]
+
+        print xvals.min(), xvals.max(), yvals.min(), yvals.max()
+#         if yvals.max() / yvals.min() > 1e4:
+#             s = spline(xvals, np.log(yvals))
+#             outarray[i + 1][inds] = np.exp(s(xvec))[inds]
+#         else:
+        s = spline(xvals, yvals)
+        outarray[i + 1][inds] = s(xvec)[inds]
 
     if compare is not None:
         ref = outarray[alabels.index(compare) + 1].copy()
@@ -240,10 +251,10 @@ def make_json_data(x, y, models, compare, new_models=[]):
     # Set nan's to None
     data = [[None if np.isnan(xx) else xx for xx in a] for a in outarray.T.tolist()]
 
-    out = json.dumps({'csv': data, "labels":[x] + alabels, "xlabel":xlabel,
-                      "ylabel":ylabel, "new_labels":extra_labels})
+    outdict = {'csv': data, "labels":[x] + alabels, "xlabel":xlabel,
+                      "ylabel":ylabel, "new_labels":extra_labels}
 
-    return out
+    return outdict
 
 def save_form_object(objects, labels, form, **weird_ones):
     form_params = []
@@ -267,6 +278,43 @@ def save_form_object(objects, labels, form, **weird_ones):
 
         form_params[i].update(weird_ones)
     return form_params
+
+tablabels = {"growth":"Growth Rate",
+             "age":"Age at z",
+             "cdist":"Comoving Dist. [Mpc/h]"}
+
+def create_table(quantities, models):
+    """Similar to make_json_data, except it does the table information"""
+
+    objects = [models[l]['data'] for l in models.keys()]
+    alabels = models.keys()
+
+    print "Here are the labels: ", alabels
+
+    # Write table heading
+    tabstring = "<thead><tr><th>Model</th>"
+    for q in quantities:
+        tabstring += "<th>%s</th>" % tablabels[q]
+    tabstring += "</tr></thead>"
+
+    # Write each entry
+    for i, o in enumerate(objects):
+        tabstring += "<tr><th>%s</th>" % alabels[i]
+        for q in quantities:
+            try:
+                val = getattr(o, q)
+            except AttributeError:
+                if q == "age":
+                    # FIXME
+                    val = 1
+                elif q == "cdist":
+                    val = 2
+
+            tabstring += "<td>%s</td>" % val
+            print alabels[i], q, val
+        tabstring += "</tr>"
+
+    return {"table":tabstring}
 
 #
 # def cosmography(objects, labels):

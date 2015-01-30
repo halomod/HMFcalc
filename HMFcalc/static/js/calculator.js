@@ -39,12 +39,16 @@ $('#clear-button').click(function() {
 		type: "GET",
 		url: "clear/",
 		success: function(xhr){
+			//Update Plot
 			myplot.updateOptions({"file":xhr.csv,
 					"labels":xhr.labels});
 			
+			//Update modelbar
 			$(".modelbar").remove()
 			$("#model-div").append(xhr.new_labels);
 			
+			//Update table
+			$("#scalar-values").html(xhr.table);
 		},
 		error: function(xhr, ajaxOptions, thrownError){
 			window.location.replace("/500.html");
@@ -58,7 +62,7 @@ $('#clear-button').click(function() {
 $('#log-button').click(function() {
 	$(this).button("toggle");
 	islog = $(this).hasClass("active");
-	myplot.updateOptions({"logscale":!islog})
+	myplot.updateOptions({"logscale":islog})
 });
 
 /* ============================================================================
@@ -177,6 +181,9 @@ $("body").on('click',".delete",function(){
 				// Remove the modelbar
 				$(jq(label)).remove();
 				
+				//Remove the table entry
+				$("#scalar-values").html(xhr.table);
+				
 			},
 			error: function(xhr, ajaxOptions, thrownError){
 				window.location.replace("/500.html");
@@ -202,23 +209,29 @@ var formAjaxSubmit = function(form, modal,id) {
             	} else {
 	            	// First close the modal
 	                $(modal).modal('toggle');
-	                
+	                console.log("here");
 	                // Update the plot
 	                myplot.updateOptions({'file':xhr.csv,
 	                	"labels":xhr.labels,
 	                	"xlabel":xhr.xlabel,
 	                	"ylabel":xhr.ylabel});
-	                
+	                console.log("here 2");
 	                //Update the table of plots
+	                $("#scalar-values").html(xhr.table);
+	                
+	                //Put new models in modelbars
 	                if (id==null){
 		                $("#model-div").append(xhr.new_labels);
 	                }else{
 	                	$(jq(id)).find(".model-label").html(xhr.new_labels);
 	                	$(jq(id)).attr("id",xhr.new_labels);
 	                };
+	                console.log("here 3");
             	};
             },
             error: function (xhr, ajaxOptions, thrownError) {
+            	console.log("error");
+            	console.log(thrownError);
              	//probably actually want to redirect to 500 page here	
             	window.location.replace("/500.html");
           	}
@@ -263,12 +276,13 @@ $("body").on('click',".add",function(){
 });
    
 /* ============================================================================
- * Initial Plot
+ * Initialise
  * ===========================================================================*/
 $(document).ready(function(){
 	$.ajax({
 		url: "reload/",
 		success: function (xhr, ajaxOptions, thrownError) {
+			// Update Plot
 			myplot = new Dygraph(document.getElementById("image-div"), 
 					xhr.csv,
 					{
@@ -281,8 +295,12 @@ $(document).ready(function(){
 				"xlabel":xhr.xlabel,
 				"ylabel":xhr.ylabel,
 			});
-			console.log(xhr.labels);
+
+			// Update Model bars
 			$("#model-div").append(xhr.new_labels);
+			
+			// Update Table
+			$("#scalar-values").html(xhr.table);
 		},
 		error: function(xhr, ajaxOptions, thrownError){
 			window.location.replace("/500.html");
@@ -309,3 +327,58 @@ function bootstrap_alert(elem, message, timeout) {
   }
 };
 
+
+/* ============================================================================
+ * Table Editing Modal
+ * ===========================================================================*/
+var tableAjaxSubmit = function(form, modal) {
+    $(form).submit(function (e) {
+        e.preventDefault();
+        
+        
+        $.ajax({
+            type: $(this).attr('method'),
+            url: $(this).attr('action'),
+            data: $(this).serialize(),
+            success: function (xhr, ajaxOptions, thrownError) {
+            	if ( $(xhr).find('.has-error').length > 0 ) {
+            		$(modal).find('.modal-body').html(xhr);
+            		tableAjaxSubmit(form, modal);
+            	} else {
+	            	// First close the modal
+	                $(modal).modal('toggle');
+	                //Now refresh the table
+	                $("#scalar-values").html(xhr.table);
+            	}
+            	return false;
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+             	//probably actually want to redirect to 500 page here	
+            	window.location.replace("/500.html");
+          	}
+          	
+    	});
+    	
+	});
+}
+
+/* ============================================================================
+ * Tab edit modal click
+ * ===========================================================================*/
+$("body").on('click',"#tabedit",function(){
+    $('#tabedit-modal-body').load('/hmf-calculator/table-edit/', function () {
+        $('#tabedit-modal').modal('toggle');
+        tableAjaxSubmit('#tabedit-modal-body form', '#tabedit-modal');
+    });
+});
+
+$("body").on('click',"#checkall-table",function(){
+   if($(this).hasClass("active")) {
+	   $('#div_id_quantities input:checkbox').removeAttr('checked');
+	   $(this).removeClass("active")
+   } else {
+	   $('#div_id_quantities input:checkbox').prop('checked','checked');
+	   $(this).addClass("active")
+   };
+   
+});
