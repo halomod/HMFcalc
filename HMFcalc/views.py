@@ -348,7 +348,7 @@ def plots(request, filetype, plottype):
     labels = request.session['labels']
 
     keymap = {"dndm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
-                      "ylab":r'Mass Function $\left( \frac{dn}{dM} \right) h^4 Mpc^{-3}$',
+                      "ylab":r'Mass Function $\left( \frac{dn}{dM} \right) h^4 Mpc^{-3}M_\odot^{-1}$',
                       "yscale":'log'},
               "dndlnm":{"xlab":r'Mass $(M_{\odot}h^{-1})$',
                       "ylab":r'Mass Function $\left( \frac{dn}{d\ln M} \right) h^3 Mpc^{-3}$',
