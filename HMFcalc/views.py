@@ -182,8 +182,12 @@ class Input(FormView):
         objects, labels, warnings = utils.hmf_driver(label, transfer_fit, transfer_options, **form.cleaned_data)
 
         # Save the model
-        fparams = utils.save_form_object(objects, labels, form, transfer_file=transfer_file,
-                                         transfer_fit=transfer_fit, transfer_file_upload=tfile)
+        fparams = utils.save_form_object(objects, labels, form,
+                                         # the rest are added directly
+                                         transfer_file=transfer_file,
+                                         transfer_fit=transfer_fit, transfer_file_upload=tfile,
+                                         mu=form.cleaned_data['wdm_params']['mu'],
+                                         g_x=form.cleaned_data['wdm_params']['g_x'])
 
         new = {labels[i]:{"data":objects[i], "form":fparams[i]} for i in range(len(objects))}  # No warnings as yet
 

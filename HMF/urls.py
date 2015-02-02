@@ -14,6 +14,9 @@ calculator = menu_item("hmf-calculator")
 help = menu_item("help")
 email = menu_item("contact-email", parent=contact)
 
+# def serverError(request):
+#     raise Exception()
+
 # Patterns
 urlpatterns = patterns('',
     url(r'^favicon\.ico$',
@@ -71,6 +74,9 @@ urlpatterns = patterns('',
         views.Acknowledgments.as_view(),
         name='acknowledgments'),
 
+#     # error handling
+#     url(r'^500',
+#         'HMF.urls.serverError'),
 #     url(r'^hmf_finder/hmf_image_page/$',
 #         views.ViewPlots.as_view(),
 #         name='image-page'),

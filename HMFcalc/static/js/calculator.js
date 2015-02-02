@@ -233,7 +233,7 @@ var formAjaxSubmit = function(form, modal,id) {
             	console.log("error");
             	console.log(thrownError);
              	//probably actually want to redirect to 500 page here	
-            	window.location.replace("/500.html");
+            	window.location.replace("/500");
           	}
     	});
 	});
@@ -303,7 +303,7 @@ $(document).ready(function(){
 			$("#scalar-values").html(xhr.table);
 		},
 		error: function(xhr, ajaxOptions, thrownError){
-			window.location.replace("/500.html");
+			window.location.replace("/500");
 		}
 	});
 });

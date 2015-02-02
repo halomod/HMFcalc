@@ -128,7 +128,7 @@ class HMFInput(forms.Form):
 </div>
 """))
 
-        d = Div(k_html, m_html, 'cut_fit', "filter", css_class='col-md-6')
+        d = Div(k_html, m_html, 'cut_fit', "filter", "filter_c", css_class='col-md-6')
 
         self.helper.layout = Layout("label",
                                     TabHolder(
@@ -175,7 +175,6 @@ class HMFInput(forms.Form):
                                                   ),
                                         FormActions(Submit('submit', 'Calculate!', css_class='btn-large'))
                                         )
-#         self.helper.form_action = ''
     ###########################################################
     # MAIN RUN PARAMETERS
     ###########################################################
@@ -298,8 +297,12 @@ class HMFInput(forms.Form):
                                          ("SharpK", "Top-Hat (k-space)"),
                                          ("SharpKEllipsoid", "Ellipsoidal Top-Hat (k-space)")],
                                initial="TopHat",
-                               required=True,
-                               widget=forms.RadioSelect)
+                               required=True)
+
+    filter_c = forms.FloatField(label="c",
+                                help_text="Defines mass via filter",
+                                initial=2.7,
+                                required=True)
 
     #===========================================================================
     #   COSMOLOGICAL PARAMETERS
@@ -416,6 +419,18 @@ class HMFInput(forms.Form):
 
         if dlnk > np.min(max_k) - np.max(min_k):
             raise forms.ValidationError("Wavenumber step-size must be less than the k-range.")
+
+        # Make wdm parameters into a dictionary
+        mu = cleaned_data.pop("mu")
+        g_x = cleaned_data.pop("g_x")
+        cleaned_data["wdm_params"] = {"mu":mu, "g_x":g_x}
+
+        # Make filter parameters into a dictionary
+        c = cleaned_data.pop("filter_c")
+        if cleaned_data['filter'] != "TopHat":
+            cleaned_data["filter_params"] = {"c":c}
+        else:
+            cleaned_data["filter_params"] = {}
         #=========== Check that Mass limits are right ==========#
 #         try:
 #             if not self.minm:

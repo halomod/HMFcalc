@@ -138,6 +138,7 @@ def hmf_driver(label, transfer_fit,
         kwargs["wdm_mass"] = [None]
     objects = []
     labels = []
+    print kwargs
     for res in get_hmf('dndm', get_label=True, transfer_fit=transfer_fit,
                        transfer_options=transfer_options, **kwargs):
         objects += [copy.deepcopy(res[1])]
@@ -288,8 +289,6 @@ def create_table(quantities, models):
 
     objects = [models[l]['data'] for l in models.keys()]
     alabels = models.keys()
-
-    print "Here are the labels: ", alabels
 
     # Write table heading
     tabstring = "<thead><tr><th>Model</th>"

@@ -10,6 +10,13 @@ var formLoaded = function(){
 	
 	transferFile($('#id_transfer_file').val());
 	
+	//filter parameter
+	console.log($("#id_filter").val())
+	if ($("#id_filter").val() == 'TopHat'){
+		$('#div_id_filter_c').hide();
+	}else{
+		$('#div_id_filter_c').show();
+	}
 };
 
 var setParams = function(ov,oc,ob,n,s8,H0){
@@ -96,10 +103,23 @@ $("body").on('change',"#id_transfer_fit",function(){
 //Actions for when wdm_model is changed
 $("body").on("change","#id_wdm_model",function(){
 	if ($(this).val() == "Schneider13"){
-		$("#id_filter").val("SharpK");	
+		$("#id_filter_0").val("SharpK");	
 	}
 });
 
+//Actions for when filter is changed
+$("body").on("change","#id_filter",function(){
+	if ($(this).val() == "TopHat"){
+		$("#div_id_filter_c").hide();	
+	}else{
+		$("#div_id_filter_c").show();
+		if ($(this).val() == "SharpK"){
+			$("#id_filter_c").val("2.7");
+		}else if($(this).val() == "SharpKEllipsoid"){
+			$("#id_filter_c").val("2.0");
+		}
+	}
+});
 
 
 
