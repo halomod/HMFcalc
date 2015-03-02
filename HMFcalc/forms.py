@@ -491,7 +491,8 @@ class PlotChoice(forms.Form):
     download_choices = [("pdf-current", "PDF of Current Plot"),
                         # ("pdf-all", "PDF's of All Plots"),
                         ("ASCII", "All ASCII data"),
-                        ("parameters", "List of parameter values")]
+                        ("parameters", "List of parameter values"),
+                        ("halogen", "HALOgen-ready input")]
 
     download_choice = forms.ChoiceField(label=mark_safe('<a href="../dndm.pdf" id="plot_download">Download </a>'),
                                 choices=download_choices,

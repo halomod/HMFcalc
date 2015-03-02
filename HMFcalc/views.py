@@ -529,6 +529,50 @@ def data_output(request):
     return response
 
 
+def halogen(request):
+
+    # Import all the data we need
+    objects = request.session["objects"]
+    labels = request.session['labels']
+
+    # Open up file-like objects for response
+    response = HttpResponse(content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename=halogen.zip'
+    buff = StringIO.StringIO()
+    archive = zipfile.ZipFile(buff, 'w', zipfile.ZIP_DEFLATED)
+
+    # Write out ngtm and lnP data files
+    for i, o in enumerate(objects):
+        s = StringIO.StringIO()
+
+        # MASS BASED
+        s.write("# [1] m:            [M_sun/h] \n")
+        s.write("# [2] n(>m):        [h^3/Mpc^3] \n")
+
+        out = np.array([o.M, o.ngtm]).T
+        np.savetxt(s, out)
+
+        archive.writestr('ngtm_%s.txt' % labels[i], s.getvalue())
+
+        s.close()
+        s = StringIO.StringIO()
+
+        # K BASED
+        s.write("# [1] lnk:    [h/Mpc] \n")
+        s.write("# [2] lnP:    [Mpc^3/h^3] \n")
+
+        out = np.exp(np.array([o.lnk, np.log(o.power)]).T)
+        np.savetxt(s, out)
+        archive.writestr('matterpower_%s.txt' % labels[i], s.getvalue())
+
+    archive.close()
+    buff.flush()
+    ret_zip = buff.getvalue()
+    buff.close()
+    response.write(ret_zip)
+    return response
+
+
 # def hmf_all_plots(request):
 #
 #
