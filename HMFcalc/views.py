@@ -546,9 +546,6 @@ def halogen(request):
         s = StringIO.StringIO()
 
         # MASS BASED
-        s.write("# [1] m:            [M_sun/h] \n")
-        s.write("# [2] n(>m):        [h^3/Mpc^3] \n")
-
         out = np.array([o.M, o.ngtm]).T
         np.savetxt(s, out)
 
@@ -558,10 +555,7 @@ def halogen(request):
         s = StringIO.StringIO()
 
         # K BASED
-        s.write("# [1] lnk:    [h/Mpc] \n")
-        s.write("# [2] lnP:    [Mpc^3/h^3] \n")
-
-        out = np.array([o.lnk, o.power]).T
+        out = 10 ** np.exp(np.array([o.lnk, o.power])).T
         np.savetxt(s, out)
         archive.writestr('matterpower_%s.txt' % labels[i], s.getvalue())
 
