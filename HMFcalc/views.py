@@ -555,7 +555,7 @@ def halogen(request):
         s = StringIO.StringIO()
 
         # K BASED
-        out = 10 ** np.exp(np.array([o.lnk, o.power])).T
+        out = np.log10(np.exp(np.array([o.lnk, o.power]))).T
         np.savetxt(s, out)
         archive.writestr('matterpower_%s.txt' % labels[i], s.getvalue())
 
