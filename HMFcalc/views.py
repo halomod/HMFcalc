@@ -561,7 +561,7 @@ def halogen(request):
         s.write("# [1] lnk:    [h/Mpc] \n")
         s.write("# [2] lnP:    [Mpc^3/h^3] \n")
 
-        out = np.exp(np.array([o.lnk, np.log(o.power)]).T)
+        out = np.array([o.lnk, o.power]).T
         np.savetxt(s, out)
         archive.writestr('matterpower_%s.txt' % labels[i], s.getvalue())
 
