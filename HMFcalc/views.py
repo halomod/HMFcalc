@@ -87,24 +87,7 @@ class Calculator(TemplateView):
 
         return super(Calculator, self).render_to_response(context, **response_kwargs)
 
-def initialise(session):
-    with open(os.path.join(settings.ROOT_DIR, "HMFcalc/static/initialdata/initialmodel.pickle"), 'r') as f:
-        x = pickle.load(f)
 
-    session['models'] = {"Default":{"data":x, "warnings":[]}}
-
-    f = forms.HMFInput()
-    fparams = utils.save_form_object([x], ["Default"], f,
-                                     **{"transfer_file":os.path.join(settings.ROOT_DIR,
-                                                                     "HMFcalc/transfers/PLANCK_transfer.dat"),
-                                        "transfer_fit":"FromFile"})
-
-    session['models']["Default"]["form"] = fparams[0]
-    session['axes'] = ("M", "dndm")
-    session['compare_mod'] = "Default"
-    session['compare'] = False
-    session['scalar_columns'] = ['growth', "age", "cdist"]
-    return session
 
 def refresh(request, new=None):
     plotdict = get_plot_dict(request.session, new)

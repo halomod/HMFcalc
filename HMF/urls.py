@@ -21,7 +21,7 @@ email = menu_item("contact-email", parent=contact)
 urlpatterns = patterns('',
     url(r'^favicon\.ico$',
         RedirectView.as_view(url='http://hmfstatic.appspot.com/img/favicon.ico')),
-    url(r'^$', \
+    url(r'^$',
         views.Home.as_view(),
         name='home'),
     url(r'^hmf-calculator/$',
