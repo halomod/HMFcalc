@@ -194,7 +194,7 @@ class ViewPlots(BaseTab):
         if 'objects' in request.session:
             self.form = forms.PlotChoice(request)
         else:
-            return HttpResponseRedirect('/hmf_finder/form/create/')
+            return HttpResponseRedirect('/hmfcalc/create/')
 
         self.warnings = ""  # request.session['warnings']
         return self.render_to_response(
@@ -388,7 +388,7 @@ def data_output(request):
         s.write(b"# [7] dn/dlnm:      [h^3/Mpc^3] \n")
         s.write(b"# [8] dn/dlog10m:   [h^3/Mpc^3] \n")
         s.write(b"# [9] n(>m):        [h^3/Mpc^3] \n")
-        s.write(b"# [11] rho(>m):     [M_sun*h^2/Mpc^3] \n")
+        s.write(b"# [10] rho(>m):     [M_sun*h^2/Mpc^3] \n")
         s.write(b"# [11] rho(<m):     [M_sun*h^2/Mpc^3] \n")
         s.write(b"# [12] Lbox(N=1):   [Mpc/h]\n")
 
