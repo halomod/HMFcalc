@@ -1,160 +1,131 @@
 <!DOCTYPE html>
 {% load analytical %}
 {% load hmf_version %}
-{% load staticfiles %}
+{% load static %}
 
-<html lang="en">
-  <head>
-  	{% analytical_head_top %}
+<html class="h-100" lang="en">
+<head>
+    {% analytical_head_top %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.1/css/all.css" integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf" crossorigin="anonymous">
+    <link href="http://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css" rel="stylesheet">
+    <script
+            src="https://code.jquery.com/jquery-3.4.0.min.js"
+            integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg="
+            crossorigin="anonymous">
+    </script>
+    <script
+            src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+            integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+            crossorigin="anonymous">
+    </script>
+
     <meta charset="utf-8">
     <title>{% block title %}HMFcalc{% endblock %}</title>
-    
 
     <!-- CSS -->
-    <link rel="stylesheet" href='{{ STATIC_URL }}css/bootstrap.min.css' type='text/css'>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1 shrink-to-fit=no">
 
-    <style type="text/css">
+    {% analytical_head_bottom %}
+</head>
 
-      /* Sticky footer styles
-      -------------------------------------------------- */
-
-      html,
-      body {
-        height: 100%;
-        /* The html and body elements cannot have any padding or margin. */
-      }
-
-      /* Wrapper for page content to push down footer */
-      #wrap {
-        min-height: 100%;
-        height: auto !important;
-        height: 100%;
-        /* Negative indent footer by it's height */
-        margin: 0 auto -120px;
-      }
-
-      /* Set the fixed height of the footer here */
-      
-      #footer {
-        height: 120px;
-      }
-      #push {
-      	height: 130px;
-      }
-
-
-      /* Lastly, apply responsive CSS fixes as necessary */
-      @media (max-width: 767px) {
-        #footer {
-          margin-left: -20px;
-          margin-right: -20px;
-          padding-left: 20px;
-          padding-right: 20px;
-        }
-      }
-
-
-
-      /* Custom page CSS
-      -------------------------------------------------- */
-
-      .container .credit {
-        margin: 20px 0;
-      }
-
-      code {
-        font-size: 80%;
-      }
-
-    </style>
-     
-
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="../assets/js/html5shiv.js"></script>
-    <![endif]-->
-	{% analytical_head_bottom %}
-  </head>
-
-  <body>
-  {% analytical_body_top %}
-    <!-- Part 1: Wrap all page content here -->
-    <div id="wrap">
-
-      <!-- Fixed navbar -->
-      <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
-        <!-- <div class="navbar-inner"> -->
-          <div class="container">
-          <div class="navbar-header">
-          <!-- 
-            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-              <span class="icon-bar"></span>
-            </button> -->
-            <a class="navbar-brand" href="/">HMF<i>calc</i></a>
+<body class="d-flex flex-column h-100">
+{% analytical_body_top %}
+<!-- Part 1: Wrap all page content here -->
+<!-- Fixed navbar -->
+<header>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-dark" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">HMF<i>calc</i></a>
             </div>
-            
+
             <div class="collapse navbar-collapse" id="navcollapse1">
-              <ul class="nav navbar-nav">
+                <ul class="navbar-nav mr-auto">
 
-        {% for tab in tabs %}
-        	{% if tab.top %}
-        		{% if tab.my_children %}
-        			<li class="dropdown">
-                  		<a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ tab.tab_label }} <b class="caret"></b></a>
-                  		<ul class="dropdown-menu">
-                  			{% for alltabs in tabs %}
-                  				{% if alltabs.tab_id in tab.my_children %}
-                    				<li class="{% if alltabs.tab_id == current_tab_id %} active{% endif %}">
-                					<a href="{{ alltabs.tab_id }}">
-                					{{ alltabs.tab_label }}
-                					</a>
-           					 		</li>
-                  				{% endif %}
-                  			{% endfor %}
-                  		</ul>
-                	</li>
-                
-        		{% endif %}
-        		
-        		{% if not tab.my_children %}
-        		<li class="{% if tab.tab_id == current_tab_id %} active{% endif %}">
-                					<a href="{{ tab.tab_id }}">
-                					{{ tab.tab_label }}
-                					</a>
-           					 		</li>
-        		
-        		{% endif %}
-        	{% endif %}
-            
-        {% endfor %}
-              </ul>
-              <ul class="nav navbar-nav navbar-right">
-		        <p class="navbar-text navbar-right">Using hmf v{% current_version %}</p>
-		      </ul>
-          
-          </div>
+                    {% for tab in tabs %}
+                        {% if tab.top %}
+                            {% if tab.my_children %}
+                                <li class="nav-item dropdown">
+                                    <a href="#" class="nav-link dropdown-toggle"
+                                       data-toggle="dropdown" id="dropdown-{{ tab.tab_label }}"
+                                       aria-haspopup="true" aria-expanded="false">
+                                        {{ tab.tab_label }}
+                                    </a>
+                                    <div class="dropdown-menu" aria-labelledby="dropdown-{{ tab.tab_label }}">
+                                        {% for alltabs in tabs %}
+                                            {% if alltabs.tab_id in tab.my_children %}
+                                                <a class="dropdown-item{% if alltabs.tab_id == current_tab_id %} active{% endif %}" href="{{ alltabs.tab_id }}">
+                                                    {{ alltabs.tab_label }}
+                                                </a>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </li>
+
+                            {% endif %}
+
+                            {% if not tab.my_children %}
+                                <li class="nav-item {% if tab.tab_id == current_tab_id %} active{% endif %}">
+                                    <a class='nav-link' href="{{ tab.tab_id }}">
+                                        {{ tab.tab_label }}
+                                    </a>
+                                </li>
+
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+
+                    <li class="nav-item">
+                        <a class='nav-link' href="https://github.com/steven-murray/HMFcalc/issues/new">
+                            <i class="fab fa-github"></i> Report Issue
+                        </a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                    <a href="https://github.com/steven-murray/hmf">
+                        hmf v{% current_version %} &nbsp;
+                        <i class="fab fa-github"></i>
+                    </a>
+                    &nbsp; | &nbsp;
+                    <a href="/emailme/">
+                        <i class="fas fa-envelope"></i>
+                    </a>
+
+                </span>
+
+            </div>
         </div>
-      </nav>
+    </nav>
+</header>
 
-      <!-- Begin page content -->
-      {% block allcontent %} {% endblock %}
 
-      <div id="push"></div>
+<main class="flex-shrink-0 mb-5" role="main">
+    <!-- Begin page content -->
+    <div class="row mt-5">
+        {% block allcontent %} {% endblock %}
     </div>
+</main>
 
+<footer class="footer mt-auto py-3 bg-dark">
 
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.1/jquery.min.js"></script>
-    <script src='{{ STATIC_URL }}js/HideShowRules.js' type='text/javascript'></script>
-  	<script src='{{ STATIC_URL }}js/bootstrap.min.js' type='text/javascript'></script>
-  	<!-- <script src='{{ STATIC_URL }}js/hijack_calc_form.js' type='text/javascript'></script> -->
-  	<!-- <script src='{{ STATIC_URL }}js/dygraph-combined.js' type='text/javascript'></script> -->
-  	<!-- <script src='{{ STATIC_URL }}js/drawplot.js' type='text/javascript'></script> -->
-  	{% analytical_body_bottom %}
-  </body>
+    <span class="pull-left text-muted">
+        &copy; Steven Murray, 2019.
+    </span>
+    <span class="pull-right text-muted">
+        If you find HMFcalc or hmf useful, please cite
+        <a href="http://adsabs.harvard.edu/abs/2013A%26C.....3...23M">
+            Murray, Power & Robotham (2013)
+        </a>
+    </span>
+
+</footer>
+
+<!-- Javascript -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+<script src="{%  static "HMFcalc/js/HideShowRules.js" %}" type='text/javascript'></script>
+{% analytical_body_bottom %}
+</body>
 </html>

@@ -4,38 +4,35 @@ Created on Jun 12, 2013
 @author: Steven
 '''
 
-#===============================================================================
+# ===============================================================================
 # THIRD_PARTY IMPORTS
-#===============================================================================
+# ===============================================================================
 import os
 
-#===============================================================================
+# ===============================================================================
 # SETUP LOCAL/PRODUCTION SPECIFIC VARIABLES
-#===============================================================================
+# ===============================================================================
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 CRISPY_FAIL_SILENTLY = not DEBUG
 
-from secret_settings import *
+from .secret_settings import *
 
-#===============================================================================
+# ===============================================================================
 # THE PROJECT DIRECTORY
-#===============================================================================
+# ===============================================================================
 # The directory above the one this very file is in (top-level HMFcalc)
 ROOT_DIR = os.path.split(os.path.dirname(__file__))[0]
 
-
-#===============================================================================
+# ===============================================================================
 # SOME NON-DEFAULT SETTINGS
-#===============================================================================
+# ===============================================================================
 # This apparently needs to be here to let people actually access the site?
 ALLOWED_HOSTS = '*'
 
-
-
-#===============================================================================
+# ===============================================================================
 # DATABASE SETTINGS
-#===============================================================================
+# ===============================================================================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',  # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -47,9 +44,9 @@ DATABASES = {
     }
 }
 
-#===============================================================================
+# ===============================================================================
 # INSTALLED APPS
-#===============================================================================
+# ===============================================================================
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -66,14 +63,15 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 )
 
-#===============================================================================
+# ===============================================================================
 # CRISPY SETTINGS
-#===============================================================================
+# ===============================================================================
 
-CRISPY_TEMPLATE_PACK = "bootstrap3"
-#===============================================================================
+CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+# ===============================================================================
 # LOGGING SETUP
-#===============================================================================
+# ===============================================================================
 
 
 # A sample logging configuration. The only tangible logging
@@ -106,9 +104,9 @@ LOGGING = {
     }
 }
 
-#===============================================================================
+# ===============================================================================
 # LOCALE SETTINGS
-#===============================================================================
+# ===============================================================================
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
@@ -116,7 +114,7 @@ LOGGING = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = None
+TIME_ZONE = 'UTC'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -135,10 +133,9 @@ USE_L10N = True
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = True
 
-
-#===============================================================================
+# ===============================================================================
 # HOW TO GET TO MEDIA/STATIC FILES
-#===============================================================================
+# ===============================================================================
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = ROOT_DIR + '/media/'
@@ -158,12 +155,6 @@ STATIC_ROOT = os.path.join(ROOT_DIR, 'static')
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
-# Additional locations of static files
-STATICFILES_DIRS = (os.path.join(ROOT_DIR, "HMFcalc", "static"),
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -173,36 +164,44 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-#===============================================================================
+# ===============================================================================
 # TEMPLATES ETC.
-#===============================================================================
+# ===============================================================================
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
-)
+TEMPLATES = [
+    {
+        "BACKEND": 'django.template.backends.django.DjangoTemplates',
+        "DIRS": [os.path.join(ROOT_DIR, 'templates')],
+        "APP_DIRS": True,
+    }
+]
 
-TEMPLATE_DIRS = (os.path.join(ROOT_DIR, 'templates'),
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
+# # List of callables that know how to import templates from various sources.
+# TEMPLATE_LOADERS = (
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',
+#     #     'django.template.loaders.eggs.Loader',
+# )
+#
+# TEMPLATE_DIRS = (os.path.join(ROOT_DIR, 'templates'),
+#                  # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+#                  # Always use forward slashes, even on Windows.
+#                  # Don't forget to use absolute paths, not relative paths.
+#                  )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-                               "django.core.context_processors.static",
-                               )
-#===============================================================================
+# TEMPLATE_CONTEXT_PROCESSORS = (
+#     "django.core.context_processors.static",
+# )
+# ===============================================================================
 # MISCELLANEOUS
-#===============================================================================
+# ===============================================================================
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-#    'django.contrib.auth.middleware.AuthenticationMiddleware',
-#    'django.contrib.messages.middleware.MessageMiddleware',
+    #    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #    'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
@@ -211,6 +210,4 @@ ROOT_URLCONF = 'HMF.urls'
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'HMF.wsgi.application'
-
-
-
+SESSION_SAVE_EVERY_REQUEST = True

@@ -1,0 +1,97 @@
+\documentclass[5p,authoryear,x11names]{elsarticle}
+\usepackage{amssymb}
+\usepackage{mathabx}
+\usepackage{longtable,booktabs,tabu}
+\usepackage{caption}
+
+
+\begin{document}
+\begin{onecolumn}
+ \begingroup
+ \small
+    \begin{longtabu} to \linewidth{X[2.8l]X[-10.0l]X[3.8c]X[1.8c]X[2.8l]X[3.3l]} 
+%    \renewcommand\thetable{Blub 8.3-x}
+    \caption[]{\textbf{Compilation of Fitting Functions}: Note that we define $\nu=\delta_c/\sigma$.}\label{tab:fittingfunctions}	\\
+    \toprule[0.05cm]
+      \textsc{Reference} & \textsc{Fitting Function $f(\sigma)$} &\textsc{Mass Range} & \textsc{Redshift Range} & \textsc{Cosmology} & \textsc{Halo Def.}\hspace{0.6cm}($b$ and/or $\Delta_h$)\\ \midrule[0.04cm] 
+      \endfirsthead
+      \caption[]{continued...}\\
+      \toprule
+       \textsc{Ref.} & \textsc{Fitting Function $f(\sigma)$} &\textsc{Mass Range} & \textsc{Redshift Range} & \textsc{Cosmology} & \textsc{Halo Def.}\hspace{0.6cm}($b$ and/or $\Delta_h$) \\ \midrule[0.04cm] 
+      \endhead
+       \cite{Press1974} & \normalsize $f_{\rm PS}(\sigma) = \sqrt{\frac{2}{\pi}}\nu\exp\left[-nu^2/2\right]$ &  -- &-- & -- & -- \\ \midrule
+      
+       \cite{Sheth2001} &\normalsize $f_{\rm SMT}(\sigma) =A\sqrt{\frac{2a}{\pi}}\left[1+\left(\nu^2/a\right)^p\right]\nu\exp\left[-a\nu^2/2\right]$, \newline $A=0.3222$, $a=0.707$, $p=0.3$. &  $0.5< \nu^2 < 10$  & 0 -- 2 & $\Lambda$CDM, OCDM, SCDM & $b=0.2$ \\ \midrule
+      
+       \cite{Jenkins2001} & \normalsize$f_{\rm J}(\sigma) = 0.315 \exp \left[-|\ln \sigma^{-1}+0.61|^{3.8}\right]$ &  $-1.2 < \ln \sigma^{-1} < 1.05$ & 0 -- 5 & $\tau$CDM, $\Lambda$CDM & $b=0.2$, 0.164, $\Delta_h = 200$, 32 \\ \midrule
+      
+       \cite{Reed2003} &\normalsize $f_{\rm R03}(\sigma) =f_{SMT}(\sigma) \exp\left[\frac{-0.7}{\sigma \cosh(2\sigma)^5}\right]$ &  $-1.7< \ln \sigma^{-1} <0.9$& 0 -- 15 & $\Omega_M=0.3$, $\Omega_\Lambda = 0.7$ &$b=0.2$, $\Delta_h = \Delta_{\rm vir}$\\ \midrule
+      
+       \cite{Warren2006} & \normalsize$f_{\rm W}(\sigma) =0.7234 \left(\sigma^{-1.625}+0.2538\right) \exp\left[-1.1982\sigma^{-2}\right]$ &  $10^{10}{\rm M}_{\Sun} < M < 10^{15}{\rm M}_{\Sun}$ & 0 &  $\Lambda$CDM: WMAP1&$b=0.2$\\ \midrule		
+      
+       \cite{Reed2007} & \normalsize
+      $f_{\rm R07}(\sigma)=\nu \exp\left[-\frac{ca\nu^2}{2} - \frac{0.03\left(\nu\right)^{0.6}}{(n_{\rm eff}+3)^2}\right] $
+      $\times A\sqrt{\frac{2a}{\pi}} \left[1+\left(\nu^2 a\right)^{-p} + 0.6G_1(\sigma)+0.4G_2(\sigma)\right]$ \newline 
+      $n_{\mathrm{eff}} = 6\frac{d \log \sigma^{-1}}{d \log M} -3$, 
+      $G_1(\sigma) = \exp \left[-(\ln\sigma^{-1}-0.4)^2/0.72\right]$,
+      $G_2(\sigma) = \exp \left[-(\ln\sigma^{-1}-0.75)^2/0.08\right]$  
+      &  $-1.7 < \ln \sigma^{-1} < 0.9$ & 0 -- 30 & $\Lambda$CDM: WMAP1&$b=0.2$\\ \midrule			
+      
+       \cite{Peacock2007} & \normalsize$f_{\rm P}(\sigma) = \frac{\nu \exp(-c\nu^2)}{(1+a\nu^b)^2}\left[ba\nu^{b-1}+2c\nu(1+a\nu^b)\right]$, $a=1.529$, $b=0.704$, $c=0.412$ &  $10^{10}{\rm M}_{\Sun} < M < 10^{15}{\rm M}_{\Sun}$ & 0 &  $\Lambda$CDM: WMAP1&$b=0.2$\\ \midrule		
+      
+       \cite{Tinker2008} & \normalsize
+      $f_{\rm T}(\sigma,z) =A\left(\left(\frac{b}{\sigma}\right)^a + 1\right) \exp\left[-c\sigma^{-2}\right]$, \newline
+      $A = 0.186\left(1+z\right)^{-0.14}$,	$a = 1.47\left(1+z\right)^{-0.06}$, $	b = 2.57\left(1+z\right)^{-\alpha}$, $c = 1.19$,\newline
+      $\alpha = \exp\left[-\left(\frac{0.75}{\log_{10}(\Delta_{\mathrm{h}}/75)}\right)^{1.2}\right]$& 
+      $-0.6 < \log_{10} \sigma^{-1} < 0.4$ & 0 -- 2.5 & $\Lambda$CDM: WMAP1, WMAP3+& $\Delta_h = 200$, $300$, $400$, $600$, $800$, $1200$, $1600$, $2400$\\ \midrule		
+      
+       \cite{Crocce2010} & \normalsize
+      $f_{\rm Cr}(\sigma) =A\left(\sigma^{-a} + b\right) \exp\left[-c\sigma^{-2}\right]$, \newline
+      $A = 0.58\left(1+z\right)^{-0.13}$,	$a = 1.37\left(1+z\right)^{-0.15}$, $	b = 0.3\left(1+z\right)^{-0.084}$, $c = 1.036\left(1+z\right)^{-0.024}$& 
+      $10^{10.5}{\rm M}_{\Sun} < M < 10^{15.5}{\rm M}_{\Sun}$ & 0 -- 2 &$(\Omega_M$, $\Omega_\Lambda$, $n$, $h$, $\sigma_8)$ $=$ (0.25, 0.75, 0.95, 0.7, 0.8)&$b=0.2$, 0.164\\ \midrule			
+      
+       \cite{Courtin2010} & \normalsize
+      $f_{\rm Co}(\sigma) =f_{\rm ST}(\sigma)$, \newline
+      $A = 0.348$,	$a = 0.695$, $p = 0.1$& 
+      $-0.8 < \ln \sigma^{-1} < 0.7$& 0  &$\Lambda$CDM: WMAP5&$b=0.2$\\ \midrule
+      
+       \cite{Bhattacharya2011} & \normalsize
+      $f_{\rm B}(\sigma,z) = A\sqrt{\frac{2}{\pi}}\exp\left[-a\nu^2/2\right]\left[1+\left(a\nu^2\right)^{-p}\right]\left(\nu^2\sqrt{a}\right)^q$, \newline
+      $A = 0.333\left(1+z\right)^{-0.11}$,	$a = 0.788\left(1+z\right)^{-0.01}$, $	p = 0.807$, $q =1.795$& 
+      $10^{11.8}{\rm M}_{\Sun} < M < 10^{15.5}{\rm M}_{\Sun}$& 0 -- 2 & $w$CDM+ & $b=0.2$\\ \midrule	
+      
+       \cite{Angulo2012} & \normalsize
+      $f_{\rm A}(\sigma) =A\left[\left(\frac{b}{\sigma}\right)^a+1\right] \exp\left[-c\sigma^{-2}\right]$, \newline
+      $\left(A,a,b,c\right) = \left(0.201,1.7,2.08,1.172\right)$ or $\left(A,a,b,c\right)_{\rm SUB} = \left(0.265,1.9,1.675,1.4\right)$& 
+      $10^{8}{\rm M}_{\Sun} < M < 10^{16}{\rm M}_{\Sun}$& 0 & $\Lambda$CDM: WMAP1& $b=0.2$\\ \midrule	
+      
+       \cite{Watson2012} & \normalsize
+      $f_{\rm W_{FOF}}(\sigma,z) = f_{\rm T}(\sigma,z)$, \newline
+      $A = 0.282$,	$a = 2.163$, $	b = 1.406$, $c = 1.21$& 
+      $-0.55 < \ln \sigma^{-1} < 1.31$ & 0 -- 30 & $\Lambda$CDM: WMAP5&$b=0.2$\\ \midrule	
+      
+       \cite{Watson2012} & 
+      \normalsize
+      $f_{\rm W_{SO}}(\sigma,z) = \Gamma(\Delta, \sigma, z)f_{\rm T}(\sigma,z)$, \newline
+      $\left(A,a,b,c\right)_{z=0} = \left(0.194,2.267,1.805,1.287\right)$, 
+      $\left(A,a,b,c\right)_{z>6} = \left(0.563,0.874,3.810,1.453\right)$,
+      $\left(A,a,b,c\right)_{0<z<6} = \Omega_M(z)\times(1.907(1+z)^{-3.216}+0.074$,
+      $3.136(1+z)^{-3.058}+2.349$, $5.907\times(1+z)^{-3.599}+2.344$, $1.318)$, \newline
+      $\Gamma(\Delta,\sigma,z) = C(\Delta)\left(\frac{\Delta}{178}\right)^{d(z)}\exp \left[p\left(1-\frac{\Delta}{178}\right)\sigma^{-q}\right]$, \newline
+      $C(\Delta) = \exp\left[0.023\left(\frac{\Delta}{178}-1\right)\right]$,
+      $d(z) = -0.456\Omega_M(z)-0.139$,
+      $p = 0.072$,
+      $q = 2.130$.& 
+      $-0.55 < \ln \sigma^{-1} < 1.05$ ($z=0$), \newline $-0.06 < \ln \sigma^{-1} < 1.024$ ($z>0$)  & 0 -- 30 & $\Lambda$CDM: WMAP5&$\Delta_h=178$, (100--1600)\\ \midrule %\midrule[0.04cm]
+      
+      
+       \cite{Behroozi2013} & \normalsize
+      $n_{\rm B}(>M) = f(a)\left(M/10^{11.5}M_\odot\right)^{g(a)}+ n_{\rm T}(>M)$, $f(a) = \frac{0.144}{1+\exp[14.79(a-0.213)]}$, $g(a) = {0.5(1+\exp(6.5a))^{-1}}$, $a= 1/(1+z)$  & $-0.6 < \log_{10} \sigma^{-1} < 0.4$ &0 -- 8 & $(\Omega_M$, $\Omega_\Lambda$, $n$, $h$, $\sigma_8)$ $=$ (0.27, 0.73, 0.95, 0.7, 0.82) & $\Delta_h = 200$ \\ \bottomrule[0.05cm]
+    \end{longtabu}
+%  }
+%\end{table*}
+\endgroup
+\end{onecolumn}
+\bibliographystyle{elsarticle-harv}
+\bibliography{library}
+\end{document}

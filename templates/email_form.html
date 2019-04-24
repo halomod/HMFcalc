@@ -1,18 +1,26 @@
 {% extends 'text_base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}Mass Function Calculator | Send Email{% endblock %}
-{% block script %} 
-<script type="text/javascript">
-$(function() {
-    $('#id_name').focus()
-});
-</script>
+{% block title %}HMFcalc | Email{% endblock %}
+{% block script %}
+    <script type="text/javascript">
+        $(function () {
+            $('#id_name').focus()
+        });
+    </script>
 {% endblock %}
-{% block subheading %} <div class="page-header"><h2>Send me an email! </h2></div>{% endblock %}
+{% block subheading %}
+    <div class="page-header"><h2>Contact the Developers </h2></div>{% endblock %}
 {% block content %}
+
     <div class="row">
-        <div class="span6">
+        <div class="col-6">
+            <div class="alert alert-warning">
+                Please consider raising an
+                <a href="https://github.com/steven-murray/HMFcalc/issues/new">
+                issue on Github</a> instead of sending an email.
+            </div>
+
             {% crispy form form.helper %}
         </div>
     </div>
