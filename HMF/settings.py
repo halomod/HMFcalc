@@ -211,3 +211,20 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'HMF.wsgi.application'
 SESSION_SAVE_EVERY_REQUEST = True
+
+
+# ===============================================================================
+# EMAIL SETUP
+# ===============================================================================
+EMAIL_USE_TLS = True  # Whether to use a TLS (secure) connection when talking to the SMTP server.
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = HOST_EMAIL
+SERVER_EMAIL = HOST_EMAIL
+DEFAULT_FROM_EMAIL = SERVER_EMAIL
+
+ADMINS = (
+    ('Steven', MY_EMAIL),
+)
+
+MANAGERS = ADMINS
+CONTACT_RECIPIENTS = MY_EMAIL
