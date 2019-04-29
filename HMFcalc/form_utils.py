@@ -1,14 +1,14 @@
+import re
 from collections import OrderedDict
 
 from crispy_forms.bootstrap import Tab
 from crispy_forms.layout import Div, Field
 from django import forms
 from django.utils.safestring import mark_safe
-import re
 
 
 class RangeSlider(forms.TextInput):
-    def __init__(self, minimum, maximum, step, elem_name, initial=None, *args,**kwargs):
+    def __init__(self, minimum, maximum, step, elem_name, initial=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.minimum = str(minimum)
@@ -16,31 +16,18 @@ class RangeSlider(forms.TextInput):
         self.step = str(step)
         self.elem_name = str(elem_name)
 
-        self.initial = initial
-
-    @property
-    def initial_min(self):
-        if self.initial is None:
-            return self.minimum
-        else:
-            if type(self.initial) is str:
-                return self.initial.split(" - ")[0]
-            else:
-                return self.initial[0]
-
-    @property
-    def initial_max(self):
-        if self.initial is None:
-            return self.maximum
-        else:
-            if type(self.initial) is str:
-                return self.initial.split(" - ")[1]
-            else:
-                return self.initial[1]
+    def get_initial(self, val):
+        try:
+            rg = val.split(" - ")
+            return """[ """ + rg[0] + "," + rg[1] + """ ]"""
+        except:
+            return """[ """ + self.minimum + """,""" + self.maximum + """ ]"""
 
     def render(self, name, value, attrs=None, renderer=None):
+
         s = super(RangeSlider, self).render(name, value, attrs)
         elem_id = re.findall(r'id_([A-Za-z0-9_\./\\-]*)"', s)[0]
+        val = self.get_initial(value)
 
         html = """<div id="slider-range-""" + elem_id + """"></div>
         <script>
@@ -50,7 +37,7 @@ class RangeSlider(forms.TextInput):
         min: """ + self.minimum + """,
         max: """ + self.maximum + """,
         step: """ + self.step + """,
-        values: [ """ + self.initial_min + """,""" + self.initial_max + """ ],
+        values: """ + val + """,
         slide: function( event, ui ) {
           $( "#id_""" + elem_id + """" ).val(" """ + self.elem_name + """ "+ ui.values[ 0 ] + " - " + ui.values[ 1 ] );
         }
@@ -107,7 +94,8 @@ class RangeSliderField(forms.CharField):
         self.step = kwargs.pop('step', 1)
         self.initial = kwargs.pop("initial", None)
 
-        kwargs['widget'] = RangeSlider(self.minimum, self.maximum, self.step, self.name, initial=self.initial)
+        kwargs['widget'] = RangeSlider(self.minimum, self.maximum,
+                                       self.step, self.name, initial=self.initial)
 
         if 'label' not in kwargs.keys():
             kwargs['label'] = False
@@ -144,9 +132,9 @@ class CompositeForm(forms.Form):
             self.fields.update({f"{name}": val for name, val in form.fields.items()})
 
         self.order_fields(self.field_order if field_order is None else field_order)
-
-        for form in self.forms:
-            self.initial.update(form.initial)
+        #
+        # for form in self.forms:
+        #     self.initial.update(form.initial)
 
     @property
     def forms(self):
@@ -258,7 +246,7 @@ class HMFModelForm(forms.Form):
 
             if key in self.ignore_fields:
                 continue
-            if model+"_"+key in self.ignore_fields:
+            if model + "_" + key in self.ignore_fields:
                 continue
 
             fkw = self.field_kwargs.get(key, {})

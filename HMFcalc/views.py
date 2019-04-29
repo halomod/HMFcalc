@@ -87,10 +87,7 @@ class HMFInputBase(FormView):
                 paramname = form.fields[k].paramname
 
                 if model != form.cleaned_data[component+"_model"]:
-                    print("CONTINUING WITHOUT ADDING ", k)
                     continue
-                else:
-                    print(f"KEY: {k}, DEFAULTS: {getattr(cls, '_defaults', {})}")
 
                 if dctkey not in hmf_dict:
                     hmf_dict[dctkey] = {paramname: v}
@@ -154,7 +151,8 @@ class HMFInputCreate(HMFInputBase):
         kwargs.update(
             current_models=self.request.session.get('objects', None),
             model_label=prev_label,
-            previous_form=forms.get(prev_label, None) if prev_label else None
+#            previous_form=forms.get(prev_label, None) if prev_label else None,
+            initial=forms.get(prev_label, None) if prev_label else None
         )
         return kwargs
 

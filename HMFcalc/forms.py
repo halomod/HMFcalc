@@ -6,14 +6,14 @@ Created on May 3, 2012
 
 import hmf
 import numpy as np
-from crispy_forms.bootstrap import TabHolder, FormActions, StrictButton
+from crispy_forms.bootstrap import TabHolder
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Div, HTML
 from django import forms
 from django.utils.safestring import mark_safe
 from hmf import growth_factor, transfer_models, fitting_functions, filters, wdm
 
-from .form_utils import CompositeForm, FloatListField, HMFModelForm, HMFFramework, RangeSliderField
+from .form_utils import CompositeForm, HMFModelForm, HMFFramework, RangeSliderField
 
 
 class CosmoForm(HMFModelForm):
@@ -123,6 +123,7 @@ class TransferFramework(HMFFramework):
         label="lnk range",
         minimum=np.log(1e-10),
         maximum=np.log(2e6),
+        initial='-18.42 - 9.9',
         step=0.1
     )
 
@@ -184,6 +185,7 @@ class MassFunctionFramework(HMFFramework):
         label="logM range",
         minimum=0,
         maximum=20,
+        initial="10 - 15",
         step=0.1
     )
 
@@ -191,7 +193,7 @@ class MassFunctionFramework(HMFFramework):
         label="&#916<sub>halo</sub>",
         min_value = 0.005,
         max_value = 1,
-        initial="0.1"
+        initial="0.01"
     )
 
     delta_c = forms.FloatField(
@@ -275,6 +277,8 @@ class HMFInput(CompositeForm):
 
         super().__init__(*args, **kwargs)
 
+        print(self.initial['logm_range'])
+
         # Add form.modules to fields (useful for getting which ones are necessary)
         for form in self.forms:
             if not hasattr(form, "module"):
@@ -286,6 +290,9 @@ class HMFInput(CompositeForm):
         # If this is based on a previous form, set the initial values.
         if previous_form:
             for key, val in previous_form.items():
+                if key=="logm_range":
+                    print("PREVIOUS FORM: ", val)
+
                 if key in self.fields:
                     self.fields[key].initial = val
 
