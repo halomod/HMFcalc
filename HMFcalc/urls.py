@@ -33,6 +33,11 @@ urlpatterns = [
         name='delete'
     ),
     path(
+        'hmfcalc/restart/',
+        views.complete_reset,
+        name='restart'
+    ),
+    path(
         'help/',
         views.help.as_view(),
         name='help'

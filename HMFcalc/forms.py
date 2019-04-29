@@ -64,7 +64,6 @@ class GrowthForm(HMFModelForm):
 
 class TransferForm(HMFModelForm):
     choices = [
-        ("FromFile", "File"),
         ("CAMB", "CAMB"),
         ("EH_BAO", "Eisenstein-Hu (1998) (with BAO)"),
         ("EH_NoBAO", "Eisenstein-Hu (1998) (no BAO)"),
@@ -75,6 +74,13 @@ class TransferForm(HMFModelForm):
     module = transfer_models
     ignore_fields = ['camb_params']
 
+    field_kwargs = {
+        "fname": {
+            "type": forms.FileField,
+            "label": "",
+         }
+    }
+
     def clean_transfer_fname(self):
         thefile = self.cleaned_data.get('transfer_fname', None)
         if thefile is not None:
@@ -82,6 +88,7 @@ class TransferForm(HMFModelForm):
                 np.genfromtxt(thefile)
             except:
                 raise forms.ValidationError("Uploaded transfer file is of the wrong format")
+        return thefile
 
 
 class TransferFramework(HMFFramework):

@@ -61,7 +61,6 @@ class HMFInputBase(FormView):
             if k == "label":
                 continue
 
-            group = getattr(form.fields[k], "belongs_to", None)
             if k == "lnk_range":
                 hmf_dict['lnk_min'] = v[0]
                 hmf_dict['lnk_max'] = v[1]
@@ -72,17 +71,31 @@ class HMFInputBase(FormView):
                 hmf_dict['Mmax'] = v[1]
                 continue
 
-            if group:
+            component = getattr(form.fields[k], "component", None)
+
+            if component:
                 module = form.fields[k].module
-                cls = getattr(module, form.cleaned_data[group + "_model"], None)
+                model = getattr(form.fields[k], "model", None)
+                dctkey = component+"_params"
 
-                if group != "cosmo" and (not hasattr(cls, "_defaults") or k[len(group) + 1:] not in cls._defaults):
+                if not model:
+                    # this happens if parameters were manually added,
+                    # eg. for cosmo
+                    model = form.cleaned_data[component+"_model"]
+
+                cls = getattr(module, model, None)
+                paramname = form.fields[k].paramname
+
+                if model != form.cleaned_data[component+"_model"]:
+                    print("CONTINUING WITHOUT ADDING ", k)
                     continue
-
-                if group not in hmf_dict:
-                    hmf_dict[group + "_params"] = {k[len(group) + 1:]: v}
                 else:
-                    hmf_dict[group + "_params"][k[len(group) + 1:]] = v
+                    print(f"KEY: {k}, DEFAULTS: {getattr(cls, '_defaults', {})}")
+
+                if dctkey not in hmf_dict:
+                    hmf_dict[dctkey] = {paramname: v}
+                else:
+                    hmf_dict[dctkey][paramname] = v
             else:
                 hmf_dict[k] = v
 
@@ -108,7 +121,9 @@ class HMFInputBase(FormView):
 
         label = form.cleaned_data['label']
 
+        print(form.cleaned_data)
         cls, hmf_dict = self.cleaned_data_to_hmf_dict(form)
+        print(hmf_dict)
 
         previous = self.kwargs.get('label', None)
 
@@ -119,6 +134,8 @@ class HMFInputBase(FormView):
         obj = utils.hmf_driver(
             previous=previous, cls=cls, **hmf_dict
         )
+
+        print(obj)
 
         if "objects" not in self.request.session:
             self.request.session["objects"] = OrderedDict()
@@ -167,9 +184,11 @@ class HMFInputEdit(HMFInputCreate):
 
         # If editing, and the label was changed, we need to remove the old label.
         if form.cleaned_data['label'] != self.kwargs['label']:
+            print("deleting someting")
             del self.request.session['objects'][self.kwargs['label']]
             del self.request.session['forms'][self.kwargs['label']]
-
+        else:
+            print("not deleting anything")
         return result
 
 
@@ -189,12 +208,27 @@ def delete_plot(request, label):
     return HttpResponseRedirect("/hmfcalc/")
 
 
+def complete_reset(request):
+    try:
+        del request.session['objects']
+        del request.session['forms']
+    except:
+        pass
+
+    return HttpResponseRedirect("/hmfcalc/")
+
+
 class ViewPlots(BaseTab):
     def get(self, request, *args, **kwargs):
-        if 'objects' in request.session:
-            self.form = forms.PlotChoice(request)
-        else:
-            return HttpResponseRedirect('/hmfcalc/create/')
+
+        # Create a default MassFunction object that displays upon opening.
+        if "objects" not in request.session:
+            default_obj = MassFunction()
+
+            request.session['objects'] = OrderedDict(default=default_obj)
+            request.session['forms'] = OrderedDict()
+
+        self.form = forms.PlotChoice(request)
 
         self.warnings = ""  # request.session['warnings']
         return self.render_to_response(
@@ -208,10 +242,6 @@ class ViewPlots(BaseTab):
     tab_id = '/hmfcalc/'
     tab_label = 'Calculator'
     top = True
-
-    @property
-    def tab_visible(self):
-        return "objects" in self.current_tab.request.session
 
 
 def plots(request, filetype, plottype):

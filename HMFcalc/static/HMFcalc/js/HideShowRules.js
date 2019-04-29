@@ -1,22 +1,21 @@
 $(function () {
-    /* Hide all params that aren't required here */
-    $('.hmf_model').each(function() {
-        // On first page load, need to hide/show relevant things.
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+'][data-models~='+$(this).val()+']').show();
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+'][data-models~='+$(this).val()+']').find("input").prop("required", true);
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+']').not('[data-models~='+$(this).val()+']').hide();
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+']').not('[data-models~='+$(this).val()+']').find('input').removeAttr("required");
+    jQuery.fn.extend({
+       toggle_params: function(){
+           var these =$('div[data-component='+$(this).attr("data-component")+'][data-model~='+$(this).val()+']');
+            these.show();
+            these.find("input").prop("required", true);
 
-
+            var those = $('div[data-component='+$(this).attr("data-component")+']').not('[data-model~='+$(this).val()+']');
+            those.hide();
+            those.find('input').removeAttr("required");
+       }
     });
 
-    $('.hmf_model').change(function() {
-        // If a hmf model is changed, need to hide/show relevant things.
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+'][data-models~='+$(this).val()+']').show();
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+'][data-models~='+$(this).val()+']').find("input").prop("required", true);
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+']').not('[data-models~='+$(this).val()+']').hide();
-        $('div.hmf_param[data-name='+$(this).attr("data-name")+']').not('[data-models~='+$(this).val()+']').find('input').removeAttr("required");
+    /* Hide all params that aren't required here */
+    $('.hmf_model').toggle_params();
 
+    $('.hmf_model').change(function() {
+        $(this).toggle_params();
     });
 
     // Shadow out the delete button if there's only one left!

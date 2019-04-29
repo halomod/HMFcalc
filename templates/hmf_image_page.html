@@ -6,32 +6,39 @@
 
     <div class="container">
         <div class="row">
-            <div class="col-12" align="centre">
+            <div class="col-8">
                 {% crispy form %}
             </div>
+            <div class="col-4">
+                <a class="btn btn-danger btn-large" href="hmfcalc/restart/"><i class="fas fa-redo-alt"></i> Restart</a>
+                </a>
+            </div>
 
+        </div>
 
-            {% if warnings %}
-                <div id='warnings' class='row-fluid'>
-                    <div class='col-md-12'>
+        {% if warnings %}
+            <div id='warnings' class='row'>
+                <div class='col'>
 
-                        <ul>
-                            {% for warning in warnings %}
-                                <li class="text-warning"> {{ warning }} </li>
-                            {% endfor %}
-                        </ul>
+                    <ul>
+                        {% for warning in warnings %}
+                            <li class="text-warning"> {{ warning }} </li>
+                        {% endfor %}
+                    </ul>
 
-                    </div>
                 </div>
-            {% endif %}
+            </div>
+        {% endif %}
 
-
+        <div class="row" id="image_row">
             <div class='col-md-12' align='centre;'>
                 <img src="dndm.png" id='the_image' align="middle">
             </div>
-            <br><br>
+        </div>
 
-            <!-- Model Table -->
+
+        <!-- Model Table -->
+        <div class="row", id="model_table_row">
             <div class="col-8">
             <table class="table" id="model_table">
                 <tbody>
@@ -58,11 +65,6 @@
                 </tbody>
             </table>
             </div>
-            <!--
-	<div class="span9"><p class='text-warning'> Note: to get unit information for all quantities, download the
-	"Unit Information" from the Download drop-down menu.</p>
-	</div>
- -->
         </div>
     </div>
 {% endblock %}

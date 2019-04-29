@@ -9,7 +9,8 @@ import re
 
 class RangeSlider(forms.TextInput):
     def __init__(self, minimum, maximum, step, elem_name, initial=None, *args,**kwargs):
-        widget = super(RangeSlider,self).__init__(*args,**kwargs)
+        super().__init__(*args, **kwargs)
+
         self.minimum = str(minimum)
         self.maximum = str(maximum)
         self.step = str(step)
@@ -39,26 +40,28 @@ class RangeSlider(forms.TextInput):
 
     def render(self, name, value, attrs=None, renderer=None):
         s = super(RangeSlider, self).render(name, value, attrs)
-        self.elem_id = re.findall(r'id_([A-Za-z0-9_\./\\-]*)"', s)[0]
-        html = """<div id="slider-range-""" + self.elem_id + """"></div>
+        elem_id = re.findall(r'id_([A-Za-z0-9_\./\\-]*)"', s)[0]
+
+        html = """<div id="slider-range-""" + elem_id + """"></div>
         <script>
-        $('#id_""" + self.elem_id + """').attr("readonly", true)
-        $( "#slider-range-""" + self.elem_id + """" ).slider({
+        $('#id_""" + elem_id + """').attr("readonly", true)
+        $( "#slider-range-""" + elem_id + """" ).slider({
         range: true,
         min: """ + self.minimum + """,
         max: """ + self.maximum + """,
         step: """ + self.step + """,
         values: [ """ + self.initial_min + """,""" + self.initial_max + """ ],
         slide: function( event, ui ) {
-          $( "#id_""" + self.elem_id + """" ).val(" """ + self.elem_name + """ "+ ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+          $( "#id_""" + elem_id + """" ).val(" """ + self.elem_name + """ "+ ui.values[ 0 ] + " - " + ui.values[ 1 ] );
         }
         });
-        $( "#id_""" + self.elem_id + """" ).val(" """ + self.elem_name + """ "+ $( "#slider-range-""" + self.elem_id + """" ).slider( "values", 0 ) +
-        " - " + $( "#slider-range-""" + self.elem_id + """" ).slider( "values", 1 ) );
+        $( "#id_""" + elem_id + """" ).val(" """ + self.elem_name + """ "+ $( "#slider-range-""" + elem_id + """" ).slider( "values", 0 ) +
+        " - " + $( "#slider-range-""" + elem_id + """" ).slider( "values", 1 ) );
         </script>
         """
 
         return mark_safe(s + html)
+
 
 # --------- Custom Form Field for Comma-Separated Input -----
 class FloatListField(forms.CharField):
@@ -160,11 +163,11 @@ class CompositeForm(forms.Form):
         """
         return self._form_instances[form_class]
 
-    # def non_field_errors(self):
-    #     _errors = forms.utils.ErrorList()
-    #     for form in self.forms:
-    #         _errors.extend(form.non_field_errors())
-    #     return _errors
+    def non_field_errors(self):
+        _errors = super().non_field_errors()
+        for form in self.forms:
+            _errors.extend(form.non_field_errors())
+        return _errors
 
     def full_clean(self):
         super().full_clean()
@@ -189,6 +192,7 @@ class HMFModelForm(forms.Form):
 
     ignore_fields = []
     add_fields = {}
+    field_kwargs = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -217,50 +221,13 @@ class HMFModelForm(forms.Form):
 
         # Add all the possible parameters for this model
         for choice in self.choices:
-            # Allow a "None" class
-            if choice[0] == "None":
-                continue
-
-            cls = getattr(self.module, choice[0])
-
-            if hasattr(cls, "_defaults"):
-                for key, val in cls._defaults.items():
-                    name = f"{self.kind}_{key}"
-
-                    if name not in self.fields and key not in self.ignore_fields:
-                        self.fields[name] = forms.FloatField(
-                            label=key,
-                            initial=str(val),
-                            required=False
-                        )
-                        self.fields[name].belongs_to = self.kind
-                        self.fields[name].show_for = [choice[0]]
-
-                    elif name in self.fields and key not in self.ignore_fields:
-                        self.fields[name].show_for.append(choice[0])
+            self._add_default_model(choice[0])
 
         for fieldname, field in self.add_fields.items():
             name = f"{self.kind}_{fieldname}"
             self.fields[name] = field
-            self.fields[name].belongs_to = self.kind
-
-        param_div = Div()
-        for name, field in self.fields.items():
-            if name == f"{self.kind}_model":
-                continue
-
-            if hasattr(field, "show_for"):
-                param_div.append(
-                    Div(
-                        name,
-                        css_class="col hmf_param" if hasattr(field, "show_for") else "col",
-                        data_name=self.kind if hasattr(field, "show_for") else None,
-                        data_models=" ".join(field.show_for) if hasattr(field, "show_for") else None)
-                )
-            else:
-                param_div.append(
-                    Div(name, css_class='col')
-                )
+            self.fields[name].component = self.kind
+            self.fields[name].paramname = fieldname
 
         # Make layout a simple Tab with a model chooser and model parameters.
         self._layout = Tab(
@@ -270,14 +237,64 @@ class HMFModelForm(forms.Form):
                     Field(
                         f"{self.kind}_model",
                         css_class="hmf_model",
-                        data_name=self.kind
+                        data_component=self.kind
                     ),
                     css_class='col',
                 ),
-                param_div,
+                self._get_model_param_divs(),
                 css_class='mt-4 row',
             )
         )
+
+    def _add_default_model(self, model):
+        # Allow a "None" class
+        if model == "None":
+            return
+
+        cls = getattr(self.module, model)
+
+        for key, val in getattr(cls, "_defaults", {}).items():
+            name = f"{self.kind}_{model}_{key}"
+
+            if key in self.ignore_fields:
+                continue
+            if model+"_"+key in self.ignore_fields:
+                continue
+
+            fkw = self.field_kwargs.get(key, {})
+            thisfield = fkw.pop("type", forms.FloatField)
+
+            self.fields[name] = thisfield(
+                label=fkw.pop("label", key),
+                initial=str(val),
+                required=False,
+                **fkw
+            )
+
+            self.fields[name].component = self.kind
+            self.fields[name].model = model
+            self.fields[name].paramname = key
+
+    def _get_model_param_divs(self):
+        param_div = Div()
+        for name, field in self.fields.items():
+            if name == f"{self.kind}_model":
+                continue
+
+            if hasattr(field, "model"):
+                param_div.append(
+                    Div(
+                        name,
+                        css_class="col",
+                        data_component=self.kind,
+                        data_model=field.model
+                    )
+                )
+            else:
+                param_div.append(
+                    Div(name, css_class='col')
+                )
+        return param_div
 
 
 class HMFFramework(forms.Form):
