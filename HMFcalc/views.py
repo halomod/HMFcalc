@@ -121,9 +121,7 @@ class HMFInputBase(FormView):
 
         label = form.cleaned_data['label']
 
-        print(form.cleaned_data)
         cls, hmf_dict = self.cleaned_data_to_hmf_dict(form)
-        print(hmf_dict)
 
         previous = self.kwargs.get('label', None)
 
@@ -134,8 +132,6 @@ class HMFInputBase(FormView):
         obj = utils.hmf_driver(
             previous=previous, cls=cls, **hmf_dict
         )
-
-        print(obj)
 
         if "objects" not in self.request.session:
             self.request.session["objects"] = OrderedDict()
@@ -158,7 +154,7 @@ class HMFInputCreate(HMFInputBase):
         kwargs.update(
             current_models=self.request.session.get('objects', None),
             model_label=prev_label,
-            previous_form=forms[prev_label] if prev_label else None
+            previous_form=forms.get(prev_label, None) if prev_label else None
         )
         return kwargs
 
