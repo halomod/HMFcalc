@@ -1,6 +1,7 @@
 import datetime
 # import logging
 import io
+import logging
 import zipfile
 from collections import OrderedDict
 
@@ -17,6 +18,8 @@ from tabination.views import TabView
 from . import forms
 from . import utils
 from . import version as calc_version
+
+logger = logging.getLogger(__name__)
 
 
 class BaseTab(TabView):
@@ -74,20 +77,16 @@ class HMFInputBase(FormView):
             component = getattr(form.fields[k], "component", None)
 
             if component:
-                module = form.fields[k].module
-                model = getattr(form.fields[k], "model", None)
-                dctkey = component+"_params"
+                form_model = form.cleaned_data[component + "_model"]
+                # the model could be empty if component is, say, cosmo
+                model = getattr(form.fields[k], "model", form_model)
 
-                if not model:
-                    # this happens if parameters were manually added,
-                    # eg. for cosmo
-                    model = form.cleaned_data[component+"_model"]
-
-                cls = getattr(module, model, None)
-                paramname = form.fields[k].paramname
-
-                if model != form.cleaned_data[component+"_model"]:
+                # Ignore params that don't belong to the chosen model
+                if model != form_model:
                     continue
+
+                dctkey = component + "_params"
+                paramname = form.fields[k].paramname
 
                 if dctkey not in hmf_dict:
                     hmf_dict[dctkey] = {paramname: v}
@@ -119,6 +118,7 @@ class HMFInputBase(FormView):
         label = form.cleaned_data['label']
 
         cls, hmf_dict = self.cleaned_data_to_hmf_dict(form)
+        logger.info("Constructed hmf_dct: %s", hmf_dict)
 
         previous = self.kwargs.get('label', None)
 
@@ -151,7 +151,7 @@ class HMFInputCreate(HMFInputBase):
         kwargs.update(
             current_models=self.request.session.get('objects', None),
             model_label=prev_label,
-#            previous_form=forms.get(prev_label, None) if prev_label else None,
+            #            previous_form=forms.get(prev_label, None) if prev_label else None,
             initial=forms.get(prev_label, None) if prev_label else None
         )
         return kwargs
@@ -178,11 +178,9 @@ class HMFInputEdit(HMFInputCreate):
 
         # If editing, and the label was changed, we need to remove the old label.
         if form.cleaned_data['label'] != self.kwargs['label']:
-            print("deleting someting")
             del self.request.session['objects'][self.kwargs['label']]
             del self.request.session['forms'][self.kwargs['label']]
-        else:
-            print("not deleting anything")
+
         return result
 
 
@@ -214,7 +212,6 @@ def complete_reset(request):
 
 class ViewPlots(BaseTab):
     def get(self, request, *args, **kwargs):
-
         # Create a default MassFunction object that displays upon opening.
         if "objects" not in request.session:
             default_obj = MassFunction()
@@ -242,13 +239,13 @@ def plots(request, filetype, plottype):
     """
     Chooses the type of plot needed and the filetype (pdf or png) and outputs it
     """
-    # TODO: give user an option for ylim dynamically?
-    if "objects" not in request.session:
-        return HttpResponseRedirect('/hmfcalc/create/')
-    else:
-        pass
+    objects = request.session.get("objects", None)
 
-    objects = request.session["objects"]
+    if not objects:
+        return HttpResponseRedirect('/hmfcalc/')
+
+    if filetype not in ['png', 'svg', 'pdf', 'zip']:
+        raise ValueError("{} is not a valid plot filetype".format(filetype))
 
     MLABEL = r'Mass $(M_{\odot}h^{-1})$'
     KLABEL = r"Wavenumber, $k$ [$h$/Mpc]"
@@ -344,11 +341,11 @@ def plots(request, filetype, plottype):
     # How to output the image
     if filetype == 'png':
         response = HttpResponse(figure_buf.getvalue(), content_type='image/png')
-
+    elif filetype == "svg":
+        response = HttpResponse(figure_buf.getvalue(), content_type='image/svg+xml')
     elif filetype == 'pdf':
         response = HttpResponse(figure_buf.getvalue(), content_type='application/pdf')
         response["Content-Disposition"] = "attachment;filename=" + plottype + ".pdf"
-
     elif filetype == 'zip':
         response = io.StringIO()
 

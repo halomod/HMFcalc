@@ -86,21 +86,34 @@ LOGGING = {
     'filters': {
         'require_debug_false': {
             '()': 'django.utils.log.RequireDebugFalse'
-        }
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue'
+        },
+
     },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
+        'console_dev': {
+            'level': os.getenv("LOGLEVEL", "ERROR"),
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler'
+        },
+        'console_prod': {
+            'level': 'INFO',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+            'class': 'logging.StreamHandler'
+        },
     },
     'loggers': {
         'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
+            'handlers': ['console_dev', 'console_prod'],
+            'level': 'INFO',
             'propagate': True,
         },
+        "HMFcalc": {
+            'handlers': ['console_dev', 'console_prod'],
+            'level': "INFO"
+        }
     }
 }
 
@@ -154,7 +167,6 @@ STATIC_ROOT = os.path.join(ROOT_DIR, 'static')
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
-
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -211,7 +223,6 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'HMF.wsgi.application'
 SESSION_SAVE_EVERY_REQUEST = True
-
 
 # ===============================================================================
 # EMAIL SETUP

@@ -5,7 +5,11 @@ when you run "manage.py test".
 Replace this with more appropriate tests for your application.
 """
 
+import logging
+
 from django.test import TestCase
+
+logger = logging.getLogger(__name__)
 
 
 class SimpleTest(TestCase):

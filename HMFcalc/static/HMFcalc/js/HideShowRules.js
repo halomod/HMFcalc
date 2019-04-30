@@ -1,20 +1,20 @@
 $(function () {
     jQuery.fn.extend({
-       toggle_params: function(){
-           var these =$('div[data-component='+$(this).attr("data-component")+'][data-model~='+$(this).val()+']');
+        toggle_params: function () {
+            var these = $('div[data-component=' + $(this).attr("data-component") + '][data-model~=' + $(this).val() + ']');
             these.show();
             these.find("input").prop("required", true);
 
-            var those = $('div[data-component='+$(this).attr("data-component")+']').not('[data-model~='+$(this).val()+']');
+            var those = $('div[data-component=' + $(this).attr("data-component") + ']').not('[data-model~=' + $(this).val() + ']');
             those.hide();
             those.find('input').removeAttr("required");
-       }
+        }
     });
 
     /* Hide all params that aren't required here */
     $('.hmf_model').toggle_params();
 
-    $('.hmf_model').change(function() {
+    $('.hmf_model').change(function () {
         $(this).toggle_params();
     });
 
@@ -22,7 +22,7 @@ $(function () {
     if ($('[id*="-table-delete-button"]').length === 1) {
         console.log("doing this...");
         console.log($('[id*="-table-delete-button"]'));
-        $('[id*="-table-delete-button"]').replaceWith(function() {
+        $('[id*="-table-delete-button"]').replaceWith(function () {
             return $('<span/>', {
                 href: this.href,
                 html: this.innerHTML
@@ -31,7 +31,7 @@ $(function () {
     }
 
     if ($('[id*="-table-delete-button"]').length > 1) {
-        $('[id*="-table-delete-button"]').replaceWith(function() {
+        $('[id*="-table-delete-button"]').replaceWith(function () {
             return $('<a/>', {
                 href: this.href,
                 html: this.innerHTML
@@ -115,7 +115,7 @@ $(function () {
 
     //Change plotted image to whatever user clicks on
     $('#id_plot_choice').change(function () {
-        var src = $(this).val() + '.png';
+        var src = $(this).val() + '.svg';
         $('#the_image').attr('src', src);
 
         //Also change download link

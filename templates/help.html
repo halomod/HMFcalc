@@ -2,13 +2,13 @@
 
 {% block title %}HMFcalc | Help {% endblock %}
 {% block subheading %}
-    <div class="page-header">
+    <div class="col-9 page-header mx-auto">
         <h1>Help</h1>
     </div>
 {% endblock %}
 
 {% block content %}
-    <div class="col-8">
+    <div class="col-9 mx-auto">
         <p class="lead muted">
             This page outlines the common usage of HMF<em>calc</em>, along with
             information concerning the various parameters and options included.
@@ -20,11 +20,11 @@
             used, the cosmological parameters and the fitting functions.
         </p>
 
-        <h3>Common Usage</h3>
+        <h3>Using HMF<em>calc</em></h3>
         <p>
             HMF<em>calc</em> is built to be easy to use. In the simplest example,
             the only action required on your part is to navigate to the
-            <a href="/hmfcalc/create/">calculator</a> and click "Calculate".
+            <a href="/hmfcalc/">calculator</a> and click "Calculate".
             All required options and parameters are filled with
             sensible defaults and ready to go. Nevertheless, most users will
             want to fiddle with the parameters to tune them to their
@@ -42,7 +42,7 @@
             internal organisation of the <code>hmf</code> code.
             <code>hmf</code> is composed of a series of <code>components</code>,
             integrated into <code>frameworks</code>. Each <code>component</code>
-            and <code>framework</code> receives its own Tab in HMFcalc.
+            and <code>framework</code> receives its own Tab in HMF<em>calc</em>.
         </p>
         <p>
             In particular, <code>components</code> often have many different
@@ -51,6 +51,31 @@
             chosen to model f(&#963)). Each of these models (for the same
             <code>component</code>) may have different parameters. These parameters
             will be shown dynamically as you chose the relevant models.
+        </p>
+
+        <h4>Model Creation and Editing</h4>
+        <p>
+            New to HMF<em>calc</em> is the ability to view and edit the models
+            that have been thus-far created. Each created model receives its
+            own entry in a table below the main plotting interface. From there,
+            you can choose to edit or delete the model. Also, you can create a
+            new model based on the existing model (all parameter defaults for
+            the new model will match the parameters of the model that was
+            chosen as a starting point).
+        </p>
+        <p>
+            HMF<em>calc</em> starts with a default model (matching the default
+            model of <code>hmf</code>) and allows you to edit or create more
+            models based on this default. You can delete all but one model,
+            as HMF<em>calc</em> always expects to have at least one model
+            defined.
+        </p>
+        <p>
+            Models are persistent -- you can navigate to this help page and
+            back to the <a href="/hmfcalc/">calculator</a> and your models
+            will remain. To restart calculations from the original default
+            model and delete all the models you've created in the session,
+            use the big red restart button in the calculator.
         </p>
 
         <!--
@@ -194,136 +219,136 @@
     </p>
     -->
 
-    <!--
-    For completeness, we also list here the values of the other parameters used for the CAMB runs. Note that these are
-    values used for
-    the high-resolution default transfer functions. Where the on-the-fly runs differ from these, we note their value in
-    parentheses.
-    Parameters that do not affect the transfer function whatsoever are intentionally omitted here for brevity.
-    <div class='row'>
-        <div class='span5'>
+        <!--
+        For completeness, we also list here the values of the other parameters used for the CAMB runs. Note that these are
+        values used for
+        the high-resolution default transfer functions. Where the on-the-fly runs differ from these, we note their value in
+        parentheses.
+        Parameters that do not affect the transfer function whatsoever are intentionally omitted here for brevity.
+        <div class='row'>
+            <div class='span5'>
 
-            <table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
-                <thead>
-                <th scope='col'> Parameter</th>
-                <th scope='col'> Value</th>
-                <th scope='col'> Parameter</th>
-                <th scope='col'> Value</th>
-                <th scope='col'> Parameter</th>
-                <th scope='col'> Value</th>
-                </thead>
-                <tbody>
-                <tr>
-                    <td> Cl's</td>
-                    <td>Scalar</td>
-                    <td> get_transfer</td>
-                    <td> TRUE</td>
-                    <td> accurate_reionization</td>
-                    <td>TRUE</td>
-                </tr>
-                <tr>
-                    <td> Do lensing</td>
-                    <td> FALSE</td>
-                    <td> do_nonlinear</td>
-                    <td>Linear</td>
-                    <td> re_ionization_frac</td>
-                    <td>-1</td>
-                </tr>
-                <tr>
-                    <td> do_tensor_neutrinos</td>
-                    <td>TRUE</td>
-                    <td> Scalar l_max</td>
-                    <td> 2000</td>
-                    <td> RECFAST_fudge</td>
-                    <td>1.14</td>
-                </tr>
-                <tr>
-                    <td> initial_ratio</td>
-                    <td>1</td>
-                    <td> Scalar k*eta_max</td>
-                    <td> 4000</td>
-                    <td> RECFAST_fudge_He</td>
-                    <td>0.86</td>
-                </tr>
-                <tr>
-                    <td> Do_late_rad_truncation</td>
-                    <td>TRUE</td>
-                    <td> Use Physical Parameters</td>
-                    <td> FALSE</td>
-                    <td> RECFAST_Heswitch</td>
-                    <td>6</td>
-                </tr>
-                <tr>
-                    <td> reionization</td>
-                    <td>True</td>
-                    <td> cs2_lam</td>
-                    <td> 0</td>
-                    <td> RECFAST_Hswitch</td>
-                    <td>TRUE</td>
-                </tr>
-                <tr>
-                    <td> high_accuracy_default</td>
-                    <td>1</td>
-                    <td> temp_cmb</td>
-                    <td>2.725</td>
-                    <td> Initial scalar Perturbation Mode</td>
-                    <td>Adiabatic</td>
-                <tr>
-                    <td> helium_fraction</td>
-                    <td>0.24</td>
-                    <td> vector_mode</td>
-                    <td>0</td>
-                    <td> l_accuracy_boost</td>
-                    <td>1</td>
-                <tr>
-                    <td> massless_neutrinos</td>
-                    <td>3.04</td>
-                    <td> COBE_normalize</td>
-                    <td>FALSE</td>
-                    <td> l_sample_boost</td>
-                    <td>2.725</td>
-                <tr>
-                    <td> massive_neutrinos</td>
-                    <td>0</td>
-                    <td> CMB_outputscale</td>
-                    <td>1</td>
-                    <td> massive_nu_approx</td>
-                    <td>1</td>
-                <tr>
-                    <td> nu_mass_eigenstates</td>
-                    <td>1</td>
-                    <td> transfer_high_precision</td>
-                    <td>TRUE</td>
-                    <td> Lensing Method</td>
-                    <td>Curved Correlation Funtion</td>
-                <tr>
-                    <td> nu_mass_degeneracies</td>
-                    <td>0</td>
-                    <td> Transfer_kmax</td>
-                    <td>2000</td>
-                    <td> accurate_polarization</td>
-                    <td>TRUE</td>
-                <tr>
-                    <td> nu_mass_fractions</td>
-                    <td>1</td>
-                    <td> transfer_k_per_logint</td>
-                    <td>100</td>
-                    <td> accurate_BB</td>
-                    <td>FALSE</td>
-                <tr>
-                    <td> scalar_amp</td>
-                    <td>1</td>
-                    <td>accuracy_boost</td>
-                    <td>1</td>
+                <table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
+                    <thead>
+                    <th scope='col'> Parameter</th>
+                    <th scope='col'> Value</th>
+                    <th scope='col'> Parameter</th>
+                    <th scope='col'> Value</th>
+                    <th scope='col'> Parameter</th>
+                    <th scope='col'> Value</th>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td> Cl's</td>
+                        <td>Scalar</td>
+                        <td> get_transfer</td>
+                        <td> TRUE</td>
+                        <td> accurate_reionization</td>
+                        <td>TRUE</td>
+                    </tr>
+                    <tr>
+                        <td> Do lensing</td>
+                        <td> FALSE</td>
+                        <td> do_nonlinear</td>
+                        <td>Linear</td>
+                        <td> re_ionization_frac</td>
+                        <td>-1</td>
+                    </tr>
+                    <tr>
+                        <td> do_tensor_neutrinos</td>
+                        <td>TRUE</td>
+                        <td> Scalar l_max</td>
+                        <td> 2000</td>
+                        <td> RECFAST_fudge</td>
+                        <td>1.14</td>
+                    </tr>
+                    <tr>
+                        <td> initial_ratio</td>
+                        <td>1</td>
+                        <td> Scalar k*eta_max</td>
+                        <td> 4000</td>
+                        <td> RECFAST_fudge_He</td>
+                        <td>0.86</td>
+                    </tr>
+                    <tr>
+                        <td> Do_late_rad_truncation</td>
+                        <td>TRUE</td>
+                        <td> Use Physical Parameters</td>
+                        <td> FALSE</td>
+                        <td> RECFAST_Heswitch</td>
+                        <td>6</td>
+                    </tr>
+                    <tr>
+                        <td> reionization</td>
+                        <td>True</td>
+                        <td> cs2_lam</td>
+                        <td> 0</td>
+                        <td> RECFAST_Hswitch</td>
+                        <td>TRUE</td>
+                    </tr>
+                    <tr>
+                        <td> high_accuracy_default</td>
+                        <td>1</td>
+                        <td> temp_cmb</td>
+                        <td>2.725</td>
+                        <td> Initial scalar Perturbation Mode</td>
+                        <td>Adiabatic</td>
+                    <tr>
+                        <td> helium_fraction</td>
+                        <td>0.24</td>
+                        <td> vector_mode</td>
+                        <td>0</td>
+                        <td> l_accuracy_boost</td>
+                        <td>1</td>
+                    <tr>
+                        <td> massless_neutrinos</td>
+                        <td>3.04</td>
+                        <td> COBE_normalize</td>
+                        <td>FALSE</td>
+                        <td> l_sample_boost</td>
+                        <td>2.725</td>
+                    <tr>
+                        <td> massive_neutrinos</td>
+                        <td>0</td>
+                        <td> CMB_outputscale</td>
+                        <td>1</td>
+                        <td> massive_nu_approx</td>
+                        <td>1</td>
+                    <tr>
+                        <td> nu_mass_eigenstates</td>
+                        <td>1</td>
+                        <td> transfer_high_precision</td>
+                        <td>TRUE</td>
+                        <td> Lensing Method</td>
+                        <td>Curved Correlation Funtion</td>
+                    <tr>
+                        <td> nu_mass_degeneracies</td>
+                        <td>0</td>
+                        <td> Transfer_kmax</td>
+                        <td>2000</td>
+                        <td> accurate_polarization</td>
+                        <td>TRUE</td>
+                    <tr>
+                        <td> nu_mass_fractions</td>
+                        <td>1</td>
+                        <td> transfer_k_per_logint</td>
+                        <td>100</td>
+                        <td> accurate_BB</td>
+                        <td>FALSE</td>
+                    <tr>
+                        <td> scalar_amp</td>
+                        <td>1</td>
+                        <td>accuracy_boost</td>
+                        <td>1</td>
 
-                </tbody>
+                    </tbody>
 
-            </table>
+                </table>
+
+            </div>
 
         </div>
-
-    </div>
-     -->
+         -->
 
         <!--
     <h5>User-Uploaded Transfer</h5>

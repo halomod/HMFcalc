@@ -4,9 +4,8 @@ Created on Apr 10, 2013
 @author: Steven
 '''
 
-
-from django import template
 import hmf
+from django import template
 
 register = template.Library()
 

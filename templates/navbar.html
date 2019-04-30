@@ -20,7 +20,8 @@
                                 <div class="dropdown-menu" aria-labelledby="dropdown-{{ tab.tab_label }}">
                                     {% for alltabs in tabs %}
                                         {% if alltabs.tab_id in tab.my_children %}
-                                            <a class="dropdown-item{% if alltabs.tab_id == current_tab_id %} active{% endif %}" href="{{ alltabs.tab_id }}">
+                                            <a class="dropdown-item{% if alltabs.tab_id == current_tab_id %} active{% endif %}"
+                                               href="{{ alltabs.tab_id }}">
                                                 {{ alltabs.tab_label }}
                                             </a>
                                         {% endif %}

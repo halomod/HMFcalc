@@ -1,7 +1,7 @@
 {% extends "text_base.html" %}
 
 {% block subheading %}
-    <div class="page-header">
+    <div class="col-9 page-header mx-auto">
         <h1>HMF<i>calc</i>: the halo mass function calculator.</h1>
     </div>
 {% endblock %}
@@ -9,31 +9,29 @@
 
 {% block content %}
 
-    <div class="col-8">
-    <p> This is an app for calculating the Halo Mass Function,
-        written by Steven Murray at the
-        <a href="https://www.icrar.org">
-            International Centre for Radio Astronomy Research (ICRAR). </a>
-    </p>
+    <div class="col-9 mx-auto">
+        <p> This is an app for calculating the Halo Mass Function,
+            written by Steven Murray at the
+            <a href="https://www.icrar.org">
+                International Centre for Radio Astronomy Research (ICRAR). </a>
+        </p>
 
-    <p>Please acknowledge use of this application, by citing
-        <a href="http://adsabs.harvard.edu/abs/2013A%26C.....3...23M">
+        <p>Please acknowledge use of this application, by citing
+            <a href="http://adsabs.harvard.edu/abs/2013A%26C.....3...23M">
                 Murray, Power & Robotham (2013)
             </a>. </p>
 
-    <p> If you find bugs or issues, or have ideas for improvements,
-        the best way to report it is to
-        <a href="https://github.com/steven-murray/HMFcalc/issues/new">file
-        an issue</a> directly. Otherwise, you can
-        <a href='/contact_info'>contact us directly</a>.
-    </p>
+        <p> If you find bugs or issues, or have ideas for improvements,
+            the best way to report it is to
+            <a href="https://github.com/steven-murray/HMFcalc/issues/new">file
+                an issue</a> directly. Otherwise, you can
+            <a href='/contact_info'>contact us directly</a>.
+        </p>
 
-    <p>The backend for this app is written in Python.
-        If you have a working python installation you can install it simply with
-        <code>pip install hmf</code>.</p>
+        <p>The backend for this app is written in Python.
+            If you have a working python installation you can install it simply with
+            <code>pip install hmf</code>.</p>
 
-    <div id='submitcontainer' class='form-actions' style='align:centre;'>
-        <a href='hmfcalc/create/' class='btn btn-primary btn-large'>Go to the Calculator</a>
-    </div>
+        <a href='hmfcalc/' class='btn btn-primary btn-block'>Go to the Calculator</a>
     </div>
 {% endblock %}

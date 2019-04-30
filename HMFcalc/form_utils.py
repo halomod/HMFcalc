@@ -1,3 +1,4 @@
+import logging
 import re
 from collections import OrderedDict
 
@@ -6,9 +7,11 @@ from crispy_forms.layout import Div, Field
 from django import forms
 from django.utils.safestring import mark_safe
 
+logger = logging.getLogger(__name__)
+
 
 class RangeSlider(forms.TextInput):
-    def __init__(self, minimum, maximum, step, elem_name, initial=None, *args, **kwargs):
+    def __init__(self, minimum, maximum, step, elem_name, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.minimum = str(minimum)
@@ -92,10 +95,9 @@ class RangeSliderField(forms.CharField):
         self.minimum = kwargs.pop('minimum', 0)
         self.maximum = kwargs.pop('maximum', 100)
         self.step = kwargs.pop('step', 1)
-        self.initial = kwargs.pop("initial", None)
 
         kwargs['widget'] = RangeSlider(self.minimum, self.maximum,
-                                       self.step, self.name, initial=self.initial)
+                                       self.step, self.name)
 
         if 'label' not in kwargs.keys():
             kwargs['label'] = False

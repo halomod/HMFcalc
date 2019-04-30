@@ -6,12 +6,14 @@
 
     <div class="container">
         <div class="row">
-            <div class="col-8">
+            <div class="col-7">
                 {% crispy form %}
             </div>
-            <div class="col-4">
-                <a class="btn btn-danger btn-large" href="restart/"><i class="fas fa-redo-alt"></i> Restart</a>
-                </a>
+            <div class="col-5">
+                <a class="btn btn-success btn-large" href="create/">
+                    <i class="fas fa-plus-square"></i> New Model</a>
+                <a class="btn btn-danger btn-large" href="restart/">
+                    <i class="fas fa-redo-alt"></i> Restart</a>
             </div>
 
         </div>
@@ -31,17 +33,17 @@
         {% endif %}
 
         <div class="row" id="image_row">
-            <div class='col-md-12' align='centre;'>
-                <img src="dndm.png" id='the_image' align="middle">
+            <div class='col-md-12 mx-auto'>
+                <img src="dndm.svg" id='the_image' width="100%">
             </div>
         </div>
 
 
         <!-- Model Table -->
-        <div class="row", id="model_table_row">
+        <div class="row" id="model_table_row">
             <div class="col-8">
-            <table class="table" id="model_table">
-                <tbody>
+                <table class="table" id="model_table">
+                    <tbody>
                     {% for object in objects.keys %}
                         <tr id="{{ object }}-table-row">
                             <th scope="row"> {{ object }}</th>
@@ -62,8 +64,8 @@
                             </td>
                         </tr>
                     {% endfor %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

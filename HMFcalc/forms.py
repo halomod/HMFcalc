@@ -4,6 +4,8 @@ Created on May 3, 2012
 @author: smurray
 '''
 
+import logging
+
 import hmf
 import numpy as np
 from crispy_forms.bootstrap import TabHolder
@@ -14,6 +16,8 @@ from django.utils.safestring import mark_safe
 from hmf import growth_factor, transfer_models, fitting_functions, filters, wdm
 
 from .form_utils import CompositeForm, HMFModelForm, HMFFramework, RangeSliderField
+
+logger = logging.getLogger(__name__)
 
 
 class CosmoForm(HMFModelForm):
@@ -67,7 +71,7 @@ class TransferForm(HMFModelForm):
         ("CAMB", "CAMB"),
         ("EH_BAO", "Eisenstein-Hu (1998) (with BAO)"),
         ("EH_NoBAO", "Eisenstein-Hu (1998) (no BAO)"),
-        ("BBKS", "BBKS (1986)", ),
+        ("BBKS", "BBKS (1986)",),
         ("BondEfs", "Bond-Efstathiou")
     ]
     _initial = "CAMB"
@@ -78,7 +82,7 @@ class TransferForm(HMFModelForm):
         "fname": {
             "type": forms.FileField,
             "label": "",
-         }
+        }
     }
 
     def clean_transfer_fname(self):
@@ -179,7 +183,7 @@ class FilterForm(HMFModelForm):
 
 
 class MassFunctionFramework(HMFFramework):
-    label="Mass Function"
+    label = "Mass Function"
 
     logm_range = RangeSliderField(
         label="logM range",
@@ -191,8 +195,8 @@ class MassFunctionFramework(HMFFramework):
 
     dlog10m = forms.FloatField(
         label="&#916<sub>halo</sub>",
-        min_value = 0.005,
-        max_value = 1,
+        min_value=0.005,
+        max_value=1,
         initial="0.01"
     )
 
@@ -233,6 +237,10 @@ class WDMAlterForm(HMFModelForm):
     label = "WDM Recalibration"
     kind = "alter"
 
+    def clean_alter_model(self):
+        if self.cleaned_data['alter_model'] == "None":
+            self.cleaned_data['alter_model'] = None
+
 
 class WDMForm(HMFModelForm):
     module = wdm
@@ -264,7 +272,7 @@ class HMFInput(CompositeForm):
         max_length=25
     )
 
-    def __init__(self, model_label=None, current_models=None, previous_form=None,
+    def __init__(self, model_label=None, current_models=None,
                  edit=False, *args, **kwargs):
 
         self.current_models = current_models
@@ -277,8 +285,6 @@ class HMFInput(CompositeForm):
 
         super().__init__(*args, **kwargs)
 
-        print(self.initial['logm_range'])
-
         # Add form.modules to fields (useful for getting which ones are necessary)
         for form in self.forms:
             if not hasattr(form, "module"):
@@ -286,15 +292,6 @@ class HMFInput(CompositeForm):
 
             for field in form.fields:
                 self.fields[field].module = form.module
-
-        # If this is based on a previous form, set the initial values.
-        if previous_form:
-            for key, val in previous_form.items():
-                if key=="logm_range":
-                    print("PREVIOUS FORM: ", val)
-
-                if key in self.fields:
-                    self.fields[key].initial = val
 
         # If this is not an edit, we can't use the same label!
         if not edit and model_label:
@@ -316,7 +313,7 @@ class HMFInput(CompositeForm):
                     css_class="col"
                 ),
                 Div(
-                    HTML( # use HTML for button, to get icon in there :-)
+                    HTML(  # use HTML for button, to get icon in there :-)
                         '<button type="submit" class="btn btn-primary">'
                         '<i class="fas fa-calculator"></i> Calculate'
                         '</button>'
@@ -350,7 +347,7 @@ class HMFInput(CompositeForm):
         krange = cleaned_data.get("lnk_range")
         dlnk = cleaned_data.get("dlnk")
 
-        if dlnk > (float(krange[1]) - float(krange[0]))/2:
+        if dlnk > (float(krange[1]) - float(krange[0])) / 2:
             raise forms.ValidationError("Wavenumber step-size must be less than the k-range.")
 
         # Check that only redshift OR hmf_model is list
@@ -360,7 +357,7 @@ class HMFInput(CompositeForm):
         # Check mass limits
         mrange = cleaned_data.get("logm_range")
         dlogm = cleaned_data.get("dlog10m")
-        if dlogm > (float(mrange[1]) - float(mrange[0]))/2:
+        if dlogm > (float(mrange[1]) - float(mrange[0])) / 2:
             raise forms.ValidationError("Mass step-size must be less than its range.")
 
         return cleaned_data
@@ -396,7 +393,7 @@ class PlotChoice(forms.Form):
         if len(objects) > 1:
             show_comps = True
             for i, o in enumerate(objects.values()):
-                if i==0:
+                if i == 0:
                     comp_obj = o
                 else:
                     if o.Mmin != comp_obj.Mmin or o.Mmax != comp_obj.Mmax or len(o.m) != len(comp_obj.m):
