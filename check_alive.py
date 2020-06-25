@@ -11,7 +11,10 @@ from subprocess import call
 response = urllib.request.urlopen("http://hmf.icrar.org", timeout=5)
 
 for line in response.readlines():
-    if "<a href='hmf_finder/form/create/' class='btn btn-primary btn-large'>Begin!</a>" in line:
+    if (
+        "<a href='hmf_finder/form/create/' class='btn btn-primary btn-large'>Begin!</a>"
+        in line
+    ):
         print("found line")
         found_line = True
         break

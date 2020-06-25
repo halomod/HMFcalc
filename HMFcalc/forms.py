@@ -1,8 +1,8 @@
-'''
+"""
 Created on May 3, 2012
 
 @author: smurray
-'''
+"""
 
 import logging
 
@@ -38,19 +38,19 @@ class CosmoForm(HMFModelForm):
             label=mark_safe("H<sub>0</sub>"),
             initial=str(hmf.cosmo.Planck15.H0.value),
             min_value=10,
-            max_value=500.0
+            max_value=500.0,
         ),
         Ob0=forms.FloatField(
             label=mark_safe("&#937<sub>b</sub>"),
             initial=str(hmf.cosmo.Planck15.Ob0),
             min_value=0.005,
-            max_value=0.65
+            max_value=0.65,
         ),
         Om0=forms.FloatField(
             label=mark_safe("&#937<sub>m</sub>"),
             initial=str(hmf.cosmo.Planck15.Om0),
             min_value=0.02,
-            max_value=2.0
+            max_value=2.0,
         ),
     )
 
@@ -72,26 +72,23 @@ class TransferForm(HMFModelForm):
         ("EH_BAO", "Eisenstein-Hu (1998) (with BAO)"),
         ("EH_NoBAO", "Eisenstein-Hu (1998) (no BAO)"),
         ("BBKS", "BBKS (1986)",),
-        ("BondEfs", "Bond-Efstathiou")
+        ("BondEfs", "Bond-Efstathiou"),
     ]
     _initial = "CAMB"
     module = transfer_models
-    ignore_fields = ['camb_params']
+    ignore_fields = ["camb_params"]
 
-    field_kwargs = {
-        "fname": {
-            "type": forms.FileField,
-            "label": "",
-        }
-    }
+    field_kwargs = {"fname": {"type": forms.FileField, "label": "",}}
 
     def clean_transfer_fname(self):
-        thefile = self.cleaned_data.get('transfer_fname', None)
+        thefile = self.cleaned_data.get("transfer_fname", None)
         if thefile is not None:
             try:
                 np.genfromtxt(thefile)
-            except:
-                raise forms.ValidationError("Uploaded transfer file is of the wrong format")
+            except Exception:
+                raise forms.ValidationError(
+                    "Uploaded transfer file is of the wrong format"
+                )
         return thefile
 
 
@@ -99,48 +96,39 @@ class TransferFramework(HMFFramework):
     label = "Transfer Function"
 
     # Redshift at which to calculate the mass variance.
-    z = forms.FloatField(
-        label="Redshift",
-        initial='0',
-        min_value=0,
-        max_value=1100
-    )
+    z = forms.FloatField(label="Redshift", initial="0", min_value=0, max_value=1100)
 
     # Power spectral index
     n = forms.FloatField(
         label=mark_safe("n<sub>s</sub> "),
-        initial='0.965',
+        initial="0.965",
         min_value=-4,
         max_value=3,
-        help_text="Spectral Index (note: modified by Base Cosmology)"
+        help_text="Spectral Index (note: modified by Base Cosmology)",
     )
 
     # Mass variance on a scale of 8Mpc
     sigma_8 = forms.FloatField(
         label=mark_safe("&#963<sub>8</sub>"),
-        initial='0.802',
+        initial="0.802",
         min_value=0.1,
-        help_text="RMS Mass Fluctuations (note: modified by Base Cosmology)"
+        help_text="RMS Mass Fluctuations (note: modified by Base Cosmology)",
     )
 
     lnk_range = RangeSliderField(
         label="lnk range",
         minimum=np.log(1e-10),
         maximum=np.log(2e6),
-        initial='-18.42 - 9.9',
-        step=0.1
+        initial="-18.42 - 9.9",
+        step=0.1,
     )
 
     dlnk = forms.FloatField(
-        label="lnk Step Size",
-        initial=0.05,
-        min_value=0.005,
-        max_value=0.5,
+        label="lnk Step Size", initial=0.05, min_value=0.005, max_value=0.5,
     )
 
     takahashi = forms.BooleanField(
-        label="Use Takahashi (2012) nonlinear P(k)?",
-        required=False
+        label="Use Takahashi (2012) nonlinear P(k)?", required=False
     )
 
 
@@ -165,7 +153,7 @@ class HMFForm(HMFModelForm):
         ("Behroozi", "Behroozi (Tinker Extension to High-z) (2013)"),
         ("Pillepich", "Pillepich (2010)"),
         ("Manera", "Manera (2010)"),
-        ("Ishiyama", "Ishiyama (2015)")
+        ("Ishiyama", "Ishiyama (2015)"),
     ]
     _initial = "Tinker08"
     module = fitting_functions
@@ -177,7 +165,7 @@ class FilterForm(HMFModelForm):
         ("TopHat", "Top-hat"),
         ("Gaussian", "Gaussian"),
         ("SharpK", "Sharp-k"),
-        ("SharpKEllipsoid", "Sharp-k with ellipsoidal correction")
+        ("SharpKEllipsoid", "Sharp-k with ellipsoidal correction"),
     ]
     _initial = "TopHat"
 
@@ -186,25 +174,15 @@ class MassFunctionFramework(HMFFramework):
     label = "Mass Function"
 
     logm_range = RangeSliderField(
-        label="logM range",
-        minimum=0,
-        maximum=20,
-        initial="10 - 15",
-        step=0.1
+        label="logM range", minimum=0, maximum=20, initial="10 - 15", step=0.1
     )
 
     dlog10m = forms.FloatField(
-        label="&#916<sub>halo</sub>",
-        min_value=0.005,
-        max_value=1,
-        initial="0.01"
+        label="&#916<sub>halo</sub>", min_value=0.005, max_value=1, initial="0.01"
     )
 
     delta_c = forms.FloatField(
-        label=mark_safe("&#948<sub>c</sub>"),
-        initial='1.686',
-        min_value=1,
-        max_value=3
+        label=mark_safe("&#948<sub>c</sub>"), initial="1.686", min_value=1, max_value=3
     )
 
     delta_h = forms.FloatField(
@@ -212,16 +190,15 @@ class MassFunctionFramework(HMFFramework):
         help_text="Halo Overdensity Definition",
         initial=200.0,
         min_value=10,
-        max_value=10000.0
+        max_value=10000.0,
     )
 
     delta_wrt = forms.ChoiceField(
         label=mark_safe("&#916<sub>halo</sub> with respect to"),
-        choices=[("mean", "Mean Density"),
-                 ("crit", "Critical Density")],
+        choices=[("mean", "Mean Density"), ("crit", "Critical Density")],
         initial="mean",
         required=True,
-        widget=forms.RadioSelect
+        widget=forms.RadioSelect,
     )
 
 
@@ -238,8 +215,8 @@ class WDMAlterForm(HMFModelForm):
     kind = "alter"
 
     def clean_alter_model(self):
-        if self.cleaned_data['alter_model'] == "None":
-            self.cleaned_data['alter_model'] = None
+        if self.cleaned_data["alter_model"] == "None":
+            self.cleaned_data["alter_model"] = None
 
 
 class WDMForm(HMFModelForm):
@@ -250,10 +227,7 @@ class WDMForm(HMFModelForm):
 
 class WDMFramework(HMFFramework):
     wdm_mass = forms.FloatField(
-        label="WDM Particle Mass (keV)",
-        initial=0,
-        min_value=0,
-        max_value=1000.0
+        label="WDM Particle Mass (keV)", initial=0, min_value=0, max_value=1000.0
     )
 
 
@@ -261,19 +235,30 @@ class HMFInput(CompositeForm):
     """
     Input parameters to the halo mass function.
     """
-    form_list = [MassFunctionFramework, HMFForm,
-                 TransferFramework, TransferForm, FilterForm,
-                 GrowthForm, CosmoForm, WDMFramework, WDMForm, WDMAlterForm]
+
+    form_list = [
+        MassFunctionFramework,
+        HMFForm,
+        TransferFramework,
+        TransferForm,
+        FilterForm,
+        GrowthForm,
+        CosmoForm,
+        WDMFramework,
+        WDMForm,
+        WDMAlterForm,
+    ]
 
     label = forms.CharField(
         label="Label",
         initial="default",
         help_text="A name for the model",
-        max_length=25
+        max_length=25,
     )
 
-    def __init__(self, model_label=None, current_models=None,
-                 edit=False, *args, **kwargs):
+    def __init__(
+        self, model_label=None, current_models=None, edit=False, *args, **kwargs
+    ):
 
         self.current_models = current_models
         self.derivative_model_label = model_label
@@ -295,12 +280,12 @@ class HMFInput(CompositeForm):
 
         # If this is not an edit, we can't use the same label!
         if not edit and model_label:
-            self.fields['label'].initial = model_label + "-new"
+            self.fields["label"].initial = model_label + "-new"
 
         self.helper = FormHelper()
-        self.helper.form_id = 'input_form'
-        self.helper.form_class = 'form-horizontal'
-        self.helper.form_method = 'post'
+        self.helper.form_id = "input_form"
+        self.helper.form_class = "form-horizontal"
+        self.helper.form_method = "post"
 
         self.helper.help_text_inline = True
         self.helper.label_class = "col-3 control-label"
@@ -308,28 +293,23 @@ class HMFInput(CompositeForm):
 
         self.helper.layout = Layout(
             Div(
-                Div(
-                    "label",
-                    css_class="col"
-                ),
+                Div("label", css_class="col"),
                 Div(
                     HTML(  # use HTML for button, to get icon in there :-)
                         '<button type="submit" class="btn btn-primary">'
                         '<i class="fas fa-calculator"></i> Calculate'
-                        '</button>'
+                        "</button>"
                     ),
-                    css_class="col"
+                    css_class="col",
                 ),
-                css_class="row"
+                css_class="row",
             ),
-            TabHolder(
-                *[form._layout for form in self.forms]
-            ),
+            TabHolder(*[form._layout for form in self.forms]),
         )
-        self.helper.form_action = ''
+        self.helper.form_action = ""
 
     def clean_label(self):
-        label = self.cleaned_data['label']
+        label = self.cleaned_data["label"]
         label = label.replace("_", "-")
 
         if not self.edit and self.current_models:
@@ -348,7 +328,9 @@ class HMFInput(CompositeForm):
         dlnk = cleaned_data.get("dlnk")
 
         if dlnk > (float(krange[1]) - float(krange[0])) / 2:
-            raise forms.ValidationError("Wavenumber step-size must be less than the k-range.")
+            raise forms.ValidationError(
+                "Wavenumber step-size must be less than the k-range."
+            )
 
         # Check that only redshift OR hmf_model is list
         # if len(cleaned_data['z']) > 1 and len(cleaned_data.get('hmf_model', [])) > 1:
@@ -364,7 +346,6 @@ class HMFInput(CompositeForm):
 
 
 class PlotChoice(forms.Form):
-
     def __init__(self, request, *args, **kwargs):
         super(PlotChoice, self).__init__(*args, **kwargs)
         # Add in extra plot choices if they are required by the form in the session.
@@ -387,7 +368,7 @@ class PlotChoice(forms.Form):
             ("rho_gtm", mark_safe("&#961(>m)")),
             ("transfer_function", "Transfer Function"),
             ("power", "Power Spectrum"),
-            ("delta_k", "Dimensionless Power Spectrum")
+            ("delta_k", "Dimensionless Power Spectrum"),
         ]
 
         if len(objects) > 1:
@@ -396,45 +377,48 @@ class PlotChoice(forms.Form):
                 if i == 0:
                     comp_obj = o
                 else:
-                    if o.Mmin != comp_obj.Mmin or o.Mmax != comp_obj.Mmax or len(o.m) != len(comp_obj.m):
+                    if (
+                        o.Mmin != comp_obj.Mmin
+                        or o.Mmax != comp_obj.Mmax
+                        or len(o.m) != len(comp_obj.m)
+                    ):
                         show_comps = False
 
             if show_comps:
                 plot_choices += [
                     ("comparison_dndm", "Comparison of Mass Functions"),
-                    ("comparison_fsigma", "Comparison of Fitting Functions")
+                    ("comparison_fsigma", "Comparison of Fitting Functions"),
                 ]
 
         self.fields["plot_choice"] = forms.ChoiceField(
-            label="Plot: ",
-            choices=plot_choices,
-            initial='dndm',
-            required=False
+            label="Plot: ", choices=plot_choices, initial="dndm", required=False
         )
 
         self.helper = FormHelper()
-        self.helper.form_id = 'plotchoiceform'
-        self.helper.form_class = 'form-horizontal'
-        self.helper.form_method = 'post'
-        self.helper.form_action = ''
+        self.helper.form_id = "plotchoiceform"
+        self.helper.form_class = "form-horizontal"
+        self.helper.form_method = "post"
+        self.helper.form_action = ""
         self.helper.help_text_inline = True
         self.helper.label_class = "col-md-3 control-label"
         self.helper.field_class = "col-md-8"
-        self.helper.layout = Layout(Div('plot_choice', 'download_choice', css_class="col-md-6"))
+        self.helper.layout = Layout(
+            Div("plot_choice", "download_choice", css_class="col-md-6")
+        )
 
     download_choices = [
         ("pdf-current", "PDF of Current Plot"),
         # ("pdf-all", "PDF's of All Plots"),
         ("ASCII", "All ASCII data"),
         ("parameters", "List of parameter values"),
-        ("halogen", "HALOgen-ready input")
+        ("halogen", "HALOgen-ready input"),
     ]
 
     download_choice = forms.ChoiceField(
         label=mark_safe('<a href="dndm.pdf" id="plot_download">Download </a>'),
         choices=download_choices,
-        initial='pdf-current',
-        required=False
+        initial="pdf-current",
+        required=False,
     )
 
 
@@ -446,5 +430,5 @@ class ContactForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
-        self.helper.add_input(Submit('submit', 'Submit'))
+        self.helper.add_input(Submit("submit", "Submit"))
         super(ContactForm, self).__init__(*args, **kwargs)

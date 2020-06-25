@@ -11,7 +11,7 @@ c, armenian, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danis
 h, dutch, ukenglish, usenglishmax, esperanto, estonian, ethiopic, farsi, finnis
 h, french, friulan, galician, german, ngerman, swissgerman, monogreek, greek, h
 ungarian, icelandic, assamese, bengali, gujarati, hindi, kannada, malayalam, ma
-rathi, oriya, panjabi, tamil, telugu, indonesian, interlingua, irish, italian, 
+rathi, oriya, panjabi, tamil, telugu, indonesian, interlingua, irish, italian,
 kurmanji, latin, latvian, lithuanian, mongolian, mongolianlmc, bokmal, nynorsk,
  piedmontese, polish, portuguese, romanian, romansh, russian, sanskrit, serbian
 , serbianc, slovak, slovenian, spanish, swedish, turkish, turkmen, ukrainian, u
@@ -69,7 +69,7 @@ Package: ltxcmds 2011/11/09 v1.22 LaTeX kernel commands for general use (HO)
 \Gin@req@width=\dimen105
 )
 (/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/pifont.sty
-Package: pifont 2005/04/12 PSNFSS-v9.2a Pi font support (SPQR) 
+Package: pifont 2005/04/12 PSNFSS-v9.2a Pi font support (SPQR)
 LaTeX Font Info:    Try loading font information for U+pzd on input line 63.
 
 (/usr/local/texlive/2012/texmf-dist/tex/latex/psnfss/upzd.fd
@@ -407,7 +407,7 @@ LaTeX Font Info:    Redeclaring math symbol \circlearrowright on input line 642
 .
 LaTeX Font Info:    Redeclaring math symbol \rightsquigarrow on input line 645.
 
-LaTeX Font Info:    Redeclaring math symbol \leftrightsquigarrow on input line 
+LaTeX Font Info:    Redeclaring math symbol \leftrightsquigarrow on input line
 646.
 LaTeX Font Info:    Redeclaring math symbol \oplus on input line 658.
 LaTeX Font Info:    Redeclaring math symbol \ominus on input line 659.
@@ -636,7 +636,7 @@ e
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
 * hratio: 1:1
 * vratio: 1:1
-* modes: 
+* modes:
 * h-part:(L,W,R)=(37.75394pt, 522.0pt, 37.75394pt)
 * v-part:(T,H,B)=(81.52342pt, 682.0pt, 81.52342pt)
 * \paperwidth=597.50787pt
@@ -668,32 +668,32 @@ Package caption Info: End \AtBeginDocument code.
 (/usr/local/texlive/2012/texmf-dist/tex/latex/amsfonts/umsa.fd)
 (/usr/local/texlive/2012/texmf-dist/tex/latex/amsfonts/umsb.fd)
 Overfull \hbox (7.2785pt too wide) in paragraph at lines 90--90
- []\OT1/cmr/m/sc/9 Redshift 
+ []\OT1/cmr/m/sc/9 Redshift
  []
 
 
 Overfull \hbox (7.2785pt too wide) in paragraph at lines 90--90
- []\OT1/cmr/m/sc/9 Redshift 
+ []\OT1/cmr/m/sc/9 Redshift
  []
 
 
 Overfull \hbox (5.04486pt too wide) in paragraph at lines 90--90
-\OT1/cmr/m/n/10 0\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 7234 [] [] []$|  
+\OT1/cmr/m/n/10 0\OML/cmm/m/it/10 :\OT1/cmr/m/n/10 7234 [] [] []$|
  []
 
 
 Overfull \hbox (18.42734pt too wide) in paragraph at lines 90--90
-\U/matha/m/n/10 ^^B\OML/cmm/m/it/10 A[] []$  
+\U/matha/m/n/10 ^^B\OML/cmm/m/it/10 A[] []$
  []
 
 
 Overfull \hbox (3.19185pt too wide) in paragraph at lines 90--90
-[]\OT1/cmr/m/n/9 Bhattacharya 
+[]\OT1/cmr/m/n/9 Bhattacharya
  []
 
 
 Overfull \hbox (5.8013pt too wide) in paragraph at lines 90--90
-\OML/cmm/m/it/10 A[] [] [] [] [][]$\OT1/cmr/m/n/10 ,  
+\OML/cmm/m/it/10 A[] [] [] [] [][]$\OT1/cmr/m/n/10 ,
  []
 
 [1
@@ -707,7 +707,7 @@ Missing character: There is no   in font cmr8!
 
 LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
 
- ) 
+ )
 Here is how much of TeX's memory you used:
  5179 strings out of 493481
  74204 string characters out of 3140966
@@ -745,4 +745,3 @@ PDF statistics:
  75 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
-

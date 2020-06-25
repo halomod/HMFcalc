@@ -7,20 +7,20 @@
 - Removed cruft hanging around the site that was outdated.
 - Removed Twitter feed because its obnoxious
 - Updates to secret settings...
-- Better creation/editing of models. Moving towards single-page app. 
+- Better creation/editing of models. Moving towards single-page app.
 - All of hmf input parameters now supported
 - Added requirements.txt file
- 
-## 1.0.6 
+
+## 1.0.6
 
 - various bugfixes (especially the form)
 
-## 1.0.5 
+## 1.0.5
 
 - added growth factor to cosmographic table
-- added Bhattacharya function 
+- added Bhattacharya function
 - added email contact form
-		
-### 1.0.2 
+
+### 1.0.2
 
 - added better validation for many inputs to cause it not to crash

@@ -23,7 +23,7 @@ class RangeSlider(forms.TextInput):
         try:
             rg = val.split(" - ")
             return """[ """ + rg[0] + "," + rg[1] + """ ]"""
-        except:
+        except IndexError:
             return """[ """ + self.minimum + """,""" + self.maximum + """ ]"""
 
     def render(self, name, value, attrs=None, renderer=None):
@@ -32,23 +32,51 @@ class RangeSlider(forms.TextInput):
         elem_id = re.findall(r'id_([A-Za-z0-9_\./\\-]*)"', s)[0]
         val = self.get_initial(value)
 
-        html = """<div id="slider-range-""" + elem_id + """"></div>
+        html = (
+            """<div id="slider-range-"""
+            + elem_id
+            + """"></div>
         <script>
-        $('#id_""" + elem_id + """').attr("readonly", true)
-        $( "#slider-range-""" + elem_id + """" ).slider({
+        $('#id_"""
+            + elem_id
+            + """').attr("readonly", true)
+        $( "#slider-range-"""
+            + elem_id
+            + """" ).slider({
         range: true,
-        min: """ + self.minimum + """,
-        max: """ + self.maximum + """,
-        step: """ + self.step + """,
-        values: """ + val + """,
+        min: """
+            + self.minimum
+            + """,
+        max: """
+            + self.maximum
+            + """,
+        step: """
+            + self.step
+            + """,
+        values: """
+            + val
+            + """,
         slide: function( event, ui ) {
-          $( "#id_""" + elem_id + """" ).val(" """ + self.elem_name + """ "+ ui.values[ 0 ] + " - " + ui.values[ 1 ] );
+          $( "#id_"""
+            + elem_id
+            + """" ).val(" """
+            + self.elem_name
+            + """ "+ ui.values[ 0 ] + " - " + ui.values[ 1 ] );
         }
         });
-        $( "#id_""" + elem_id + """" ).val(" """ + self.elem_name + """ "+ $( "#slider-range-""" + elem_id + """" ).slider( "values", 0 ) +
-        " - " + $( "#slider-range-""" + elem_id + """" ).slider( "values", 1 ) );
+        $( "#id_"""
+            + elem_id
+            + """" ).val(" """
+            + self.elem_name
+            + """ "+ $( "#slider-range-"""
+            + elem_id
+            + """" ).slider( "values", 0 ) +
+        " - " + $( "#slider-range-"""
+            + elem_id
+            + """" ).slider( "values", 1 ) );
         </script>
         """
+        )
 
         return mark_safe(s + html)
 
@@ -70,7 +98,7 @@ class FloatListField(forms.CharField):
 
         final_list = []
         if value:
-            numbers = value.split(',')
+            numbers = value.split(",")
             for number in numbers:
                 try:
                     final_list.append(float(number))
@@ -80,27 +108,36 @@ class FloatListField(forms.CharField):
                 if self.min_val is not None:
                     if number < self.min_val:
                         raise forms.ValidationError(
-                            "Must be greater than " + str(self.min_val) + " (" + str(number) + ")")
+                            "Must be greater than "
+                            + str(self.min_val)
+                            + " ("
+                            + str(number)
+                            + ")"
+                        )
                 if self.max_val is not None:
                     if number > self.max_val:
                         raise forms.ValidationError(
-                            "Must be smaller than " + str(self.max_val) + " (" + str(number) + ")")
+                            "Must be smaller than "
+                            + str(self.max_val)
+                            + " ("
+                            + str(number)
+                            + ")"
+                        )
 
         return final_list
 
 
 class RangeSliderField(forms.CharField):
     def __init__(self, *args, **kwargs):
-        self.name = kwargs.pop('name', '')
-        self.minimum = kwargs.pop('minimum', 0)
-        self.maximum = kwargs.pop('maximum', 100)
-        self.step = kwargs.pop('step', 1)
+        self.name = kwargs.pop("name", "")
+        self.minimum = kwargs.pop("minimum", 0)
+        self.maximum = kwargs.pop("maximum", 100)
+        self.step = kwargs.pop("step", 1)
 
-        kwargs['widget'] = RangeSlider(self.minimum, self.maximum,
-                                       self.step, self.name)
+        kwargs["widget"] = RangeSlider(self.minimum, self.maximum, self.step, self.name)
 
-        if 'label' not in kwargs.keys():
-            kwargs['label'] = False
+        if "label" not in kwargs.keys():
+            kwargs["label"] = False
 
         super(RangeSliderField, self).__init__(*args, **kwargs)
 
@@ -120,6 +157,7 @@ class CompositeForm(forms.Form):
 
     Ripped from https://github.com/t0ster/django-composite-form
     """
+
     form_list = None  # Form classes
 
     def __init__(self, data=None, files=None, field_order=None, *args, **kwargs):
@@ -195,14 +233,14 @@ class HMFModelForm(forms.Form):
 
         # Fill the fields
         if not self.multi:
-            self.fields[f'{self.kind}_model'] = forms.ChoiceField(
+            self.fields[f"{self.kind}_model"] = forms.ChoiceField(
                 label=self.label,
                 choices=self.choices,
                 initial=self._initial,
                 required=True,
             )
         else:
-            self.fields[f'{self.kind}_model'] = forms.MultipleChoiceField(
+            self.fields[f"{self.kind}_model"] = forms.MultipleChoiceField(
                 label=self.label,
                 choices=self.choices,
                 initial=[self._initial],
@@ -227,13 +265,13 @@ class HMFModelForm(forms.Form):
                     Field(
                         f"{self.kind}_model",
                         css_class="hmf_model",
-                        data_component=self.kind
+                        data_component=self.kind,
                     ),
-                    css_class='col',
+                    css_class="col",
                 ),
                 self._get_model_param_divs(),
-                css_class='mt-4 row',
-            )
+                css_class="mt-4 row",
+            ),
         )
 
     def _add_default_model(self, model):
@@ -255,10 +293,7 @@ class HMFModelForm(forms.Form):
             thisfield = fkw.pop("type", forms.FloatField)
 
             self.fields[name] = thisfield(
-                label=fkw.pop("label", key),
-                initial=str(val),
-                required=False,
-                **fkw
+                label=fkw.pop("label", key), initial=str(val), required=False, **fkw
             )
 
             self.fields[name].component = self.kind
@@ -277,13 +312,11 @@ class HMFModelForm(forms.Form):
                         name,
                         css_class="col",
                         data_component=self.kind,
-                        data_model=field.model
+                        data_model=field.model,
                     )
                 )
             else:
-                param_div.append(
-                    Div(name, css_class='col')
-                )
+                param_div.append(Div(name, css_class="col"))
         return param_div
 
 
@@ -296,10 +329,4 @@ class HMFFramework(forms.Form):
         if self.label is None:
             self.label = self.__class__.__name__
 
-        self._layout = Tab(
-            self.label,
-            Div(
-                *self.fields.keys(),
-                css_class="mt-4 col"
-            )
-        )
+        self._layout = Tab(self.label, Div(*self.fields.keys(), css_class="mt-4 col"))

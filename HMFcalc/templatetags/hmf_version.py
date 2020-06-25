@@ -1,8 +1,8 @@
-'''
+"""
 Created on Apr 10, 2013
 
 @author: Steven
-'''
+"""
 
 import hmf
 from django import template

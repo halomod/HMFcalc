@@ -4,14 +4,14 @@
 
 This is the source code for the HMFcalc web-app, hosted at http://hmf.icrar.org.
 
-If you are looking for the Python library to calculate HMFs, 
+If you are looking for the Python library to calculate HMFs,
 see https://github.com/steven-murray/hmf
 
 This website is powered by Django and uses Bootstrap 4 as a CSS framework.
 
-To acknowledge use of this app, cite 
+To acknowledge use of this app, cite
 [Murray, Power & Robotham (2013)](http://adsabs.harvard.edu/abs/2013A%26C.....3...23M").
-            
+
 ## Why this repo
 Why provide this open-source repo for the web-app instead of just providing the
 app itself?
