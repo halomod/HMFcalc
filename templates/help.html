@@ -1,298 +1,458 @@
 {% extends "text_base.html" %}
 
 {% block title %}HMFcalc | Help {% endblock %}
-{% block subheading %} 
-<div class="page-header">
-<h2>How To Use HMF<i>calc</i></h2>
-</div>
+{% block subheading %}
+    <div class="col-9 page-header mx-auto">
+        <h1>Help</h1>
+    </div>
 {% endblock %}
 
 {% block content %}
-<p class="lead muted">
-This page outlines the common usage of HMF<em>calc</em>, along with information concerning the various parameters and options included. Much of this
-information is a modified rendition of <a href=http://arxiv.org/abs/1306.6721>this article</a>, which accompanied the publishing of HMF<em>calc</em>.
-Read on for information about common usage, the transfer function used, the cosmological parameters and the fitting functions.
-</p>
+    <div class="col-9 mx-auto">
+        <p class="lead muted">
+            This page outlines the common usage of HMF<em>calc</em>, along with
+            information concerning the various parameters and options included.
+            Much of this information is a modified rendition of
+            <a href=http://arxiv.org/abs/1306.6721>this article</a>, which
+            accompanied the publishing of HMF<em>calc</em>, though the backend
+            has changed significantly since this publication.
+            Read on for information about common usage, the transfer function
+            used, the cosmological parameters and the fitting functions.
+        </p>
 
-<h3>Common Usage</h3>
-<p>
-HMF<em>calc</em> is built to be easy to use. In the simplest example, the only action required on your part is to navigate to the 
-<a href="/hmf_finder/form/create/">calculator</a> and click "Calculate!". All required options and parameters are filled with 
-sensible defaults and ready to go. Nevertheless, most users will want to fiddle with the parameters to tune them to their 
-particular needs -- be it a survey, simulation or investigation.
-</p>
-<p>
-The options and parameters in HMF<em>calc</em> were chosen to give as much flexibility as possible without making things overly
-complicated. They are split over two tabs in the calculator, one for general run parameters and options and the other for 
-cosmological parameters. 
-</p>
-<p>
-Several of the input fields indicate that they require a comma-separated list. For these parameters, you may 
-specify as many input values as you wish, and <em>all possible combinations of all parameters</em> will be calculated. This 
-can multiply very quickly, and so we have placed an overall maximum on the number of calculations to ensure our server can 
-handle it. 
-</p>
-<p>
-The exceptions to this rule are the cosmological parameters. These are treated as 'sets', in which the first entry for each
-parameter is taken as a set, and labeled with the first given label. If there is a second entry for any parameter, then all 
-second entries are taken, along with the first entries of any parameters that only have one, and the second entry for the label. 
-This carries on, with the number of labels equivalent to the largest number of entries for any parameter.
-</p>
-<p>
-One more flexible field is the Custom Fitting Function. It takes a string representing an equation in python syntax, in terms 
-of a variable <em>x</em>. The equation forms a desired fitting function, with <em>x</em> taking the role of the mass variance. 
-No other explicit dependence may be included (such as redshift or overdensity), nor may the equation be multi-lined. It must be 
-a single equation in terms of the single variable <em>x</em>. Future versions may include a generalisation of this feature if 
-sufficient interest is shown.
-</p>
-<p>
-There is a row of options titled "Optional Extra Plots" on the main tab. These are calculations that are not inherently 
-performed along with the differential mass function calculation, but which many users may find useful. This is especially 
-true of the cumulative mass function, <em>N(>M)</em>, which is checked by default. 
-</p>
-<p>
-The primary focus of the cosmological parameters tab is the production of the transfer function, which we discuss in the next section.
-</p>
-<p></p>
-<h3>Transfer Function</h3>
+        <h3>Using HMF<em>calc</em></h3>
+        <p>
+            HMF<em>calc</em> is built to be easy to use. In the simplest example,
+            the only action required on your part is to navigate to the
+            <a href="/hmfcalc/">calculator</a> and click "Calculate".
+            All required options and parameters are filled with
+            sensible defaults and ready to go. Nevertheless, most users will
+            want to fiddle with the parameters to tune them to their
+            particular needs -- be it a survey, simulation or investigation.
+        </p>
+        <p>
+            The options and parameters in HMF<em>calc</em> were chosen to give
+            as much flexibility as possible without making things overly
+            complicated. They are split over tabs in the calculator, each
+            governing a different sub-model.
+        </p>
 
-The transfer function is handled in one of three ways. It is either
-<ol>
-	<li> Previously computed at high resolution by <a href="http://camb.info">CAMB</a> and included as a default option.</li>
-	<li> Previously computed <em>by the user</em> either with CAMB or saved in the same format as CAMB, and uploaded to HMF<em>calc</em></li>
-	<li> Computed on-the-fly with arbitrary cosmological parameters.
-</ol>
-We describe some of the details of each method in this section.
+        <p>
+            The organisation of these tabs is no accident -- it mirrors the
+            internal organisation of the <code>hmf</code> code.
+            <code>hmf</code> is composed of a series of <code>components</code>,
+            integrated into <code>frameworks</code>. Each <code>component</code>
+            and <code>framework</code> receives its own Tab in HMF<em>calc</em>.
+        </p>
+        <p>
+            In particular, <code>components</code> often have many different
+            <span class="font-italic">models</span> which can be chosen for them.
+            One obvious example is the hmf model itself (i.e. the fitting function
+            chosen to model f(&#963)). Each of these models (for the same
+            <code>component</code>) may have different parameters. These parameters
+            will be shown dynamically as you chose the relevant models.
+        </p>
 
-<h5>Pre-Computed High-Res Transfer</h5>
-<p>This is the default option. It is selected by choosing a popular cosmology from the "Transfer Function" drop-down list.
-Parameters of that cosmology that affect that transfer function in any way
-are internally set and made non-modifiable so that no confusion arises. Parameters that are relevant to the cosmology and prescribed in
-the relevant paper, but which do not affect the transfer function, are set by default to their proper values but are still modifiable.
-</p>
-<p>
-This option does not allow the automatic generation of HMF's for several cosmologies, except for in the transfer-independent parameters,
-as only one default may be chosen at a time. However, you may use the "Add Extra Plots" feature after generating a HMF to add different
-default cosmologies.
-</p>
-<p>
-As mentioned, each of the default cosmologies is a high-resolution transfer function from CAMB. In each case, all parameters of the run
-(and there are many) were the same, except for the cosmological parameters. The following table shows the values for each of the cosmologies, where
-each set of parameters was taken from a corresponding paper, linked from the heading. Note that the n<sub>s</sub> and &#963<sub>8</sub> are not used
-to calculate the transfer function within CAMB, but we list their values here for completeness.
-<div class='row'>
-<div class='span7'>
-<table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
-	<thead>
-	<th scope='col'> Parameter </th>
-	<th scope='col'><a href='http://arxiv.org/abs/1303.5076'>Planck</a></th>
-	<th scope='col'><a href='http://arxiv.org/abs/1212.5226'>WMAP9</a></th>
-	<th scope='col'><a href='http://adsabs.harvard.edu/abs/2011ApJS..192...18K'>WMAP7</a></th>
-	<th scope='col'><a href='http://stacks.iop.org/0067-0049/180/i=2/a=330?key=crossref.355ec98555761e3f8a6a38d88962d16f'>WMAP5</a></th>
-	<th scope='col'><a href="http://stacks.iop.org/0067-0049/180/i=2/a=330?key=crossref.355ec98555761e3f8a6a38d88962d16f">GiggleZ</a></th>
-	<th scope='col'><a href="http://adsabs.harvard.edu/abs/2007ApJS..170..377S">WMAP3</a></th>
-	<th scope='col'><a href="http://adsabs.harvard.edu/abs/2003ApJS..148..175S">WMAP1</a></th>
-	<th scope='col'><a href="http://tao.it.swin.edu.au/partner-resources/simulations/millennium/">Millennium</a></th>
-	</thead>
-	
-	<tbody>
-	<tr>
-	<td> &#937<sub>&#923</sub> </td>
-	<td> 0.6817</td>
-	<td> 0.7181</td>
-	<td> 0.728 </td>
-	<td> 0.723 </td>
-	<td> 0.726 </td>
-	<td> 0.732 </td>
-	<td> 0.710 </td>
-	<td> 0.750 </td>
-	</tr>
-	
-	<tr>
-	<td> &#937<sub>c</sub> </td>
-	<td> 0.2678</td>
-	<td> 0.236</td>
-	<td> 0.226 </td>
-	<td> 0.231 </td>
-	<td> 0.228 </td>
-	<td> 0.224 </td>
-	<td> 0.243 </td>
-	<td> 0.205 </td>
-	</tr>
-	
-	<tr>
-	<td> &#937<sub>b</sub> </td>
-	<td> 0.049 </td>
-	<td> 0.0461 </td>
-	<td> 0.0455 </td>
-	<td> 0.0459 </td>
-	<td> 0.0456 </td>
-	<td> 0.044 </td>
-	<td> 0.047 </td>
-	<td> 0.045 </td>
-	</tr>
-	
-	<tr>
-	<td> n<sub>s</sub> </td>
-	<td> 0.9619 </td>
-	<td> 0.9646 </td>
-	<td> 0.967 </td>
-	<td> 0.962 </td>
-	<td> 0.960 </td>
-	<td> 0.99 </td>
-	<td> 0.947 </td>
-	<td> 1 </td>
-	</tr>
-	
-	<tr>
-	<td> H<sub>0</sub> </td>
-	<td> 67.04 </td>
-	<td> 69.7 </td>
-	<td> 0.704 </td>
-	<td> 0.702 </td>
-	<td> 0.705 </td>
-	<td> 0.704 </td>
-	<td> 0.72 </td>
-	<td> 0.73 </td>
-	</tr>
-	
-	<tr>
-	<td> &#963<sub>8</sub> </td>
-	<td> 0.8347 </td>
-	<td> 0.817 </td>
-	<td> 0.81 </td>
-	<td> 0.817 </td>
-	<td> 0.812 </td>
-	<td> 0.776 </td>
-	<td> 0.9 </td>
-	<td> 0.9 </td>
-	</tr>
-	
-	</tbody>
-	
-	
- </table>
-</div>
-</div>
-</p>
+        <h4>Model Creation and Editing</h4>
+        <p>
+            New to HMF<em>calc</em> is the ability to view and edit the models
+            that have been thus-far created. Each created model receives its
+            own entry in a table below the main plotting interface. From there,
+            you can choose to edit or delete the model. Also, you can create a
+            new model based on the existing model (all parameter defaults for
+            the new model will match the parameters of the model that was
+            chosen as a starting point).
+        </p>
+        <p>
+            HMF<em>calc</em> starts with a default model (matching the default
+            model of <code>hmf</code>) and allows you to edit or create more
+            models based on this default. You can delete all but one model,
+            as HMF<em>calc</em> always expects to have at least one model
+            defined.
+        </p>
+        <p>
+            Models are persistent -- you can navigate to this help page and
+            back to the <a href="/hmfcalc/">calculator</a> and your models
+            will remain. To restart calculations from the original default
+            model and delete all the models you've created in the session,
+            use the big red restart button in the calculator.
+        </p>
+
+        <!--
+
+        <h3>Transfer Function</h3>
+
+        The transfer function is handled in one of three ways. It is either
+    <ol>
+        <li> Previously computed at high resolution by <a href="http://camb.info">CAMB</a> and included as a default
+            option.
+        </li>
+        <li> Previously computed <em>by the user</em> either with CAMB or saved in the same format as CAMB, and uploaded
+            to HMF<em>calc</em></li>
+        <li> Computed on-the-fly with arbitrary cosmological parameters.
+    </ol>
+    We describe some of the details of each method in this section.
+
+    <h5>Pre-Computed High-Res Transfer</h5>
+    <p>This is the default option. It is selected by choosing a popular cosmology from the "Transfer Function" drop-down
+        list.
+        Parameters of that cosmology that affect that transfer function in any way
+        are internally set and made non-modifiable so that no confusion arises. Parameters that are relevant to the
+        cosmology and prescribed in
+        the relevant paper, but which do not affect the transfer function, are set by default to their proper values but
+        are still modifiable.
+    </p>
+    <p>
+        This option does not allow the automatic generation of HMF's for several cosmologies, except for in the
+        transfer-independent parameters,
+        as only one default may be chosen at a time. However, you may use the "Add Extra Plots" feature after generating
+        a HMF to add different
+        default cosmologies.
+    </p>
+    <p>
+        As mentioned, each of the default cosmologies is a high-resolution transfer function from CAMB. In each case,
+        all parameters of the run
+        (and there are many) were the same, except for the cosmological parameters. The following table shows the values
+        for each of the cosmologies, where
+        each set of parameters was taken from a corresponding paper, linked from the heading. Note that the
+        n<sub>s</sub> and &#963<sub>8</sub> are not used
+        to calculate the transfer function within CAMB, but we list their values here for completeness.
+    <div class='row'>
+        <div class='span7'>
+            <table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
+                <thead>
+                <th scope='col'> Parameter</th>
+                <th scope='col'><a href='http://arxiv.org/abs/1303.5076'>Planck</a></th>
+                <th scope='col'><a href='http://arxiv.org/abs/1212.5226'>WMAP9</a></th>
+                <th scope='col'><a href='http://adsabs.harvard.edu/abs/2011ApJS..192...18K'>WMAP7</a></th>
+                <th scope='col'><a
+                        href='http://stacks.iop.org/0067-0049/180/i=2/a=330?key=crossref.355ec98555761e3f8a6a38d88962d16f'>WMAP5</a>
+                </th>
+                <th scope='col'><a
+                        href="http://stacks.iop.org/0067-0049/180/i=2/a=330?key=crossref.355ec98555761e3f8a6a38d88962d16f">GiggleZ</a>
+                </th>
+                <th scope='col'><a href="http://adsabs.harvard.edu/abs/2007ApJS..170..377S">WMAP3</a></th>
+                <th scope='col'><a href="http://adsabs.harvard.edu/abs/2003ApJS..148..175S">WMAP1</a></th>
+                <th scope='col'><a
+                        href="http://tao.it.swin.edu.au/partner-resources/simulations/millennium/">Millennium</a></th>
+                </thead>
+
+                <tbody>
+                <tr>
+                    <td> &#937<sub>&#923</sub></td>
+                    <td> 0.6817</td>
+                    <td> 0.7181</td>
+                    <td> 0.728</td>
+                    <td> 0.723</td>
+                    <td> 0.726</td>
+                    <td> 0.732</td>
+                    <td> 0.710</td>
+                    <td> 0.750</td>
+                </tr>
+
+                <tr>
+                    <td> &#937<sub>c</sub></td>
+                    <td> 0.2678</td>
+                    <td> 0.236</td>
+                    <td> 0.226</td>
+                    <td> 0.231</td>
+                    <td> 0.228</td>
+                    <td> 0.224</td>
+                    <td> 0.243</td>
+                    <td> 0.205</td>
+                </tr>
+
+                <tr>
+                    <td> &#937<sub>b</sub></td>
+                    <td> 0.049</td>
+                    <td> 0.0461</td>
+                    <td> 0.0455</td>
+                    <td> 0.0459</td>
+                    <td> 0.0456</td>
+                    <td> 0.044</td>
+                    <td> 0.047</td>
+                    <td> 0.045</td>
+                </tr>
+
+                <tr>
+                    <td> n<sub>s</sub></td>
+                    <td> 0.9619</td>
+                    <td> 0.9646</td>
+                    <td> 0.967</td>
+                    <td> 0.962</td>
+                    <td> 0.960</td>
+                    <td> 0.99</td>
+                    <td> 0.947</td>
+                    <td> 1</td>
+                </tr>
+
+                <tr>
+                    <td> H<sub>0</sub></td>
+                    <td> 67.04</td>
+                    <td> 69.7</td>
+                    <td> 0.704</td>
+                    <td> 0.702</td>
+                    <td> 0.705</td>
+                    <td> 0.704</td>
+                    <td> 0.72</td>
+                    <td> 0.73</td>
+                </tr>
+
+                <tr>
+                    <td> &#963<sub>8</sub></td>
+                    <td> 0.8347</td>
+                    <td> 0.817</td>
+                    <td> 0.81</td>
+                    <td> 0.817</td>
+                    <td> 0.812</td>
+                    <td> 0.776</td>
+                    <td> 0.9</td>
+                    <td> 0.9</td>
+                </tr>
+
+                </tbody>
 
 
-For completeness, we also list here the values of the other parameters used for the CAMB runs. Note that these are values used for 
-the high-resolution default transfer functions. Where the on-the-fly runs differ from these, we note their value in parentheses. 
-Parameters that do not affect the transfer function whatsoever are intentionally omitted here for brevity.
-<div class='row'>
-<div class='span5'>
+            </table>
+        </div>
+    </div>
+    </p>
+    -->
 
-<table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
-<thead>
-	<th scope='col'> Parameter </th>
-	<th scope='col'> Value </th>
-	<th scope='col'> Parameter </th>
-	<th scope='col'> Value </th>
-	<th scope='col'> Parameter </th>
-	<th scope='col'> Value </th>
-</thead>
-<tbody>
- <tr><td> Cl's </td><td>Scalar</td><td> get_transfer</td><td> TRUE</td><td> accurate_reionization</td><td>TRUE</td></tr>
- <tr><td> Do lensing</td><td> FALSE</td><td> do_nonlinear</td><td>Linear</td><td> re_ionization_frac</td><td>-1</td></tr>
- <tr><td> do_tensor_neutrinos</td><td>TRUE</td><td> Scalar l_max </td><td> 2000</td><td> RECFAST_fudge</td><td>1.14</td></tr>
- <tr><td> initial_ratio</td><td>1</td><td> Scalar k*eta_max </td><td> 4000</td><td> RECFAST_fudge_He</td><td>0.86</td></tr>
- <tr><td> Do_late_rad_truncation</td><td>TRUE</td><td> Use Physical Parameters</td><td> FALSE</td><td> RECFAST_Heswitch</td><td>6</td></tr>
- <tr><td> reionization</td><td>True</td><td> cs2_lam </td><td> 0</td><td> RECFAST_Hswitch</td><td>TRUE</td></tr>
- <tr><td> high_accuracy_default</td><td>1</td><td> temp_cmb</td><td>2.725</td><td> Initial scalar Perturbation Mode</td><td>Adiabatic</td>
- <tr><td> helium_fraction</td><td>0.24</td><td> vector_mode</td><td>0</td><td> l_accuracy_boost</td><td>1</td>
- <tr><td> massless_neutrinos</td><td>3.04</td><td> COBE_normalize</td><td>FALSE</td><td> l_sample_boost</td><td>2.725</td>
- <tr><td> massive_neutrinos</td><td>0</td><td> CMB_outputscale</td><td>1</td><td> massive_nu_approx</td><td>1</td>
- <tr><td> nu_mass_eigenstates</td><td>1</td><td> transfer_high_precision</td><td>TRUE</td><td> Lensing Method</td><td>Curved Correlation Funtion</td>
- <tr><td> nu_mass_degeneracies</td><td>0</td><td> Transfer_kmax</td><td>2000</td><td> accurate_polarization</td><td>TRUE</td>
- <tr><td> nu_mass_fractions</td><td>1</td><td> transfer_k_per_logint</td><td>100</td><td> accurate_BB</td><td>FALSE</td>
- <tr><td> scalar_amp</td><td>1</td><td>accuracy_boost</td><td>1</td>
+        <!--
+        For completeness, we also list here the values of the other parameters used for the CAMB runs. Note that these are
+        values used for
+        the high-resolution default transfer functions. Where the on-the-fly runs differ from these, we note their value in
+        parentheses.
+        Parameters that do not affect the transfer function whatsoever are intentionally omitted here for brevity.
+        <div class='row'>
+            <div class='span5'>
 
- </tbody>
- 
- </table>
- 
-</div>
+                <table id="cosmo_quantities" class='table table-bordered table-condensed table-hover table-striped'>
+                    <thead>
+                    <th scope='col'> Parameter</th>
+                    <th scope='col'> Value</th>
+                    <th scope='col'> Parameter</th>
+                    <th scope='col'> Value</th>
+                    <th scope='col'> Parameter</th>
+                    <th scope='col'> Value</th>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td> Cl's</td>
+                        <td>Scalar</td>
+                        <td> get_transfer</td>
+                        <td> TRUE</td>
+                        <td> accurate_reionization</td>
+                        <td>TRUE</td>
+                    </tr>
+                    <tr>
+                        <td> Do lensing</td>
+                        <td> FALSE</td>
+                        <td> do_nonlinear</td>
+                        <td>Linear</td>
+                        <td> re_ionization_frac</td>
+                        <td>-1</td>
+                    </tr>
+                    <tr>
+                        <td> do_tensor_neutrinos</td>
+                        <td>TRUE</td>
+                        <td> Scalar l_max</td>
+                        <td> 2000</td>
+                        <td> RECFAST_fudge</td>
+                        <td>1.14</td>
+                    </tr>
+                    <tr>
+                        <td> initial_ratio</td>
+                        <td>1</td>
+                        <td> Scalar k*eta_max</td>
+                        <td> 4000</td>
+                        <td> RECFAST_fudge_He</td>
+                        <td>0.86</td>
+                    </tr>
+                    <tr>
+                        <td> Do_late_rad_truncation</td>
+                        <td>TRUE</td>
+                        <td> Use Physical Parameters</td>
+                        <td> FALSE</td>
+                        <td> RECFAST_Heswitch</td>
+                        <td>6</td>
+                    </tr>
+                    <tr>
+                        <td> reionization</td>
+                        <td>True</td>
+                        <td> cs2_lam</td>
+                        <td> 0</td>
+                        <td> RECFAST_Hswitch</td>
+                        <td>TRUE</td>
+                    </tr>
+                    <tr>
+                        <td> high_accuracy_default</td>
+                        <td>1</td>
+                        <td> temp_cmb</td>
+                        <td>2.725</td>
+                        <td> Initial scalar Perturbation Mode</td>
+                        <td>Adiabatic</td>
+                    <tr>
+                        <td> helium_fraction</td>
+                        <td>0.24</td>
+                        <td> vector_mode</td>
+                        <td>0</td>
+                        <td> l_accuracy_boost</td>
+                        <td>1</td>
+                    <tr>
+                        <td> massless_neutrinos</td>
+                        <td>3.04</td>
+                        <td> COBE_normalize</td>
+                        <td>FALSE</td>
+                        <td> l_sample_boost</td>
+                        <td>2.725</td>
+                    <tr>
+                        <td> massive_neutrinos</td>
+                        <td>0</td>
+                        <td> CMB_outputscale</td>
+                        <td>1</td>
+                        <td> massive_nu_approx</td>
+                        <td>1</td>
+                    <tr>
+                        <td> nu_mass_eigenstates</td>
+                        <td>1</td>
+                        <td> transfer_high_precision</td>
+                        <td>TRUE</td>
+                        <td> Lensing Method</td>
+                        <td>Curved Correlation Funtion</td>
+                    <tr>
+                        <td> nu_mass_degeneracies</td>
+                        <td>0</td>
+                        <td> Transfer_kmax</td>
+                        <td>2000</td>
+                        <td> accurate_polarization</td>
+                        <td>TRUE</td>
+                    <tr>
+                        <td> nu_mass_fractions</td>
+                        <td>1</td>
+                        <td> transfer_k_per_logint</td>
+                        <td>100</td>
+                        <td> accurate_BB</td>
+                        <td>FALSE</td>
+                    <tr>
+                        <td> scalar_amp</td>
+                        <td>1</td>
+                        <td>accuracy_boost</td>
+                        <td>1</td>
 
-</div>
+                    </tbody>
 
-<h5>User-Uploaded Transfer</h5>
-<p>
-To select this option, choose "Custom Transfer" from the "Transfer Function" drop-down list and then upload a file using the "Upload Transfer Function"
-tool. The user must be careful using this option. There is no way for HMF<em>calc</em> to know what cosmology the uploaded transfer function was 
-calculated with. The user must therefore be careful to set the correct corresponding parameters. Note that only parameters that affect both transfer 
-and the mass function explicitly (see cosmological parameter table) need to be set accurately. Parameters affecting only the transfer function will not 
-be used within HMF<em>calc</em>, and parameters used only in HMF<em>calc</em> will not be at odds with the transfer function. However, for later reference
-it is still better to set every parameter properly, as the parameters are written to file which may later be read.  
+                </table>
 
-The file uploaded in this manner should be in the same format as a transfer function produced by CAMB. That is, it should consist of one column of <em>k/h</em>
-values, followed by 6 columns of transfer function values. The last column should be the total transfer function.
-</p>
+            </div>
 
-<h5>On-The-Fly Transfer</h5>
-<p>This option is selected if a custom transfer function is chosen, but
-no file is uploaded. In this case the user may choose a calculator to use. 
-Currently only two options are available - CAMB and the Eisenstein-Hu transfer function (which is
-calculated using the cosmolopy package).
-</p>
-<p>
-If CAMB is chosen as the calculator, HMF<em>calc</em> only offers the cosmological parameters
-as input parameters to CAMB. All other parameters are taken as the defaults from the backend hmf package (listed in the camb parameters table). 
-This is both to save computation time (the defaults are the most efficient to achieve requisite accuracy at high mass, see the linked article),
-and to avoid unnecessary clutter in the options.
-</p>
+        </div>
+         -->
 
-<h3>Parameters</h3>
-<p>
-We have discussed already that the options and parameters of HMF<em>calc</em> are split across two categories: run parameters and cosmological parameters.
-We here show two tables which outline the function of each parameter.
-</p>
+        <!--
+    <h5>User-Uploaded Transfer</h5>
+    <p>
+        To select this option, choose "Custom Transfer" from the "Transfer Function" drop-down list and then upload a
+        file using the "Upload Transfer Function"
+        tool. The user must be careful using this option. There is no way for HMF<em>calc</em> to know what cosmology
+        the uploaded transfer function was
+        calculated with. The user must therefore be careful to set the correct corresponding parameters. Note that only
+        parameters that affect both transfer
+        and the mass function explicitly (see cosmological parameter table) need to be set accurately. Parameters
+        affecting only the transfer function will not
+        be used within HMF<em>calc</em>, and parameters used only in HMF<em>calc</em> will not be at odds with the
+        transfer function. However, for later reference
+        it is still better to set every parameter properly, as the parameters are written to file which may later be
+        read.
 
-<p>
-We first have the run parameters. In this table, the "Mult?" column specifies whether the given parameter accepts multiple entries (separated by commas).
-<img src="http://hmfstatic.appspot.com/img/runparams.png">
-</p>
-<p>
-Secondly we have the cosmological parameters. The "Affects" column specifies whether the parameter affects the transfer function (T), the HMF (H) or both (B).
-<img src="http://hmfstatic.appspot.com/img/cosmoparams.png">
+        The file uploaded in this manner should be in the same format as a transfer function produced by CAMB. That is,
+        it should consist of one column of <em>k/h</em>
+        values, followed by 6 columns of transfer function values. The last column should be the total transfer
+        function.
+    </p>
 
-<h3>Fitting Functions</h3>
-<p>
-One of the features of HMF<em>calc</em> is its wide array of fitting functions from the literature. We aim to include any fit from the published literature 
-that we find, and encourage you to contact us if you know of a fit which we have not included. 
-</p>
-<p>
-With such a list of available fits, it is perhaps useful to provide some short commentary on how to best choose among them for a specific purpose. We note 
-that each fitting function is a fit to the distribution of halo masses found in a simulation (or set of simulations) with a particular cosmology, and using
-a particular halo-finder. Thus differences between fits can naturally arise from these choices, along with the evolution of resolution and size with time. 
-Given these considerations, we give a few suggestions for choosing a fitting function:
-<ul>
-	<li>Prefer functions measured at a similar cosmology to the one you employ</li>
-	<li>Generally choose a later function over an earlier one</li>
-	<li>If you are using a wide range of cosmologies, or want to remain as general as possible, prefer a function fitted over several cosmologies</li>
-	<li>Generally, for observational purposes, choose an SO fit, but for halo-model calculations choose an FOF fit.</li>
-</ul>
-</p>
-<p> 
-To help weigh these considerations, we here provide the list of references for all fitting functions found in HMF<em>calc</em>:
-<ul>
-	<li> <a href ='http://iopscience.iop.org/0004-637X/671/2/1160/'>Press, Schechter, 1974 </a></li>
-	<li> <a href='http://doi.wiley.com/10.1046/j.1365-8711.2001.04006.x'>Sheth, Mo, Tormen, 2001 </a></li>
-	<li> <a href ='http://adsabs.harvard.edu/abs/2001MNRAS.321..372J'>Jenkins et. al. 2001 </a></li> 
-	<li> <a href="http://arxiv.org/abs/astro-ph/0301270">Reed et. al., 2003</a></li>
-	<li> <a href ='http://adsabs.harvard.edu/abs/2006ApJ...646..881W'>Warren et. al., 2006 </a></li>
-	<li> <a href="http://arxiv.org/abs/0705.0898">Peacock, 2007</a></li>
-	<li> <a href ='http://adsabs.harvard.edu/abs/2007MNRAS.374....2R'>Reed et. al., 2007 </a></li>
-	<li> <a href="http://arxiv.org/abs/0803.2706">Tinker et. al., 2008 </a></li>
-	<li> <a href ='http://doi.wiley.com/10.1111/j.1365-2966.2009.16194.x'>Crocce et. al., 2010 </a></li>
-	<li> <a href="http://arxiv.org/abs/1001.3425">Courtin et. al., 2010 </a></li>
-	<li> <a href="http://arxiv.org/abs/1005.2239">Bhattacharya et. al., 2011</a></li>
-	<li> <a href="arXiv:1203.3216v1">Angulo et. al., 2012 </a></li>
-	<li> <a href="http://arxiv.org/abs/1212.0095">Watson et. al., 2012 </a></li>
-	<li> <a href="http://arxiv.org/abs/1207.6105">Behroozi, Weschler, Conroy, 2013</a></li>
-</ul>
-</p>
+    <h5>On-The-Fly Transfer</h5>
+    <p>This option is selected if a custom transfer function is chosen, but
+        no file is uploaded. In this case the user may choose a calculator to use.
+        Currently only two options are available - CAMB and the Eisenstein-Hu transfer function (which is
+        calculated using the cosmolopy package).
+    </p>
+    <p>
+        If CAMB is chosen as the calculator, HMF<em>calc</em> only offers the cosmological parameters
+        as input parameters to CAMB. All other parameters are taken as the defaults from the backend hmf package (listed
+        in the camb parameters table).
+        This is both to save computation time (the defaults are the most efficient to achieve requisite accuracy at high
+        mass, see the linked article),
+        and to avoid unnecessary clutter in the options.
+    </p>
 
-For a concise summary of the functional forms and respective properties of each fit, download <a href="/downloads/fitting_functions.pdf">this table</a>, 
-which will remain a standalone, updated version of Table 3 in the article describing HMF<em>calc</em>.
+    <h3>Parameters</h3>
+    <p>
+        We have discussed already that the options and parameters of HMF<em>calc</em> are split across two categories:
+        run parameters and cosmological parameters.
+    </p>
+
+    <p>
+        We first have the run parameters. In this table, the "Mult?" column specifies whether the given parameter
+        accepts multiple entries (separated by commas).
+        <img src="http://hmfstatic.appspot.com/img/runparams.png">
+    </p>
+    <p>
+        Secondly we have the cosmological parameters. The "Affects" column specifies whether the parameter affects the
+        transfer function (T), the HMF (H) or both (B).
+        <img src="http://hmfstatic.appspot.com/img/cosmoparams.png">
+
+    <h3>Fitting Functions</h3>
+    <p>
+        One of the features of HMF<em>calc</em> is its wide array of fitting functions from the literature. We aim to
+        include any fit from the published literature
+        that we find, and encourage you to contact us if you know of a fit which we have not included.
+    </p>
+    <p>
+        With such a list of available fits, it is perhaps useful to provide some short commentary on how to best choose
+        among them for a specific purpose. We note
+        that each fitting function is a fit to the distribution of halo masses found in a simulation (or set of
+        simulations) with a particular cosmology, and using
+        a particular halo-finder. Thus differences between fits can naturally arise from these choices, along with the
+        evolution of resolution and size with time.
+        Given these considerations, we give a few suggestions for choosing a fitting function:
+    <ul>
+        <li>Prefer functions measured at a similar cosmology to the one you employ</li>
+        <li>Generally choose a later function over an earlier one</li>
+        <li>If you are using a wide range of cosmologies, or want to remain as general as possible, prefer a function
+            fitted over several cosmologies
+        </li>
+        <li>Generally, for observational purposes, choose an SO fit, but for halo-model calculations choose an FOF
+            fit.
+        </li>
+    </ul>
+    </p>
+    <p>
+        To help weigh these considerations, we here provide the list of references for all fitting functions found in
+        HMF<em>calc</em>:
+    <ul>
+        <li><a href='http://iopscience.iop.org/0004-637X/671/2/1160/'>Press, Schechter, 1974 </a></li>
+        <li><a href='http://doi.wiley.com/10.1046/j.1365-8711.2001.04006.x'>Sheth, Mo, Tormen, 2001 </a></li>
+        <li><a href='http://adsabs.harvard.edu/abs/2001MNRAS.321..372J'>Jenkins et. al. 2001 </a></li>
+        <li><a href="http://arxiv.org/abs/astro-ph/0301270">Reed et. al., 2003</a></li>
+        <li><a href='http://adsabs.harvard.edu/abs/2006ApJ...646..881W'>Warren et. al., 2006 </a></li>
+        <li><a href="http://arxiv.org/abs/0705.0898">Peacock, 2007</a></li>
+        <li><a href='http://adsabs.harvard.edu/abs/2007MNRAS.374....2R'>Reed et. al., 2007 </a></li>
+        <li><a href="http://arxiv.org/abs/0803.2706">Tinker et. al., 2008 </a></li>
+        <li><a href='http://doi.wiley.com/10.1111/j.1365-2966.2009.16194.x'>Crocce et. al., 2010 </a></li>
+        <li><a href="http://arxiv.org/abs/1001.3425">Courtin et. al., 2010 </a></li>
+        <li><a href="http://arxiv.org/abs/1005.2239">Bhattacharya et. al., 2011</a></li>
+        <li><a href="arXiv:1203.3216v1">Angulo et. al., 2012 </a></li>
+        <li><a href="http://arxiv.org/abs/1212.0095">Watson et. al., 2012 </a></li>
+        <li><a href="http://arxiv.org/abs/1207.6105">Behroozi, Weschler, Conroy, 2013</a></li>
+    </ul>
+    </p>
+
+    For a concise summary of the functional forms and respective properties of each fit, download
+    <a href="/downloads/fitting_functions.pdf">this table</a>,
+    which will remain a standalone, updated version of Table 3 in the article describing HMF<em>calc</em>.
+    -->
+
+    </div>
 {% endblock %}

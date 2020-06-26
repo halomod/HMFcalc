@@ -1,0 +1,52 @@
+<!-- Fixed navbar -->
+<nav class="navbar navbar-expand-sm navbar-dark bg-dark" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/">HMF<i>calc</i></a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navcollapse1">
+            <ul class="navbar-nav mr-auto">
+
+                {% for tab in tabs %}
+                    {% if tab.top %}
+                        {% if tab.my_children %}
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle"
+                                   data-toggle="dropdown" id="dropdown-{{ tab.tab_label }}"
+                                   aria-haspopup="true" aria-expanded="false">
+                                    {{ tab.tab_label }}
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdown-{{ tab.tab_label }}">
+                                    {% for alltabs in tabs %}
+                                        {% if alltabs.tab_id in tab.my_children %}
+                                            <a class="dropdown-item{% if alltabs.tab_id == current_tab_id %} active{% endif %}"
+                                               href="{{ alltabs.tab_id }}">
+                                                {{ alltabs.tab_label }}
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </li>
+
+                        {% endif %}
+
+                        {% if not tab.my_children %}
+                            <li class="nav-item {% if tab.tab_id == current_tab_id %} active{% endif %}">
+                                <a class='nav-link' href="{{ tab.tab_id }}">
+                                    {{ tab.tab_label }}
+                                </a>
+                            </li>
+
+                        {% endif %}
+                    {% endif %}
+
+                {% endfor %}
+            </ul>
+            <span class="navbar-text">
+                Using hmf v{% current_version %}
+            </span>
+
+        </div>
+    </div>
+</nav>
