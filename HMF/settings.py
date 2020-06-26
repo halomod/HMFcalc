@@ -16,7 +16,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 CRISPY_FAIL_SILENTLY = not DEBUG
 
-from secret_settings import *
+from .secret_settings import *
 
 #===============================================================================
 # THE PROJECT DIRECTORY
