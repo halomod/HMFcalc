@@ -2,6 +2,11 @@
 
 **The web-app for calculating Halo Mass Functions**
 
+**NOTE: This app been improved and expanded to calculate a full range of halo model**
+**quantities. In doing so, a new repo was started, over at https://github.com/steven-murray/TheHaloMod.**
+**This repo remains for historical purposes only.**
+
+
 This is the source code for the [HMFcalc web-app](http://hmf.icrar.org), which uses
 the [hmf](https://github.com/steven-murray/hmf) Python package to calculate halo mass
 functions (and other cosmological structure quantities).
