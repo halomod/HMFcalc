@@ -14,7 +14,7 @@ from crispy_forms.layout import Layout, Submit, Div, HTML
 from django import forms
 from django.utils.safestring import mark_safe
 from hmf import growth_factor, transfer_models, fitting_functions, filters, wdm
-
+from hmf.halos import mass_definitions
 from .form_utils import CompositeForm, HMFModelForm, HMFFramework, RangeSliderField
 
 logger = logging.getLogger(__name__)
@@ -174,32 +174,29 @@ class MassFunctionFramework(HMFFramework):
     label = "Mass Function"
 
     logm_range = RangeSliderField(
-        label="logM range", minimum=0, maximum=20, initial="10 - 15", step=0.1
+        label="Mass Range (log10)", minimum=0, maximum=20, initial="10 - 15", step=0.1
     )
 
     dlog10m = forms.FloatField(
-        label="&#916<sub>halo</sub>", min_value=0.005, max_value=1, initial="0.01"
+        label="Mass Resolution (log10)", min_value=0.005, max_value=1, initial="0.01"
     )
 
     delta_c = forms.FloatField(
         label=mark_safe("&#948<sub>c</sub>"), initial="1.686", min_value=1, max_value=3
     )
 
-    delta_h = forms.FloatField(
-        label=mark_safe("&#916<sub>halo</sub>"),
-        help_text="Halo Overdensity Definition",
-        initial=200.0,
-        min_value=10,
-        max_value=10000.0,
-    )
 
-    delta_wrt = forms.ChoiceField(
-        label=mark_safe("&#916<sub>halo</sub> with respect to"),
-        choices=[("mean", "Mean Density"), ("crit", "Critical Density")],
-        initial="mean",
-        required=True,
-        widget=forms.RadioSelect,
-    )
+class MassDefinitionForm(HMFModelForm):
+    module = mass_definitions
+    _initial = "None"
+    choices = [
+        ("None", "Use native definition of mass function"),
+        ("SOMean", "Spherical Overdensity wrt mean"),
+        ("SOCritical", "Spherical Overdensity wrt critical"),
+        ("SOVirial", "Virial Spherical Overdensity (Bryan and Norman)"),
+        ("FOF", "Friends-of-Friends"),
+    ]
+    kind = "mdef"
 
 
 class WDMAlterForm(HMFModelForm):
@@ -238,12 +235,13 @@ class HMFInput(CompositeForm):
 
     form_list = [
         MassFunctionFramework,
-        HMFForm,
-        TransferFramework,
+        CosmoForm,
         TransferForm,
+        HMFForm,
+        MassDefinitionForm,
+        TransferFramework,
         FilterForm,
         GrowthForm,
-        CosmoForm,
         WDMFramework,
         WDMForm,
         WDMAlterForm,
@@ -302,6 +300,13 @@ class HMFInput(CompositeForm):
                     ),
                     css_class="col",
                 ),
+                Div(
+                    HTML(  # use HTML for button, to get icon in there :-)
+                        '<a class="btn btn-warning" href="../..">'
+                        '<i class="fas fa-ban"></i> Cancel</a>'
+                    ),
+                    css_class="col",
+                ),
                 css_class="row",
             ),
             TabHolder(*[form._layout for form in self.forms]),
@@ -312,9 +317,8 @@ class HMFInput(CompositeForm):
         label = self.cleaned_data["label"]
         label = label.replace("_", "-")
 
-        if not self.edit and self.current_models:
-            if label in self.current_models:
-                raise forms.ValidationError("Label must be unique")
+        if not self.edit and self.current_models and label in self.current_models:
+            raise forms.ValidationError("Label must be unique")
         return label
 
     def clean(self):
@@ -331,10 +335,6 @@ class HMFInput(CompositeForm):
             raise forms.ValidationError(
                 "Wavenumber step-size must be less than the k-range."
             )
-
-        # Check that only redshift OR hmf_model is list
-        # if len(cleaned_data['z']) > 1 and len(cleaned_data.get('hmf_model', [])) > 1:
-        #     raise forms.ValidationError("Only one of redshift or hmf_model may be a multiple-valued entry")
 
         # Check mass limits
         mrange = cleaned_data.get("logm_range")

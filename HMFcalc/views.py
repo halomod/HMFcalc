@@ -67,13 +67,11 @@ class HMFInputBase(FormView):
             # label is not a MassFunction argument
             if k == "label":
                 continue
-
-            if k == "lnk_range":
+            elif k == "lnk_range":
                 hmf_dict["lnk_min"] = v[0]
                 hmf_dict["lnk_max"] = v[1]
                 continue
-
-            if k == "logm_range":
+            elif k == "logm_range":
                 hmf_dict["Mmin"] = v[0]
                 hmf_dict["Mmax"] = v[1]
                 continue

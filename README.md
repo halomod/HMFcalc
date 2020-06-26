@@ -48,3 +48,8 @@ which defines the various things that happen when different URLs are accessed (n
 always a web-page opening -- sometimes a download of a file, or a form displaying etc.),
 and the `forms.py` which defines the (fairly large) form into which inputs for the
 HMF are given.
+
+### Running the Server Locally
+
+To run the local server for development, do `python manage.py runserver` from the top
+level. It should open a browser tab for you.

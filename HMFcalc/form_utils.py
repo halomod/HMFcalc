@@ -210,8 +210,8 @@ class CompositeForm(forms.Form):
 
 
 class HMFModelForm(forms.Form):
-    label = None
-    kind = None
+    label = None  # The text that shows on the form's tab
+    kind = None  # What it's called in the hmf framework, eg "hmf" for "hmf_model"
     choices = None
     _initial = None
     multi = False
@@ -276,7 +276,7 @@ class HMFModelForm(forms.Form):
 
     def _add_default_model(self, model):
         # Allow a "None" class
-        if model == "None":
+        if model == "None" or model is None:
             return
 
         cls = getattr(self.module, model)
@@ -287,6 +287,9 @@ class HMFModelForm(forms.Form):
             if key in self.ignore_fields:
                 continue
             if model + "_" + key in self.ignore_fields:
+                continue
+            if isinstance(val, dict):
+                # don't allow dictionaries for now
                 continue
 
             fkw = self.field_kwargs.get(key, {})

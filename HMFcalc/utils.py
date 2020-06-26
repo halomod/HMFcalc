@@ -1,15 +1,11 @@
-"""
-Created on Jun 15, 2012
-
-@author: Steven
-"""
+"""Plotting and driving utilities for hmf."""
 import copy
 import io
 import logging
 
 import matplotlib.ticker as tick
 from hmf import MassFunction
-from hmf.wdm import MassFunctionWDM
+from hmf.alternatives.wdm import MassFunctionWDM
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.backends.backend_pdf import FigureCanvasPdf
 from matplotlib.backends.backend_svg import FigureCanvasSVG

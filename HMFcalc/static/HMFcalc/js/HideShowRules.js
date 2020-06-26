@@ -1,6 +1,8 @@
 $(function () {
     jQuery.fn.extend({
         toggle_params: function () {
+            // Function that toggles which model parameters are shown. Eg. limits
+            // the shown parameters when "SMT" is selected to a,p,A.
             var these = $('div[data-component=' + $(this).attr("data-component") + '][data-model~=' + $(this).val() + ']');
             these.show();
             these.find("input").prop("required", true);
@@ -11,9 +13,14 @@ $(function () {
         }
     });
 
-    /* Hide all params that aren't required here */
-    $('.hmf_model').toggle_params();
+    /* Hide all params that aren't required here, each time the form page is loaded. */
+    $(document).ready( function () {
+        $('.hmf_model').each(function () {
+            $(this).toggle_params();
+        });
+    });
 
+    // Change required params every time a model is changed.
     $('.hmf_model').change(function () {
         $(this).toggle_params();
     });
