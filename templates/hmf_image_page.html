@@ -1,70 +1,72 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}Mass Function Calculator | Plots {% endblock %}
+{% block title %}HMFcalc | Plots {% endblock %}
 
 {% block allcontent %}
 
-	<div class="container">
-	<div class="row">
- 	{% crispy form %}
- 	
+    <div class="container">
+        <div class="row">
+            <div class="col-7">
+                {% crispy form %}
+            </div>
+            <div class="col-5">
+                <a class="btn btn-success btn-large" href="create/">
+                    <i class="fas fa-plus-square"></i> New Model</a>
+                <a class="btn btn-danger btn-large" href="restart/">
+                    <i class="fas fa-redo-alt"></i> Restart</a>
+            </div>
 
-	{% if warnings %}
-	<div id='warnings' class='row-fluid'>
-		<div class='col-md-12'>
-			
-			<ul>
-			{% for warning in warnings %}
-				<li class="text-warning"> {{ warning }} </li>
-			{% endfor %}
-			</ul>
-			
-		</div>
-	</div>
-	{% endif %}
-		
+        </div>
 
-	<div class='col-md-12' align='centre;'>
-		<img src="../dndm.png" id='the_image' align="middle">	
-	</div>
-	<br><br>
+        {% if warnings %}
+            <div id='warnings' class='row'>
+                <div class='col'>
 
-	<!-- 
-	<div class="span9"><p class='text-warning'> Note: to get unit information for all quantities, download the
-	"Unit Information" from the Download drop-down menu.</p>
-	</div>
-	
-	<div id = 'table' class='row-fluid' style="align:centre;">
-		<div class='span10'>
-			<table id='cosmo_quantities' class='table table-bordered table-condensed table-hover table-striped' summary="Summary of distances and ages for specified cosmology and redshift">
-			<thead>
-				<th scope='col'> Cosmology </th>
-				<th scope='col'> Redshift </th>
-				<th scope='col'> Age (Gyr) </th>
-				<th scope='col'> Com. Dist. (Gpc/h) </th>
-				<th scope='col'> Com. Vol.  (Gpc<sup>3</sup>/h<sup>3</sup>) </th>
-				<th scope='col'> Ang. Size Dist. (Gpc/h) </th>
-				<th scope='col'> Lum. Dist. (Gpc/h) </th>
-				<th scope='col'> Growth Factor </th>
-			</thead>
-			<tbody>
-				{% for row in distances %}
-					<tr>
-						<td> {{ row.0 }} </td>
-						<td> {{ row.1|floatformat:"-2" }} </td>
-						<td> {{ row.2|floatformat:"-2"}} </td>
-						<td> {{ row.3|floatformat:"-2" }} </td>
-						<td> {{ row.4|floatformat:"-2" }} </td>
-						<td> {{ row.5|floatformat:"-2" }} </td>
-						<td> {{ row.6|floatformat:"-2" }} </td>
-						<td> {{ row.7|floatformat:"-2" }} </td>
-					</tr>
-				{% endfor %}
-			</tbody>
-			</table>
-		</div>
-	</div>
- -->
-</div>
-</div>
+                    <ul>
+                        {% for warning in warnings %}
+                            <li class="text-warning"> {{ warning }} </li>
+                        {% endfor %}
+                    </ul>
+
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row" id="image_row">
+            <div class='col-md-12 mx-auto'>
+                <img src="dndm.svg" id='the_image' width="100%">
+            </div>
+        </div>
+
+
+        <!-- Model Table -->
+        <div class="row" id="model_table_row">
+            <div class="col-8">
+                <table class="table" id="model_table">
+                    <tbody>
+                    {% for object in objects.keys %}
+                        <tr id="{{ object }}-table-row">
+                            <th scope="row"> {{ object }}</th>
+                            <td id="{{ object }}-table-edit">
+                                <a href="edit/{{ object }}/">
+                                    <i class="far fa-edit"></i>
+                                </a>
+                            </td>
+                            <td id="{{ object }}-table-delete">
+                                <a href="delete/{{ object }}" id="{{ object }}-table-delete-button">
+                                    <i class="far fa-trash-alt"></i>
+                                </a>
+                            </td>
+                            <td id="{{ object }}-table-create">
+                                <a href="create/{{ object }}/">
+                                    <i class="far fa-plus-square"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 {% endblock %}
