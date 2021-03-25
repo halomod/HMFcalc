@@ -54,7 +54,7 @@ PyQtChart==5.11.3
 pyssht==2.0
 python-dateutil==2.8.0
 pytz==2019.1
-PyYAML==5.1.2
+PyYAML==5.4
 QScintilla==2.10.8
 qtconsole==4.3.1
 scipy==1.2.1
