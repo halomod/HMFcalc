@@ -14,7 +14,7 @@ colorzero==1.1
 cycler==0.10.0
 decorator==4.4.0
 distlib==0.3.0
-Django==3.0.7
+Django==3.1.12
 django-analytical==2.6.0
 django-crispy-forms==1.9.1
 django-range-slider==0.2.4
