@@ -7,7 +7,7 @@ backcall==0.1.0
 billiard==3.6.0.0
 camb==1.0.4
 celery==4.3.0
-certifi==2019.3.9
+certifi==2022.12.7
 cffi==1.12.3
 cfgv==3.1.0
 colorzero==1.1
