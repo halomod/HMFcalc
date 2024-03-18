@@ -71,14 +71,22 @@ class TransferForm(HMFModelForm):
         ("CAMB", "CAMB"),
         ("EH_BAO", "Eisenstein-Hu (1998) (with BAO)"),
         ("EH_NoBAO", "Eisenstein-Hu (1998) (no BAO)"),
-        ("BBKS", "BBKS (1986)",),
+        (
+            "BBKS",
+            "BBKS (1986)",
+        ),
         ("BondEfs", "Bond-Efstathiou"),
     ]
     _initial = "CAMB"
     module = transfer_models
     ignore_fields = ["camb_params"]
 
-    field_kwargs = {"fname": {"type": forms.FileField, "label": "",}}
+    field_kwargs = {
+        "fname": {
+            "type": forms.FileField,
+            "label": "",
+        }
+    }
 
     def clean_transfer_fname(self):
         thefile = self.cleaned_data.get("transfer_fname", None)
@@ -124,7 +132,10 @@ class TransferFramework(HMFFramework):
     )
 
     dlnk = forms.FloatField(
-        label="lnk Step Size", initial=0.05, min_value=0.005, max_value=0.5,
+        label="lnk Step Size",
+        initial=0.05,
+        min_value=0.005,
+        max_value=0.5,
     )
 
     takahashi = forms.BooleanField(
